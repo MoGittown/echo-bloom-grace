@@ -192,18 +192,20 @@
       margin-bottom: 5mm;
     }
 
-    /* Half page sections - DIN A4 is 297mm, half is ~148mm */
+    /* Half page sections - DIN A4 is 297mm height, minus margins ~273mm usable, half is ~130mm */
     .print-half-page {
-      page-break-inside: avoid;
-      page-break-after: auto;
-      min-height: 120mm;
+      page-break-inside: avoid !important;
+      break-inside: avoid !important;
+      height: 125mm;
+      max-height: 125mm;
       margin-bottom: 5mm;
       padding: 5mm;
-      overflow: visible;
+      overflow: hidden;
+      box-sizing: border-box;
     }
 
     .print-half-page canvas {
-      max-width: 180mm !important;
+      max-width: 170mm !important;
       max-height: 100mm !important;
       height: auto !important;
       width: auto !important;
@@ -213,38 +215,55 @@
 
     /* Force page breaks before specific sections */
     .print-page-break-before {
-      page-break-before: always;
+      page-break-before: always !important;
+      break-before: page !important;
     }
 
-    /* Photos grid - 2x2 layout */
+    /* Avoid page breaks inside */
+    .print-no-break {
+      page-break-inside: avoid !important;
+      break-inside: avoid !important;
+    }
+
+    /* Photos grid - 2x2 layout on half page */
     .print-photos-grid {
       display: grid !important;
       grid-template-columns: repeat(2, 1fr) !important;
-      gap: 3mm !important;
+      gap: 4mm !important;
+      page-break-inside: avoid !important;
+      break-inside: avoid !important;
     }
 
     .print-photos-grid > div {
-      aspect-ratio: 16/10;
-      overflow: hidden;
+      height: 50mm !important;
+      overflow: hidden !important;
     }
 
     .print-photos-grid img {
-      max-height: 50mm !important;
       width: 100% !important;
-      height: auto !important;
-      object-fit: cover;
+      height: 50mm !important;
+      object-fit: cover !important;
       border-radius: 2mm;
     }
 
     /* Ensure proper page margins */
     @page {
-      size: A4;
+      size: A4 portrait;
       margin: 12mm;
     }
 
-    /* Fix for summary content */
+    /* Fix for summary content spacing */
     .space-y-6 > * {
-      margin-bottom: 4mm;
+      margin-bottom: 3mm;
+    }
+
+    /* Canvas containers in half-page sections */
+    .print-canvas-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 105mm;
+      overflow: hidden;
     }
   }
 }
