@@ -405,12 +405,13 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
 
   // Extract appliance details from appliances.other
   const applianceOther = project.preferences.appliances.other || [];
-  const cookingZones = applianceOther.find(i => ['4-Zonen', '5-Zonen', '6-Zonen'].includes(i));
+  const cooktopSize = applianceOther.find(i => ['KF-60cm', 'KF-80cm', 'KF-90cm'].includes(i))?.replace('KF-', '');
   const hoodVentilation = applianceOther.find(i => ['Abluft', 'Umluft', 'Beides möglich'].includes(i));
   const ovenHeight = applianceOther.includes('Backofen-Hocheinbau') ? 'Hocheinbau' : applianceOther.includes('Backofen-Normal') ? 'Unter Arbeitsplatte' : null;
-  const dishwasherHeight = applianceOther.includes('GS-Hocheinbau') ? 'Hocheinbau' : applianceOther.includes('GS-Normal') ? 'Normal' : null;
+  const dishwasherHeight = applianceOther.includes('GS-Hocheinbau') ? 'Hocheinbau' : applianceOther.includes('GS-Normal') ? 'Normal (unter AP)' : null;
   const dishwasherWidth = applianceOther.includes('GS-45cm') ? '45 cm' : applianceOther.includes('GS-60cm') ? '60 cm' : null;
   const dishwasherIntegration = applianceOther.includes('GS-Vollintegriert') ? 'Vollintegriert' : applianceOther.includes('GS-Teilintegriert') ? 'Teilintegriert' : null;
+  const applianceNotes = applianceOther.filter(i => i.startsWith('Notiz:')).map(i => i.replace('Notiz:', ''));
   const applianceBrands = applianceOther.filter(i => i.startsWith('Marke:')).map(i => i.replace('Marke:', ''));
   const applianceExtras = applianceOther.filter(i => 
     ['Flex-Zone', 'Teppan Yaki', 'Wok-Mulde', 'Pyrolyse', 'Dampfgarer', 'Kombi-Dampfgarer', 
@@ -652,7 +653,7 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
                 <CheckCircle className="w-4 h-4 text-accent mt-0.5" />
                 <div>
                   <span className="font-medium">Kochfeld:</span> {project.preferences.appliances.cooktop}
-                  {cookingZones && <span className="text-muted-foreground"> ({cookingZones})</span>}
+                  {cooktopSize && <span className="text-muted-foreground"> ({cooktopSize})</span>}
                 </div>
               </div>
             )}
@@ -687,9 +688,9 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
                 <CheckCircle className="w-4 h-4 text-accent mt-0.5" />
                 <div>
                   <span className="font-medium">Geschirrspüler:</span>
-                  {dishwasherWidth && <span> {dishwasherWidth}</span>}
-                  {dishwasherHeight && <span>, {dishwasherHeight}</span>}
-                  {dishwasherIntegration && <span>, {dishwasherIntegration}</span>}
+                  <span> {dishwasherWidth || '60 cm'}</span>
+                  <span>, {dishwasherHeight || 'Normal (unter AP)'}</span>
+                  <span>, {dishwasherIntegration || 'Vollintegriert'}</span>
                 </div>
               </div>
             )}
@@ -720,6 +721,13 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
                   <span key={brand} className="px-2 py-1 bg-primary/10 text-primary rounded text-xs">{brand}</span>
                 ))}
               </div>
+            </div>
+          )}
+          
+          {applianceNotes.length > 0 && (
+            <div className="mt-4 pt-4 border-t">
+              <span className="text-muted-foreground text-sm">Sonstige Wünsche:</span>
+              <p className="mt-1 text-sm">{applianceNotes.join(', ')}</p>
             </div>
           )}
         </div>
