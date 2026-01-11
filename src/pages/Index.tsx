@@ -4,17 +4,21 @@ import { CustomerForm } from '@/components/kitchen/CustomerForm';
 import { RoomForm } from '@/components/kitchen/RoomForm';
 import { FloorPlanEditor } from '@/components/kitchen/FloorPlanEditor';
 import { WallViewEditor } from '@/components/kitchen/WallViewEditor';
-import { PreferencesForm } from '@/components/kitchen/PreferencesForm';
+import { StyleForm } from '@/components/kitchen/StyleForm';
+import { AppliancesForm } from '@/components/kitchen/AppliancesForm';
+import { SinkForm } from '@/components/kitchen/SinkForm';
 import { PhotoUpload } from '@/components/kitchen/PhotoUpload';
 import { SummaryView } from '@/components/kitchen/SummaryView';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, RotateCcw, ChefHat, User, Ruler, LayoutGrid, Square, Palette, Camera, FileText } from 'lucide-react';
+import { ChevronLeft, ChevronRight, RotateCcw, ChefHat, User, Ruler, LayoutGrid, Square, Palette, Camera, FileText, Plug, Droplets } from 'lucide-react';
 
 const STEPS = [
+  { title: 'Stil', icon: <Palette className="w-5 h-5" /> },
+  { title: 'Geräte', icon: <Plug className="w-5 h-5" /> },
+  { title: 'Spüle', icon: <Droplets className="w-5 h-5" /> },
   { title: 'Raum', icon: <Ruler className="w-5 h-5" /> },
   { title: 'Grundriss', icon: <LayoutGrid className="w-5 h-5" /> },
   { title: 'Wände', icon: <Square className="w-5 h-5" /> },
-  { title: 'Wünsche', icon: <Palette className="w-5 h-5" /> },
   { title: 'Fotos', icon: <Camera className="w-5 h-5" /> },
   { title: 'Kontakt', icon: <User className="w-5 h-5" /> },
   { title: 'Übersicht', icon: <FileText className="w-5 h-5" /> },
@@ -49,6 +53,8 @@ const Index = () => {
     );
   }
 
+  const totalSteps = STEPS.length;
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -80,24 +86,30 @@ const Index = () => {
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8 max-w-4xl">
         {currentStep === 0 && (
-          <RoomForm data={project.room} onChange={updateRoom} />
+          <StyleForm data={project.preferences} onChange={updatePreferences} />
         )}
         {currentStep === 1 && (
-          <FloorPlanEditor floorPlan={project.floorPlan} room={project.room} onChange={updateFloorPlan} />
+          <AppliancesForm data={project.preferences} onChange={updatePreferences} />
         )}
         {currentStep === 2 && (
-          <WallViewEditor floorPlan={project.floorPlan} room={project.room} />
+          <SinkForm data={project.preferences} onChange={updatePreferences} />
         )}
         {currentStep === 3 && (
-          <PreferencesForm data={project.preferences} onChange={updatePreferences} />
+          <RoomForm data={project.room} onChange={updateRoom} />
         )}
         {currentStep === 4 && (
-          <PhotoUpload photos={project.photos} onAdd={addPhoto} onRemove={removePhoto} />
+          <FloorPlanEditor floorPlan={project.floorPlan} room={project.room} onChange={updateFloorPlan} />
         )}
         {currentStep === 5 && (
-          <CustomerForm data={project.customer} onChange={updateCustomer} />
+          <WallViewEditor floorPlan={project.floorPlan} room={project.room} />
         )}
         {currentStep === 6 && (
+          <PhotoUpload photos={project.photos} onAdd={addPhoto} onRemove={removePhoto} />
+        )}
+        {currentStep === 7 && (
+          <CustomerForm data={project.customer} onChange={updateCustomer} />
+        )}
+        {currentStep === 8 && (
           <SummaryView project={project} onUpdateNotes={updateNotes} />
         )}
 
@@ -107,7 +119,7 @@ const Index = () => {
             <ChevronLeft className="w-4 h-4" />
             Zurück
           </Button>
-          {currentStep < 6 ? (
+          {currentStep < totalSteps - 1 ? (
             <Button onClick={nextStep} className="gap-2">
               Weiter
               <ChevronRight className="w-4 h-4" />
