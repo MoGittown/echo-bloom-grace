@@ -1,5 +1,5 @@
 import { useRef, useCallback, useState } from 'react';
-import { KitchenProject, ELEMENT_TYPES } from '@/types/kitchen';
+import { KitchenProject } from '@/types/kitchen';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
