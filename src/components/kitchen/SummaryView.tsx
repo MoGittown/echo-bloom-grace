@@ -413,11 +413,12 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
   const dishwasherIntegration = applianceOther.includes('GS-Vollintegriert') ? 'Vollintegriert' : applianceOther.includes('GS-Teilintegriert') ? 'Teilintegriert' : null;
   const applianceNotes = applianceOther.filter(i => i.startsWith('Notiz:')).map(i => i.replace('Notiz:', ''));
   const applianceBrands = applianceOther.filter(i => i.startsWith('Marke:')).map(i => i.replace('Marke:', ''));
-  const applianceExtras = applianceOther.filter(i => 
-    ['Flex-Zone', 'Teppan Yaki', 'Wok-Mulde', 'Pyrolyse', 'Dampfgarer', 'Kombi-Dampfgarer', 
-     'Zweiter Backofen', 'Wärmeschublade', 'Vakuumierschublade', 'Kaffeevollautomat',
-     'Gefrierschrank separat', 'Weinkühlschrank', 'Zweiter Geschirrspüler'].includes(i)
-  );
+  
+  // Group extras by appliance type
+  const cooktopExtras = applianceOther.filter(i => ['Flex-Zone', 'Teppan Yaki', 'Wok-Mulde'].includes(i));
+  const ovenExtras = applianceOther.filter(i => ['Pyrolyse', 'Dampfgarer', 'Kombi-Dampfgarer', 'Zweiter Backofen', 'Wärmeschublade', 'Vakuumierschublade', 'Kaffeevollautomat'].includes(i));
+  const fridgeExtras = applianceOther.filter(i => ['Gefrierschrank separat', 'Weinkühlschrank'].includes(i));
+  const dishwasherExtras = applianceOther.filter(i => ['Zweiter Geschirrspüler'].includes(i));
 
   // Extract sink/faucet/lighting details
   const lighting = project.preferences.lighting || [];
@@ -650,16 +651,21 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
           <div className="grid md:grid-cols-2 gap-4 text-sm">
             {project.preferences.appliances.cooktop && (
               <div className="flex items-start gap-2">
-                <CheckCircle className="w-4 h-4 text-accent mt-0.5" />
+                <CheckCircle className="w-4 h-4 text-accent mt-0.5 flex-shrink-0" />
                 <div>
                   <span className="font-medium">Kochfeld:</span> {project.preferences.appliances.cooktop}
                   {cooktopSize && <span className="text-muted-foreground"> ({cooktopSize})</span>}
+                  {cooktopExtras.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {cooktopExtras.map(e => <span key={e} className="px-2 py-0.5 bg-accent/10 text-accent rounded text-xs">{e}</span>)}
+                    </div>
+                  )}
                 </div>
               </div>
             )}
             {project.preferences.appliances.hood && (
               <div className="flex items-start gap-2">
-                <CheckCircle className="w-4 h-4 text-accent mt-0.5" />
+                <CheckCircle className="w-4 h-4 text-accent mt-0.5 flex-shrink-0" />
                 <div>
                   <span className="font-medium">Dunstabzug:</span> {project.preferences.appliances.hood}
                   {hoodVentilation && <span className="text-muted-foreground"> ({hoodVentilation})</span>}
@@ -668,50 +674,54 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
             )}
             {project.preferences.appliances.oven && (
               <div className="flex items-start gap-2">
-                <CheckCircle className="w-4 h-4 text-accent mt-0.5" />
+                <CheckCircle className="w-4 h-4 text-accent mt-0.5 flex-shrink-0" />
                 <div>
                   <span className="font-medium">Backofen:</span> {project.preferences.appliances.oven}
                   {ovenHeight && <span className="text-muted-foreground"> ({ovenHeight})</span>}
+                  {ovenExtras.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {ovenExtras.map(e => <span key={e} className="px-2 py-0.5 bg-accent/10 text-accent rounded text-xs">{e}</span>)}
+                    </div>
+                  )}
                 </div>
               </div>
             )}
             {project.preferences.appliances.fridge && (
               <div className="flex items-start gap-2">
-                <CheckCircle className="w-4 h-4 text-accent mt-0.5" />
+                <CheckCircle className="w-4 h-4 text-accent mt-0.5 flex-shrink-0" />
                 <div>
                   <span className="font-medium">Kühlschrank:</span> {project.preferences.appliances.fridge}
+                  {fridgeExtras.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {fridgeExtras.map(e => <span key={e} className="px-2 py-0.5 bg-accent/10 text-accent rounded text-xs">{e}</span>)}
+                    </div>
+                  )}
                 </div>
               </div>
             )}
             {project.preferences.appliances.dishwasher && (
               <div className="flex items-start gap-2">
-                <CheckCircle className="w-4 h-4 text-accent mt-0.5" />
+                <CheckCircle className="w-4 h-4 text-accent mt-0.5 flex-shrink-0" />
                 <div>
                   <span className="font-medium">Geschirrspüler:</span>
                   <span> {dishwasherWidth || '60 cm'}</span>
                   <span>, {dishwasherHeight || 'Normal (unter AP)'}</span>
                   <span>, {dishwasherIntegration || 'Vollintegriert'}</span>
+                  {dishwasherExtras.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {dishwasherExtras.map(e => <span key={e} className="px-2 py-0.5 bg-accent/10 text-accent rounded text-xs">{e}</span>)}
+                    </div>
+                  )}
                 </div>
               </div>
             )}
             {project.preferences.appliances.microwave && (
               <div className="flex items-center gap-2">
                 <CheckCircle className="w-4 h-4 text-accent" />
-                <span>Mikrowelle</span>
+                <span>Mikrowelle (Einbau)</span>
               </div>
             )}
           </div>
-          
-          {applianceExtras.length > 0 && (
-            <div className="mt-4 pt-4 border-t">
-              <span className="text-muted-foreground text-sm">Zusatzausstattung:</span>
-              <div className="flex flex-wrap gap-1 mt-2">
-                {applianceExtras.map((extra) => (
-                  <span key={extra} className="px-2 py-1 bg-accent/10 text-accent rounded text-xs">{extra}</span>
-                ))}
-              </div>
-            </div>
-          )}
           
           {applianceBrands.length > 0 && (
             <div className="mt-4 pt-4 border-t">
