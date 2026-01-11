@@ -24,7 +24,32 @@ export function useKitchenProject() {
   }, []);
 
   useEffect(() => {
-    if (project) localStorage.setItem(STORAGE_KEY, JSON.stringify(project));
+    if (project) {
+      try {
+        // Exclude large photo preview data and File objects from storage to prevent quota issues
+        const storableProject = {
+          ...project,
+          photos: project.photos.map(p => ({
+            id: p.id,
+            type: p.type,
+            description: p.description,
+            preview: p.preview && p.preview.length > 50000 ? '' : p.preview // Only store small previews
+          }))
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(storableProject));
+      } catch (e) {
+        if (e instanceof Error && e.name === 'QuotaExceededError') {
+          console.warn('LocalStorage quota exceeded. Photos will not persist between sessions.');
+          // Try saving without any photo data
+          try {
+            const minimalProject = { ...project, photos: [] };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(minimalProject));
+          } catch {
+            console.error('Unable to save project to localStorage');
+          }
+        }
+      }
+    }
   }, [project]);
 
   const updateCustomer = useCallback((data: Partial<CustomerData>) => {
