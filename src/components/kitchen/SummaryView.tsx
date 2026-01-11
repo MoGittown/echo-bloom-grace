@@ -70,11 +70,12 @@ const getUntaggedItems = (items: string[] | undefined): string[] => {
   return items.filter(i => !i.includes(':'));
 };
 
-// Floor Plan Canvas Component for Summary
+// Floor Plan Canvas Component for Summary - larger for print
 function FloorPlanCanvas({ room, elements }: { room: RoomDimensions; elements: WallElement[] }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const scale = 0.4;
-  const padding = 50;
+  // Larger scale for better print quality
+  const scale = 0.6;
+  const padding = 70;
   const canvasWidth = room.length * scale + padding * 2;
   const canvasHeight = room.width * scale + padding * 2;
 
@@ -85,26 +86,43 @@ function FloorPlanCanvas({ room, elements }: { room: RoomDimensions; elements: W
     if (!ctx) return;
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = '#faf8f5';
+    ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Draw grid
+    ctx.strokeStyle = '#e5e0d8';
+    ctx.lineWidth = 0.5;
+    const gridSize = 50 * scale;
+    for (let x = padding; x <= canvasWidth - padding; x += gridSize) {
+      ctx.beginPath();
+      ctx.moveTo(x, padding);
+      ctx.lineTo(x, canvasHeight - padding);
+      ctx.stroke();
+    }
+    for (let y = padding; y <= canvasHeight - padding; y += gridSize) {
+      ctx.beginPath();
+      ctx.moveTo(padding, y);
+      ctx.lineTo(canvasWidth - padding, y);
+      ctx.stroke();
+    }
 
     // Draw room
     ctx.strokeStyle = '#2d2a26';
-    ctx.lineWidth = 4;
+    ctx.lineWidth = 5;
     ctx.strokeRect(padding, padding, room.length * scale, room.width * scale);
 
-    // Dimensions
-    ctx.font = '12px Inter';
-    ctx.fillStyle = '#666';
+    // Dimensions with better visibility
+    ctx.font = 'bold 14px Inter';
+    ctx.fillStyle = '#333';
     ctx.textAlign = 'center';
-    ctx.fillText(`${room.length} cm`, padding + (room.length * scale) / 2, padding - 10);
+    ctx.fillText(`${room.length} cm`, padding + (room.length * scale) / 2, padding - 15);
     ctx.save();
-    ctx.translate(padding - 15, padding + (room.width * scale) / 2);
+    ctx.translate(padding - 20, padding + (room.width * scale) / 2);
     ctx.rotate(-Math.PI / 2);
     ctx.fillText(`${room.width} cm`, 0, 0);
     ctx.restore();
 
-    // Draw elements
+    // Draw elements with labels
     elements.forEach((element) => {
       const color = ELEMENT_COLORS[element.type] || '#999';
       let x = padding, y = padding, w = 0, h = 0;
@@ -114,30 +132,47 @@ function FloorPlanCanvas({ room, elements }: { room: RoomDimensions; elements: W
           x = padding + (element.distanceFromLeft || 0) * scale;
           y = padding;
           w = element.width * scale;
-          h = 8;
+          h = 12;
           break;
         case 'south':
           x = padding + (element.distanceFromLeft || 0) * scale;
-          y = padding + room.width * scale - 8;
+          y = padding + room.width * scale - 12;
           w = element.width * scale;
-          h = 8;
+          h = 12;
           break;
         case 'east':
-          x = padding + room.length * scale - 8;
+          x = padding + room.length * scale - 12;
           y = padding + (element.distanceFromLeft || 0) * scale;
-          w = 8;
+          w = 12;
           h = element.width * scale;
           break;
         case 'west':
           x = padding;
           y = padding + (element.distanceFromLeft || 0) * scale;
-          w = 8;
+          w = 12;
           h = element.width * scale;
           break;
       }
 
       ctx.fillStyle = color;
       ctx.fillRect(x, y, w, h);
+      ctx.strokeStyle = '#333';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(x, y, w, h);
+    });
+
+    // Legend
+    ctx.font = '11px Inter';
+    ctx.textAlign = 'left';
+    let legendY = canvasHeight - 20;
+    const legendItems = [...new Set(elements.map(e => e.type))];
+    let legendX = padding;
+    legendItems.forEach((type) => {
+      ctx.fillStyle = ELEMENT_COLORS[type] || '#999';
+      ctx.fillRect(legendX, legendY - 8, 12, 12);
+      ctx.fillStyle = '#333';
+      ctx.fillText(ELEMENT_TYPE_LABELS[type] || type, legendX + 16, legendY);
+      legendX += 90;
     });
   }, [room, elements, scale, canvasWidth, canvasHeight]);
 
@@ -147,16 +182,16 @@ function FloorPlanCanvas({ room, elements }: { room: RoomDimensions; elements: W
       width={canvasWidth}
       height={canvasHeight}
       className="max-w-full border rounded bg-white"
-      style={{ maxHeight: '350px' }}
     />
   );
 }
 
-// Wall View Canvas Component for Summary
+// Wall View Canvas Component for Summary - larger for print
 function WallViewCanvas({ room, elements, wall }: { room: RoomDimensions; elements: WallElement[]; wall: 'north' | 'east' | 'south' | 'west' }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const scale = 0.35;
-  const padding = 60;
+  // Larger scale for better print quality
+  const scale = 0.5;
+  const padding = 80;
   const wallWidth = wall === 'north' || wall === 'south' ? room.length : room.width;
   const wallHeight = room.height;
   const canvasWidth = wallWidth * scale + padding * 2;
@@ -169,38 +204,64 @@ function WallViewCanvas({ room, elements, wall }: { room: RoomDimensions; elemen
     if (!ctx) return;
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = '#faf8f5';
+    ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // Wall background
     ctx.fillStyle = '#f5f0e8';
     ctx.fillRect(padding, padding, wallWidth * scale, wallHeight * scale);
 
+    // Grid
+    ctx.strokeStyle = '#e5e0d8';
+    ctx.lineWidth = 0.5;
+    ctx.setLineDash([3, 3]);
+    const gridSize = 50 * scale;
+    for (let x = padding; x <= canvasWidth - padding; x += gridSize) {
+      ctx.beginPath();
+      ctx.moveTo(x, padding);
+      ctx.lineTo(x, padding + wallHeight * scale);
+      ctx.stroke();
+    }
+    for (let y = padding; y <= padding + wallHeight * scale; y += gridSize) {
+      ctx.beginPath();
+      ctx.moveTo(padding, y);
+      ctx.lineTo(canvasWidth - padding, y);
+      ctx.stroke();
+    }
+    ctx.setLineDash([]);
+
     // Wall border
     ctx.strokeStyle = '#2d2a26';
-    ctx.lineWidth = 3;
+    ctx.lineWidth = 4;
     ctx.strokeRect(padding, padding, wallWidth * scale, wallHeight * scale);
 
     // Floor line
     ctx.strokeStyle = '#8b7355';
-    ctx.lineWidth = 4;
+    ctx.lineWidth = 6;
     ctx.beginPath();
-    ctx.moveTo(padding - 10, padding + wallHeight * scale);
-    ctx.lineTo(canvasWidth - padding + 10, padding + wallHeight * scale);
+    ctx.moveTo(padding - 15, padding + wallHeight * scale);
+    ctx.lineTo(canvasWidth - padding + 15, padding + wallHeight * scale);
     ctx.stroke();
 
-    // Dimensions
-    ctx.font = '11px Inter';
-    ctx.fillStyle = '#666';
+    // Ceiling line
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(padding - 10, padding);
+    ctx.lineTo(canvasWidth - padding + 10, padding);
+    ctx.stroke();
+
+    // Dimensions with better visibility
+    ctx.font = 'bold 14px Inter';
+    ctx.fillStyle = '#333';
     ctx.textAlign = 'center';
-    ctx.fillText(`${wallWidth} cm`, canvasWidth / 2, padding - 8);
+    ctx.fillText(`${wallWidth} cm`, canvasWidth / 2, padding - 12);
     ctx.save();
-    ctx.translate(padding - 12, padding + (wallHeight * scale) / 2);
+    ctx.translate(padding - 18, padding + (wallHeight * scale) / 2);
     ctx.rotate(-Math.PI / 2);
     ctx.fillText(`${wallHeight} cm`, 0, 0);
     ctx.restore();
 
-    // Draw elements
+    // Draw elements with dimensions
     elements.forEach((element) => {
       const color = ELEMENT_COLORS[element.type] || '#999';
       const elemX = padding + (element.distanceFromLeft || 0) * scale;
@@ -208,17 +269,55 @@ function WallViewCanvas({ room, elements, wall }: { room: RoomDimensions; elemen
       const elemWidth = element.width * scale;
       const elemHeight = element.height * scale;
 
+      // Element fill
       ctx.fillStyle = color;
       ctx.fillRect(elemX, elemY, elemWidth, elemHeight);
       ctx.strokeStyle = '#333';
-      ctx.lineWidth = 1;
+      ctx.lineWidth = 2;
       ctx.strokeRect(elemX, elemY, elemWidth, elemHeight);
 
-      // Label
-      ctx.font = '9px Inter';
-      ctx.fillStyle = '#333';
+      // Element label and dimensions
+      ctx.font = 'bold 11px Inter';
+      ctx.fillStyle = '#000';
       ctx.textAlign = 'center';
-      ctx.fillText(ELEMENT_TYPE_LABELS[element.type] || element.type, elemX + elemWidth / 2, elemY + elemHeight / 2 + 3);
+      ctx.fillText(ELEMENT_TYPE_LABELS[element.type] || element.type, elemX + elemWidth / 2, elemY + elemHeight / 2);
+      ctx.font = '10px Inter';
+      ctx.fillText(`${element.width}×${element.height}`, elemX + elemWidth / 2, elemY + elemHeight / 2 + 14);
+
+      // Distance from left
+      if (element.distanceFromLeft && element.distanceFromLeft > 0) {
+        ctx.strokeStyle = '#666';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([4, 4]);
+        ctx.beginPath();
+        ctx.moveTo(padding, padding + wallHeight * scale + 20);
+        ctx.lineTo(elemX, padding + wallHeight * scale + 20);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.font = '10px Inter';
+        ctx.fillStyle = '#666';
+        ctx.fillText(`${element.distanceFromLeft} cm`, (padding + elemX) / 2, padding + wallHeight * scale + 35);
+      }
+
+      // Distance from floor
+      if (element.distanceFromFloor && element.distanceFromFloor > 0) {
+        const floorY = padding + wallHeight * scale;
+        ctx.strokeStyle = '#666';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([4, 4]);
+        ctx.beginPath();
+        ctx.moveTo(elemX + elemWidth + 12, floorY);
+        ctx.lineTo(elemX + elemWidth + 12, elemY + elemHeight);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.save();
+        ctx.translate(elemX + elemWidth + 25, (floorY + elemY + elemHeight) / 2);
+        ctx.rotate(-Math.PI / 2);
+        ctx.font = '10px Inter';
+        ctx.fillStyle = '#666';
+        ctx.fillText(`${element.distanceFromFloor} cm`, 0, 0);
+        ctx.restore();
+      }
     });
   }, [room, elements, wall, scale, wallWidth, wallHeight, canvasWidth, canvasHeight]);
 
@@ -228,7 +327,6 @@ function WallViewCanvas({ room, elements, wall }: { room: RoomDimensions; elemen
       width={canvasWidth}
       height={canvasHeight}
       className="max-w-full border rounded bg-white"
-      style={{ maxHeight: '300px' }}
     />
   );
 }
@@ -766,7 +864,7 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
         </div>
 
         {/* Floor Plan Visual - Half Page for Print */}
-        <div className="kitchen-card p-6 print-half-page">
+        <div className="kitchen-card p-6 print-half-page print-page-break-before">
           <h3 className="font-semibold flex items-center gap-2 mb-4">
             <LayoutGrid className="w-5 h-5 text-primary" />
             Grundriss
@@ -866,7 +964,7 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
 
         {/* Photos - Half Page for Print */}
         {project.photos.length > 0 && (
-          <div className="kitchen-card p-6 print-half-page">
+          <div className="kitchen-card p-6 print-half-page print-page-break-before">
             <h3 className="font-semibold flex items-center gap-2 mb-4">
               <Camera className="w-5 h-5 text-primary" />
               Fotos ({project.photos.length})
