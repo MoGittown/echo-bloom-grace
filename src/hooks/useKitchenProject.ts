@@ -73,8 +73,17 @@ export function useKitchenProject() {
     removePhoto,
     updateNotes,
     resetProject,
-    nextStep: useCallback(() => setCurrentStep(p => Math.min(p + 1, 8)), []),
-    prevStep: useCallback(() => setCurrentStep(p => Math.max(p - 1, 0)), []),
-    goToStep: useCallback((step: number) => setCurrentStep(Math.max(0, Math.min(step, 8))), []),
+    nextStep: useCallback(() => {
+      setCurrentStep(p => Math.min(p + 1, 8));
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, []),
+    prevStep: useCallback(() => {
+      setCurrentStep(p => Math.max(p - 1, 0));
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, []),
+    goToStep: useCallback((step: number) => {
+      setCurrentStep(Math.max(0, Math.min(step, 8)));
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, []),
   };
 }
