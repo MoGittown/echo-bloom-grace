@@ -928,7 +928,7 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
           })}
         </div>
 
-        {/* ===== PAGE 4: Wall Views Süd & West ===== */}
+        {/* ===== PAGE 4: Wall Views Süd & West + Element Table ===== */}
         <div className="print-page-break-before">
           <h3 className="font-semibold flex items-center gap-2 mb-2 text-lg">
             <Square className="w-5 h-5 text-primary" />
@@ -951,14 +951,11 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
               </div>
             );
           })}
-        </div>
 
-        {/* ===== PAGE 5: Elements Table, Must-haves, Nice-to-haves, Notes, Photos ===== */}
-        <div className="print-page-break-before">
-          {/* Floor Plan Elements Table */}
+          {/* Floor Plan Elements Table - on Page 4 */}
           {project.floorPlan.elements.length > 0 && (
-            <div className="kitchen-card p-6 mb-6">
-              <h3 className="font-semibold flex items-center gap-2 mb-4">
+            <div className="kitchen-card p-4 mt-4">
+              <h3 className="font-semibold flex items-center gap-2 mb-3">
                 <FileText className="w-5 h-5 text-primary" />
                 Eingetragene Elemente ({project.floorPlan.elements.length})
               </h3>
@@ -966,19 +963,19 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b">
-                      <th className="text-left py-2">Typ</th>
-                      <th className="text-left py-2">Wand</th>
-                      <th className="text-left py-2">Maße</th>
-                      <th className="text-left py-2">Position</th>
+                      <th className="text-left py-1">Typ</th>
+                      <th className="text-left py-1">Wand</th>
+                      <th className="text-left py-1">Maße</th>
+                      <th className="text-left py-1">Position</th>
                     </tr>
                   </thead>
                   <tbody>
                     {project.floorPlan.elements.map((element) => (
                       <tr key={element.id} className="border-b border-border/50">
-                        <td className="py-2">{ELEMENT_TYPE_LABELS[element.type] || element.type}</td>
-                        <td className="py-2">{WALL_LABELS[element.wall] || element.wall}</td>
-                        <td className="py-2">{element.width} × {element.height} cm</td>
-                        <td className="py-2">{element.distanceFromLeft} cm v. links, {element.distanceFromFloor} cm v. Boden</td>
+                        <td className="py-1">{ELEMENT_TYPE_LABELS[element.type] || element.type}</td>
+                        <td className="py-1">{WALL_LABELS[element.wall] || element.wall}</td>
+                        <td className="py-1">{element.width} × {element.height} cm</td>
+                        <td className="py-1">{element.distanceFromLeft} cm v. links, {element.distanceFromFloor} cm v. Boden</td>
                       </tr>
                     ))}
                   </tbody>
@@ -986,14 +983,17 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
               </div>
             </div>
           )}
+        </div>
 
+        {/* ===== PAGE 5: Must-haves, Nice-to-haves, Notes, ALL Photos ===== */}
+        <div className="print-page-break-before">
           {/* Must-haves & Nice-to-haves */}
           {(freeformMustHaves.length > 0 || project.preferences.niceToHaves.length > 0) && (
-            <div className="grid md:grid-cols-2 gap-6 mb-6">
+            <div className="grid md:grid-cols-2 gap-4 mb-4">
               {freeformMustHaves.length > 0 && (
-                <div className="kitchen-card p-6">
-                  <h3 className="font-semibold text-destructive mb-3">Must-Haves</h3>
-                  <ul className="space-y-2">
+                <div className="kitchen-card p-4">
+                  <h3 className="font-semibold text-destructive mb-2">Must-Haves</h3>
+                  <ul className="space-y-1">
                     {freeformMustHaves.map((item, i) => (
                       <li key={i} className="flex items-start gap-2 text-sm">
                         <span className="text-destructive">•</span>
@@ -1004,9 +1004,9 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
                 </div>
               )}
               {project.preferences.niceToHaves.length > 0 && (
-                <div className="kitchen-card p-6">
-                  <h3 className="font-semibold text-yellow-600 mb-3">Nice-to-Haves</h3>
-                  <ul className="space-y-2">
+                <div className="kitchen-card p-4">
+                  <h3 className="font-semibold text-yellow-600 mb-2">Nice-to-Haves</h3>
+                  <ul className="space-y-1">
                     {project.preferences.niceToHaves.map((item, i) => (
                       <li key={i} className="flex items-start gap-2 text-sm">
                         <span className="text-yellow-600">•</span>
@@ -1021,38 +1021,36 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
 
           {/* Print version of notes */}
           {project.additionalNotes && (
-            <div className="kitchen-card p-6 mb-6 hidden print:block">
-              <h3 className="font-semibold flex items-center gap-2 mb-4">
+            <div className="kitchen-card p-4 mb-4 hidden print:block">
+              <h3 className="font-semibold flex items-center gap-2 mb-2">
                 <StickyNote className="w-5 h-5 text-primary" />
                 Zusätzliche Notizen
               </h3>
-              <p className="whitespace-pre-wrap">{project.additionalNotes}</p>
+              <p className="whitespace-pre-wrap text-sm">{project.additionalNotes}</p>
             </div>
           )}
 
-          {/* Photos */}
+          {/* ALL Photos */}
           {project.photos.length > 0 && (
-            <div className="kitchen-card p-6">
+            <div className="kitchen-card p-4">
               <h3 className="font-semibold flex items-center gap-2 mb-2">
                 <Camera className="w-5 h-5 text-primary" />
                 Fotos ({project.photos.length})
               </h3>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 print-photos-grid">
-                {project.photos.slice(0, 4).map((photo) => (
-                  <div key={photo.id} className="overflow-hidden rounded-lg aspect-video">
+              <div className="grid grid-cols-2 gap-3">
+                {project.photos.map((photo) => (
+                  <div key={photo.id} className="overflow-hidden rounded-lg">
                     <img
                       src={photo.preview}
                       alt={photo.type === 'room' ? 'Raumfoto' : 'Inspiration'}
-                      className="w-full h-full object-cover rounded-lg"
+                      className="w-full h-auto max-h-48 object-cover rounded-lg print:max-h-32"
                     />
+                    {photo.description && (
+                      <p className="text-xs text-muted-foreground mt-1">{photo.description}</p>
+                    )}
                   </div>
                 ))}
               </div>
-              {project.photos.length > 4 && (
-                <p className="text-sm text-muted-foreground mt-2 print:hidden">
-                  +{project.photos.length - 4} weitere Fotos
-                </p>
-              )}
             </div>
           )}
         </div>
