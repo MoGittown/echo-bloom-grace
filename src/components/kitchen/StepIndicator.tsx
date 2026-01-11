@@ -1,5 +1,6 @@
 import { Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { motion } from 'framer-motion';
 
 interface Step {
   title: string;
@@ -27,23 +28,48 @@ export function StepIndicator({ steps, currentStep, onStepClick }: StepIndicator
                 !onStepClick && 'cursor-default'
               )}
             >
-              <div
+              <motion.div
+                initial={false}
+                animate={{
+                  scale: index === currentStep ? 1.1 : 1,
+                  backgroundColor: index < currentStep 
+                    ? 'hsl(var(--accent))' 
+                    : index === currentStep 
+                      ? 'hsl(var(--primary))' 
+                      : 'hsl(var(--muted))',
+                }}
+                transition={{ type: "spring", stiffness: 300, damping: 20 }}
                 className={cn(
-                  'step-indicator',
+                  'step-indicator relative',
                   index < currentStep && 'step-complete',
                   index === currentStep && 'step-active',
                   index > currentStep && 'step-inactive'
                 )}
               >
                 {index < currentStep ? (
-                  <Check className="w-5 h-5" />
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: "spring", stiffness: 400 }}
+                  >
+                    <Check className="w-5 h-5" />
+                  </motion.div>
                 ) : (
                   step.icon
                 )}
-              </div>
+                {index === currentStep && (
+                  <motion.div
+                    layoutId="activeRing"
+                    className="absolute inset-0 rounded-full border-2 border-primary"
+                    initial={false}
+                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                    style={{ margin: '-3px' }}
+                  />
+                )}
+              </motion.div>
               <span
                 className={cn(
-                  'text-xs font-medium whitespace-nowrap',
+                  'text-xs font-medium whitespace-nowrap transition-colors duration-300',
                   index === currentStep && 'text-primary',
                   index !== currentStep && 'text-muted-foreground'
                 )}
@@ -53,12 +79,16 @@ export function StepIndicator({ steps, currentStep, onStepClick }: StepIndicator
             </button>
 
             {index < steps.length - 1 && (
-              <div
-                className={cn(
-                  'w-12 md:w-20 h-0.5 mx-2',
-                  index < currentStep ? 'bg-accent' : 'bg-border'
-                )}
-              />
+              <div className="w-12 md:w-20 h-0.5 mx-2 bg-muted overflow-hidden">
+                <motion.div
+                  className="h-full bg-accent"
+                  initial={{ width: 0 }}
+                  animate={{ 
+                    width: index < currentStep ? '100%' : '0%' 
+                  }}
+                  transition={{ duration: 0.4, ease: "easeOut" }}
+                />
+              </div>
             )}
           </div>
         ))}
