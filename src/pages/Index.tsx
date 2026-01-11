@@ -12,7 +12,7 @@ import { SummaryView } from '@/components/kitchen/SummaryView';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, RotateCcw, ChefHat, User, Ruler, LayoutGrid, Square, Palette, Camera, FileText, Plug, Droplets } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 // Background images
 import bgStyle from '@/assets/bg-style.jpg';
@@ -68,19 +68,12 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background relative">
       {/* Background Image with Overlay */}
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={currentBg}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.5 }}
-          className="fixed inset-0 bg-cover bg-center"
-          style={{ backgroundImage: `url(${currentBg})` }}
-        >
-          <div className="absolute inset-0 bg-background/40 dark:bg-background/50 backdrop-blur-[1px]" />
-        </motion.div>
-      </AnimatePresence>
+      <div 
+        className="fixed inset-0 bg-cover bg-center transition-[background-image] duration-700 ease-in-out"
+        style={{ backgroundImage: `url(${currentBg})` }}
+      >
+        <div className="absolute inset-0 bg-background/40 dark:bg-background/50 backdrop-blur-[1px]" />
+      </div>
 
       {/* Content */}
       <div className="relative z-10">
