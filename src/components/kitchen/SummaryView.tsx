@@ -863,8 +863,8 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
           </div>
         </div>
 
-        {/* Floor Plan Visual - Half Page for Print */}
-        <div className="kitchen-card p-6 print-half-page print-page-break-before">
+        {/* Floor Plan Visual */}
+        <div className="kitchen-card p-6 print-page-break-before">
           <h3 className="font-semibold flex items-center gap-2 mb-4">
             <LayoutGrid className="w-5 h-5 text-primary" />
             Grundriss
@@ -877,12 +877,12 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
           </div>
         </div>
 
-        {/* Wall Views - Half Page Each for Print */}
-        {['north', 'east', 'south', 'west'].map((wall) => {
+        {/* Wall Views */}
+        {['north', 'east', 'south', 'west'].map((wall, index) => {
           const wallElements = project.floorPlan.elements.filter(e => e.wall === wall);
           if (wallElements.length === 0) return null;
           return (
-            <div key={wall} className="kitchen-card p-6 print-half-page">
+            <div key={wall} className={`kitchen-card p-6 ${index % 2 === 0 ? 'print-page-break-before' : ''}`}>
               <h3 className="font-semibold flex items-center gap-2 mb-4">
                 <Square className="w-5 h-5 text-primary" />
                 {WALL_LABELS[wall]} - Wandansicht
@@ -962,20 +962,21 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
           </div>
         )}
 
-        {/* Photos - Half Page for Print */}
+        {/* Photos */}
         {project.photos.length > 0 && (
-          <div className="kitchen-card p-6 print-half-page print-page-break-before">
+          <div className="kitchen-card p-6 print-page-break-before">
             <h3 className="font-semibold flex items-center gap-2 mb-4">
               <Camera className="w-5 h-5 text-primary" />
               Fotos ({project.photos.length})
             </h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 print-photos-grid">
+            <div className="grid grid-cols-2 gap-4 print-photos-grid">
               {project.photos.map((photo) => (
-                <div key={photo.id} className="aspect-video">
+                <div key={photo.id} className="overflow-hidden rounded-lg">
                   <img
                     src={photo.preview}
                     alt={photo.type === 'room' ? 'Raumfoto' : 'Inspiration'}
-                    className="w-full h-full object-cover rounded"
+                    className="w-full h-auto object-cover rounded-lg"
+                    style={{ maxHeight: '200px' }}
                   />
                 </div>
               ))}
