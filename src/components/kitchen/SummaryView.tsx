@@ -499,7 +499,7 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
       {/* Summary Content */}
       <div ref={summaryRef} className="space-y-6 bg-background p-6 rounded-xl">
         {/* ===== PAGE 1: Header, Customer, Style, Appliances ===== */}
-        <div className="print-page-1">
+        <div data-pdf-page="1" className="print-page-1 bg-white p-4">
           {/* Header */}
           <div className="text-center border-b pb-6">
             <h1 className="text-2xl font-display font-bold text-foreground">
@@ -763,7 +763,7 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
         </div>
 
         {/* ===== PAGE 2: Sink, Waste, Lighting, Room, Floor Plan ===== */}
-        <div className="print-page-break-before">
+        <div data-pdf-page="2" className="print-page-break-before bg-white p-4">
           {/* SPÜLE & ARMATUR */}
           <div className="kitchen-card p-6">
             <h3 className="font-semibold flex items-center gap-2 mb-4">
@@ -921,7 +921,7 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
         </div>
 
         {/* ===== PAGE 3: Wall Views Nord & Ost ===== */}
-        <div className="print-page-break-before">
+        <div data-pdf-page="3" className="print-page-break-before bg-white p-4">
           <h3 className="font-semibold flex items-center gap-2 mb-2 text-lg">
             <Square className="w-5 h-5 text-primary" />
             Wandansichten (1/2)
@@ -946,7 +946,7 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
         </div>
 
         {/* ===== PAGE 4: Wall Views Süd & West + Element Table ===== */}
-        <div className="print-page-break-before">
+        <div data-pdf-page="4" className="print-page-break-before bg-white p-4">
           <h3 className="font-semibold flex items-center gap-2 mb-2 text-lg">
             <Square className="w-5 h-5 text-primary" />
             Wandansichten (2/2)
@@ -1003,7 +1003,7 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
         </div>
 
         {/* ===== PAGE 5: Must-haves, Nice-to-haves, Notes, ALL Photos ===== */}
-        <div className="print-page-break-before">
+        <div data-pdf-page="5" className="print-page-break-before bg-white p-4">
           {/* Must-haves & Nice-to-haves */}
           {(freeformMustHaves.length > 0 || project.preferences.niceToHaves.length > 0) && (
             <div className="grid md:grid-cols-2 gap-4 mb-4">
