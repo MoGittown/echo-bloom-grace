@@ -863,13 +863,13 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
           </div>
         </div>
 
-        {/* Floor Plan Visual */}
-        <div className="kitchen-card p-6 print-page-break-before">
-          <h3 className="font-semibold flex items-center gap-2 mb-4">
+        {/* Floor Plan Visual - Half Page */}
+        <div className="kitchen-card p-6 print-half-page print-page-break-before">
+          <h3 className="font-semibold flex items-center gap-2 mb-2">
             <LayoutGrid className="w-5 h-5 text-primary" />
             Grundriss
           </h3>
-          <div className="flex justify-center">
+          <div className="flex justify-center print-canvas-container">
             <FloorPlanCanvas 
               room={project.room} 
               elements={project.floorPlan.elements} 
@@ -877,26 +877,32 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
           </div>
         </div>
 
-        {/* Wall Views */}
-        {['north', 'east', 'south', 'west'].map((wall, index) => {
-          const wallElements = project.floorPlan.elements.filter(e => e.wall === wall);
-          if (wallElements.length === 0) return null;
-          return (
-            <div key={wall} className={`kitchen-card p-6 ${index % 2 === 0 ? 'print-page-break-before' : ''}`}>
-              <h3 className="font-semibold flex items-center gap-2 mb-4">
-                <Square className="w-5 h-5 text-primary" />
-                {WALL_LABELS[wall]} - Wandansicht
-              </h3>
-              <div className="flex justify-center">
-                <WallViewCanvas 
-                  room={project.room} 
-                  elements={wallElements}
-                  wall={wall as 'north' | 'east' | 'south' | 'west'}
-                />
-              </div>
-            </div>
+        {/* Wall Views - Half Page Each, 2 per A4 page */}
+        {(() => {
+          const wallsWithElements = ['north', 'east', 'south', 'west'].filter(wall => 
+            project.floorPlan.elements.some(e => e.wall === wall)
           );
-        })}
+          return wallsWithElements.map((wall, index) => {
+            const wallElements = project.floorPlan.elements.filter(e => e.wall === wall);
+            // First wall view starts new page, then every 2nd starts new page
+            const needsPageBreak = index === 0 || index % 2 === 0;
+            return (
+              <div key={wall} className={`kitchen-card p-6 print-half-page ${needsPageBreak ? 'print-page-break-before' : ''}`}>
+                <h3 className="font-semibold flex items-center gap-2 mb-2">
+                  <Square className="w-5 h-5 text-primary" />
+                  {WALL_LABELS[wall]} - Wandansicht
+                </h3>
+                <div className="flex justify-center print-canvas-container">
+                  <WallViewCanvas 
+                    room={project.room} 
+                    elements={wallElements}
+                    wall={wall as 'north' | 'east' | 'south' | 'west'}
+                  />
+                </div>
+              </div>
+            );
+          });
+        })()}
 
         {/* Floor Plan Elements Table */}
         {project.floorPlan.elements.length > 0 && (
@@ -962,25 +968,29 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
           </div>
         )}
 
-        {/* Photos */}
+        {/* Photos - Half Page with 2x2 grid */}
         {project.photos.length > 0 && (
-          <div className="kitchen-card p-6 print-page-break-before">
-            <h3 className="font-semibold flex items-center gap-2 mb-4">
+          <div className="kitchen-card p-6 print-half-page print-page-break-before">
+            <h3 className="font-semibold flex items-center gap-2 mb-2">
               <Camera className="w-5 h-5 text-primary" />
               Fotos ({project.photos.length})
             </h3>
-            <div className="grid grid-cols-2 gap-4 print-photos-grid">
-              {project.photos.map((photo) => (
-                <div key={photo.id} className="overflow-hidden rounded-lg">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 print-photos-grid">
+              {project.photos.slice(0, 4).map((photo) => (
+                <div key={photo.id} className="overflow-hidden rounded-lg aspect-video">
                   <img
                     src={photo.preview}
                     alt={photo.type === 'room' ? 'Raumfoto' : 'Inspiration'}
-                    className="w-full h-auto object-cover rounded-lg"
-                    style={{ maxHeight: '200px' }}
+                    className="w-full h-full object-cover rounded-lg"
                   />
                 </div>
               ))}
             </div>
+            {project.photos.length > 4 && (
+              <p className="text-sm text-muted-foreground mt-2 print:hidden">
+                +{project.photos.length - 4} weitere Fotos
+              </p>
+            )}
           </div>
         )}
 
