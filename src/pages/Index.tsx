@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useKitchenProject } from '@/hooks/useKitchenProject';
 import { StepIndicator } from '@/components/kitchen/StepIndicator';
 import { CustomerForm } from '@/components/kitchen/CustomerForm';
@@ -12,7 +11,7 @@ import { PhotoUpload } from '@/components/kitchen/PhotoUpload';
 import { SummaryView } from '@/components/kitchen/SummaryView';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, RotateCcw, ChefHat, User, Ruler, LayoutGrid, Square, Palette, Camera, FileText, Plug, Droplets, ArrowRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, RotateCcw, ChefHat, User, Ruler, LayoutGrid, Square, Palette, Camera, FileText, Plug, Droplets } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // Background images
@@ -34,7 +33,6 @@ const STEPS = [
 ];
 
 const Index = () => {
-  const [showHero, setShowHero] = useState(true);
   const {
     project,
     currentStep,
@@ -67,84 +65,6 @@ const Index = () => {
   const currentBg = STEPS[currentStep]?.bg || bgStyle;
   const progressPercent = ((currentStep + 1) / totalSteps) * 100;
 
-  // Hero Screen
-  if (showHero) {
-    return (
-      <div className="min-h-screen relative overflow-hidden">
-        {/* Hero Background */}
-        <div 
-          className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: `url(${bgStyle})` }}
-        >
-          <div className="absolute inset-0 bg-gradient-to-b from-background/30 via-background/50 to-background/80" />
-        </div>
-
-        {/* Hero Content */}
-        <div className="relative z-10 min-h-screen flex flex-col items-center justify-center px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-            className="text-center max-w-2xl"
-          >
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-              className="mb-8 inline-flex p-5 bg-primary/20 backdrop-blur-md rounded-2xl border border-primary/30"
-            >
-              <ChefHat className="w-16 h-16 text-primary" />
-            </motion.div>
-            
-            <motion.h1
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4, duration: 0.6 }}
-              className="text-4xl md:text-6xl font-display font-bold text-foreground mb-4"
-            >
-              Küchen-Checkliste
-            </motion.h1>
-            
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6, duration: 0.6 }}
-              className="text-lg md:text-xl text-muted-foreground mb-12"
-            >
-              Erstellen Sie Schritt für Schritt Ihre perfekte Küchenplanung – 
-              von Stil und Geräten bis zur vollständigen Dokumentation.
-            </motion.p>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.8, duration: 0.6 }}
-            >
-              <Button 
-                size="lg" 
-                onClick={() => setShowHero(false)}
-                className="text-lg px-8 py-6 gap-3 shadow-2xl hover:scale-105 transition-transform"
-              >
-                Beratung starten
-                <ArrowRight className="w-5 h-5" />
-              </Button>
-            </motion.div>
-          </motion.div>
-
-          {/* Theme Toggle in Hero */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 1, duration: 0.6 }}
-            className="absolute top-6 right-6"
-          >
-            <ThemeToggle />
-          </motion.div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-background relative">
       {/* Background Image with Overlay */}
@@ -168,10 +88,7 @@ const Index = () => {
         <header className="bg-card/70 backdrop-blur-md border-b sticky top-0 z-50 no-print">
           <div className="container mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
-              <button 
-                onClick={() => setShowHero(true)}
-                className="flex items-center gap-3 hover:opacity-80 transition-opacity"
-              >
+              <div className="flex items-center gap-3">
                 <div className="p-2 bg-primary/10 rounded-lg">
                   <ChefHat className="w-7 h-7 text-primary" />
                 </div>
@@ -179,7 +96,7 @@ const Index = () => {
                   <h1 className="text-xl font-display font-bold">Küchen-Checkliste</h1>
                   <p className="text-xs text-muted-foreground">Erstberatung</p>
                 </div>
-              </button>
+              </div>
               <div className="flex items-center gap-2">
                 <ThemeToggle />
                 <Button variant="ghost" size="sm" onClick={resetProject} className="gap-2">
