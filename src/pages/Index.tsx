@@ -11,12 +11,12 @@ import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, RotateCcw, ChefHat, User, Ruler, LayoutGrid, Square, Palette, Camera, FileText } from 'lucide-react';
 
 const STEPS = [
-  { title: 'Kunde', icon: <User className="w-5 h-5" /> },
   { title: 'Raum', icon: <Ruler className="w-5 h-5" /> },
   { title: 'Grundriss', icon: <LayoutGrid className="w-5 h-5" /> },
   { title: 'Wände', icon: <Square className="w-5 h-5" /> },
   { title: 'Wünsche', icon: <Palette className="w-5 h-5" /> },
   { title: 'Fotos', icon: <Camera className="w-5 h-5" /> },
+  { title: 'Kontakt', icon: <User className="w-5 h-5" /> },
   { title: 'Übersicht', icon: <FileText className="w-5 h-5" /> },
 ];
 
@@ -80,22 +80,22 @@ const Index = () => {
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8 max-w-4xl">
         {currentStep === 0 && (
-          <CustomerForm data={project.customer} onChange={updateCustomer} />
-        )}
-        {currentStep === 1 && (
           <RoomForm data={project.room} onChange={updateRoom} />
         )}
-        {currentStep === 2 && (
+        {currentStep === 1 && (
           <FloorPlanEditor floorPlan={project.floorPlan} room={project.room} onChange={updateFloorPlan} />
         )}
-        {currentStep === 3 && (
+        {currentStep === 2 && (
           <WallViewEditor floorPlan={project.floorPlan} room={project.room} />
         )}
-        {currentStep === 4 && (
+        {currentStep === 3 && (
           <PreferencesForm data={project.preferences} onChange={updatePreferences} />
         )}
-        {currentStep === 5 && (
+        {currentStep === 4 && (
           <PhotoUpload photos={project.photos} onAdd={addPhoto} onRemove={removePhoto} />
+        )}
+        {currentStep === 5 && (
+          <CustomerForm data={project.customer} onChange={updateCustomer} />
         )}
         {currentStep === 6 && (
           <SummaryView project={project} onUpdateNotes={updateNotes} />
