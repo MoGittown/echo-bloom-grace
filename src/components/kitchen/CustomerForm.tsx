@@ -19,18 +19,22 @@ export function CustomerForm({ data, onChange }: CustomerFormProps) {
     >
       <div className="text-center mb-8">
         <h2 className="text-2xl md:text-3xl font-display font-bold text-foreground">
-          Kundendaten
+          Kontaktdaten
         </h2>
         <p className="text-muted-foreground mt-2">
           Erfassen Sie die Kontaktdaten des Kunden
         </p>
+        <div className="mt-4 inline-flex items-center gap-2 bg-muted/50 text-muted-foreground text-sm px-4 py-2 rounded-full">
+          <span className="text-lg">💡</span>
+          <span>Optional – Sie können diesen Schritt auch überspringen</span>
+        </div>
       </div>
 
       <div className="grid md:grid-cols-2 gap-6">
         <div className="space-y-2">
           <Label htmlFor="firstName" className="flex items-center gap-2">
             <User className="w-4 h-4" />
-            Vorname *
+            Vorname
           </Label>
           <Input
             id="firstName"
@@ -44,7 +48,7 @@ export function CustomerForm({ data, onChange }: CustomerFormProps) {
         <div className="space-y-2">
           <Label htmlFor="lastName" className="flex items-center gap-2">
             <User className="w-4 h-4" />
-            Nachname *
+            Nachname
           </Label>
           <Input
             id="lastName"
@@ -58,7 +62,7 @@ export function CustomerForm({ data, onChange }: CustomerFormProps) {
         <div className="space-y-2">
           <Label htmlFor="email" className="flex items-center gap-2">
             <Mail className="w-4 h-4" />
-            E-Mail *
+            E-Mail
           </Label>
           <Input
             id="email"
@@ -73,7 +77,7 @@ export function CustomerForm({ data, onChange }: CustomerFormProps) {
         <div className="space-y-2">
           <Label htmlFor="phone" className="flex items-center gap-2">
             <Phone className="w-4 h-4" />
-            Telefon *
+            Telefon
           </Label>
           <Input
             id="phone"
