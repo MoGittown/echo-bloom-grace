@@ -127,43 +127,33 @@ const Index = () => {
 
         {/* Main Content */}
         <main className="container mx-auto px-4 py-8 max-w-4xl">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={currentStep}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.3 }}
-            >
-              {currentStep === 0 && (
-                <StyleForm data={project.preferences} onChange={updatePreferences} />
-              )}
-              {currentStep === 1 && (
-                <AppliancesForm data={project.preferences} onChange={updatePreferences} />
-              )}
-              {currentStep === 2 && (
-                <SinkForm data={project.preferences} onChange={updatePreferences} />
-              )}
-              {currentStep === 3 && (
-                <RoomForm data={project.room} onChange={updateRoom} />
-              )}
-              {currentStep === 4 && (
-                <FloorPlanEditor floorPlan={project.floorPlan} room={project.room} onChange={updateFloorPlan} />
-              )}
-              {currentStep === 5 && (
-                <WallViewEditor floorPlan={project.floorPlan} room={project.room} />
-              )}
-              {currentStep === 6 && (
-                <PhotoUpload photos={project.photos} onAdd={addPhoto} onRemove={removePhoto} />
-              )}
-              {currentStep === 7 && (
-                <CustomerForm data={project.customer} onChange={updateCustomer} />
-              )}
-              {currentStep === 8 && (
-                <SummaryView project={project} onUpdateNotes={updateNotes} />
-              )}
-            </motion.div>
-          </AnimatePresence>
+          {currentStep === 0 && (
+            <StyleForm data={project.preferences} onChange={updatePreferences} />
+          )}
+          {currentStep === 1 && (
+            <AppliancesForm data={project.preferences} onChange={updatePreferences} />
+          )}
+          {currentStep === 2 && (
+            <SinkForm data={project.preferences} onChange={updatePreferences} />
+          )}
+          {currentStep === 3 && (
+            <RoomForm data={project.room} onChange={updateRoom} />
+          )}
+          {currentStep === 4 && (
+            <FloorPlanEditor floorPlan={project.floorPlan} room={project.room} onChange={updateFloorPlan} />
+          )}
+          {currentStep === 5 && (
+            <WallViewEditor floorPlan={project.floorPlan} room={project.room} />
+          )}
+          {currentStep === 6 && (
+            <PhotoUpload photos={project.photos} onAdd={addPhoto} onRemove={removePhoto} />
+          )}
+          {currentStep === 7 && (
+            <CustomerForm data={project.customer} onChange={updateCustomer} />
+          )}
+          {currentStep === 8 && (
+            <SummaryView project={project} onUpdateNotes={updateNotes} />
+          )}
 
           {/* Navigation */}
           <div className="flex justify-between mt-12 no-print">
