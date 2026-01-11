@@ -46,16 +46,16 @@ export function AppliancesForm({ data, onChange }: AppliancesFormProps) {
             </Select>
           </div>
           <div className="space-y-2">
-            <Label>Größe / Anzahl Kochzonen</Label>
-            <RadioGroup value={data.appliances.other?.find(i => ['4-Zonen', '5-Zonen', '6-Zonen'].includes(i)) || '4-Zonen'} 
+            <Label>Kochfeld-Größe</Label>
+            <RadioGroup value={data.appliances.other?.find(i => ['KF-60cm', 'KF-80cm', 'KF-90cm'].includes(i)) || ''} 
               onValueChange={v => {
-                const filtered = (data.appliances.other || []).filter(i => !['4-Zonen', '5-Zonen', '6-Zonen'].includes(i));
+                const filtered = (data.appliances.other || []).filter(i => !['KF-60cm', 'KF-80cm', 'KF-90cm'].includes(i));
                 updateAppliances({ other: [...filtered, v] });
               }}>
               <div className="flex gap-4">
-                <div className="flex items-center gap-2"><RadioGroupItem value="4-Zonen" id="z4" /><Label htmlFor="z4">4 Zonen (60cm)</Label></div>
-                <div className="flex items-center gap-2"><RadioGroupItem value="5-Zonen" id="z5" /><Label htmlFor="z5">5 Zonen (80cm)</Label></div>
-                <div className="flex items-center gap-2"><RadioGroupItem value="6-Zonen" id="z6" /><Label htmlFor="z6">6 Zonen (90cm)</Label></div>
+                <div className="flex items-center gap-2"><RadioGroupItem value="KF-60cm" id="kf60" /><Label htmlFor="kf60">60 cm</Label></div>
+                <div className="flex items-center gap-2"><RadioGroupItem value="KF-80cm" id="kf80" /><Label htmlFor="kf80">80 cm</Label></div>
+                <div className="flex items-center gap-2"><RadioGroupItem value="KF-90cm" id="kf90" /><Label htmlFor="kf90">90 cm</Label></div>
               </div>
             </RadioGroup>
           </div>
