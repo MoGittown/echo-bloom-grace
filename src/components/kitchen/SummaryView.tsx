@@ -1,4 +1,4 @@
-import { useRef, useCallback, useState } from 'react';
+import { useRef, useCallback, useState, useEffect } from 'react';
 import { KitchenProject } from '@/types/kitchen';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -17,10 +17,13 @@ import {
   Plug,
   Lightbulb,
   Trash2,
+  LayoutGrid,
+  Square,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
+import { RoomDimensions, WallElement } from '@/types/kitchen';
 
 interface SummaryViewProps {
   project: KitchenProject;
@@ -44,6 +47,16 @@ const WALL_LABELS: Record<string, string> = {
   west: 'Westen',
 };
 
+const ELEMENT_COLORS: Record<string, string> = {
+  window: 'hsl(200, 80%, 55%)',
+  door: 'hsl(30, 60%, 45%)',
+  socket: 'hsl(45, 90%, 50%)',
+  water: 'hsl(200, 90%, 50%)',
+  gas: 'hsl(15, 90%, 50%)',
+  drain: 'hsl(210, 50%, 40%)',
+  vent: 'hsl(180, 40%, 50%)',
+};
+
 // Helper to filter and clean tagged items
 const getTaggedItems = (items: string[] | undefined, prefix: string): string[] => {
   if (!items) return [];
@@ -57,8 +70,173 @@ const getUntaggedItems = (items: string[] | undefined): string[] => {
   return items.filter(i => !i.includes(':'));
 };
 
+// Floor Plan Canvas Component for Summary
+function FloorPlanCanvas({ room, elements }: { room: RoomDimensions; elements: WallElement[] }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const scale = 0.4;
+  const padding = 50;
+  const canvasWidth = room.length * scale + padding * 2;
+  const canvasHeight = room.width * scale + padding * 2;
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#faf8f5';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Draw room
+    ctx.strokeStyle = '#2d2a26';
+    ctx.lineWidth = 4;
+    ctx.strokeRect(padding, padding, room.length * scale, room.width * scale);
+
+    // Dimensions
+    ctx.font = '12px Inter';
+    ctx.fillStyle = '#666';
+    ctx.textAlign = 'center';
+    ctx.fillText(`${room.length} cm`, padding + (room.length * scale) / 2, padding - 10);
+    ctx.save();
+    ctx.translate(padding - 15, padding + (room.width * scale) / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.fillText(`${room.width} cm`, 0, 0);
+    ctx.restore();
+
+    // Draw elements
+    elements.forEach((element) => {
+      const color = ELEMENT_COLORS[element.type] || '#999';
+      let x = padding, y = padding, w = 0, h = 0;
+      
+      switch (element.wall) {
+        case 'north':
+          x = padding + (element.distanceFromLeft || 0) * scale;
+          y = padding;
+          w = element.width * scale;
+          h = 8;
+          break;
+        case 'south':
+          x = padding + (element.distanceFromLeft || 0) * scale;
+          y = padding + room.width * scale - 8;
+          w = element.width * scale;
+          h = 8;
+          break;
+        case 'east':
+          x = padding + room.length * scale - 8;
+          y = padding + (element.distanceFromLeft || 0) * scale;
+          w = 8;
+          h = element.width * scale;
+          break;
+        case 'west':
+          x = padding;
+          y = padding + (element.distanceFromLeft || 0) * scale;
+          w = 8;
+          h = element.width * scale;
+          break;
+      }
+
+      ctx.fillStyle = color;
+      ctx.fillRect(x, y, w, h);
+    });
+  }, [room, elements, scale, canvasWidth, canvasHeight]);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      width={canvasWidth}
+      height={canvasHeight}
+      className="max-w-full border rounded bg-white"
+      style={{ maxHeight: '350px' }}
+    />
+  );
+}
+
+// Wall View Canvas Component for Summary
+function WallViewCanvas({ room, elements, wall }: { room: RoomDimensions; elements: WallElement[]; wall: 'north' | 'east' | 'south' | 'west' }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const scale = 0.35;
+  const padding = 60;
+  const wallWidth = wall === 'north' || wall === 'south' ? room.length : room.width;
+  const wallHeight = room.height;
+  const canvasWidth = wallWidth * scale + padding * 2;
+  const canvasHeight = wallHeight * scale + padding * 2;
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#faf8f5';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Wall background
+    ctx.fillStyle = '#f5f0e8';
+    ctx.fillRect(padding, padding, wallWidth * scale, wallHeight * scale);
+
+    // Wall border
+    ctx.strokeStyle = '#2d2a26';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(padding, padding, wallWidth * scale, wallHeight * scale);
+
+    // Floor line
+    ctx.strokeStyle = '#8b7355';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(padding - 10, padding + wallHeight * scale);
+    ctx.lineTo(canvasWidth - padding + 10, padding + wallHeight * scale);
+    ctx.stroke();
+
+    // Dimensions
+    ctx.font = '11px Inter';
+    ctx.fillStyle = '#666';
+    ctx.textAlign = 'center';
+    ctx.fillText(`${wallWidth} cm`, canvasWidth / 2, padding - 8);
+    ctx.save();
+    ctx.translate(padding - 12, padding + (wallHeight * scale) / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.fillText(`${wallHeight} cm`, 0, 0);
+    ctx.restore();
+
+    // Draw elements
+    elements.forEach((element) => {
+      const color = ELEMENT_COLORS[element.type] || '#999';
+      const elemX = padding + (element.distanceFromLeft || 0) * scale;
+      const elemY = padding + wallHeight * scale - (element.distanceFromFloor || 0) * scale - element.height * scale;
+      const elemWidth = element.width * scale;
+      const elemHeight = element.height * scale;
+
+      ctx.fillStyle = color;
+      ctx.fillRect(elemX, elemY, elemWidth, elemHeight);
+      ctx.strokeStyle = '#333';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(elemX, elemY, elemWidth, elemHeight);
+
+      // Label
+      ctx.font = '9px Inter';
+      ctx.fillStyle = '#333';
+      ctx.textAlign = 'center';
+      ctx.fillText(ELEMENT_TYPE_LABELS[element.type] || element.type, elemX + elemWidth / 2, elemY + elemHeight / 2 + 3);
+    });
+  }, [room, elements, wall, scale, wallWidth, wallHeight, canvasWidth, canvasHeight]);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      width={canvasWidth}
+      height={canvasHeight}
+      className="max-w-full border rounded bg-white"
+      style={{ maxHeight: '300px' }}
+    />
+  );
+}
+
 export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
   const summaryRef = useRef<HTMLDivElement>(null);
+  const floorPlanCanvasRef = useRef<HTMLCanvasElement>(null);
+  const wallViewCanvasRefs = useRef<Record<string, HTMLCanvasElement | null>>({});
   const [isGenerating, setIsGenerating] = useState(false);
 
   const handlePrint = useCallback(() => {
@@ -587,7 +765,42 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
           </div>
         </div>
 
-        {/* Floor Plan Elements */}
+        {/* Floor Plan Visual - Half Page for Print */}
+        <div className="kitchen-card p-6 print-half-page">
+          <h3 className="font-semibold flex items-center gap-2 mb-4">
+            <LayoutGrid className="w-5 h-5 text-primary" />
+            Grundriss
+          </h3>
+          <div className="flex justify-center">
+            <FloorPlanCanvas 
+              room={project.room} 
+              elements={project.floorPlan.elements} 
+            />
+          </div>
+        </div>
+
+        {/* Wall Views - Half Page Each for Print */}
+        {['north', 'east', 'south', 'west'].map((wall) => {
+          const wallElements = project.floorPlan.elements.filter(e => e.wall === wall);
+          if (wallElements.length === 0) return null;
+          return (
+            <div key={wall} className="kitchen-card p-6 print-half-page">
+              <h3 className="font-semibold flex items-center gap-2 mb-4">
+                <Square className="w-5 h-5 text-primary" />
+                {WALL_LABELS[wall]} - Wandansicht
+              </h3>
+              <div className="flex justify-center">
+                <WallViewCanvas 
+                  room={project.room} 
+                  elements={wallElements}
+                  wall={wall as 'north' | 'east' | 'south' | 'west'}
+                />
+              </div>
+            </div>
+          );
+        })}
+
+        {/* Floor Plan Elements Table */}
         {project.floorPlan.elements.length > 0 && (
           <div className="kitchen-card p-6">
             <h3 className="font-semibold flex items-center gap-2 mb-4">
@@ -651,16 +864,16 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
           </div>
         )}
 
-        {/* Photos */}
+        {/* Photos - Half Page for Print */}
         {project.photos.length > 0 && (
-          <div className="kitchen-card p-6">
+          <div className="kitchen-card p-6 print-half-page">
             <h3 className="font-semibold flex items-center gap-2 mb-4">
               <Camera className="w-5 h-5 text-primary" />
               Fotos ({project.photos.length})
             </h3>
-            <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 print-photos-grid">
               {project.photos.map((photo) => (
-                <div key={photo.id} className="aspect-square">
+                <div key={photo.id} className="aspect-video">
                   <img
                     src={photo.preview}
                     alt={photo.type === 'room' ? 'Raumfoto' : 'Inspiration'}

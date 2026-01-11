@@ -188,6 +188,34 @@
       box-shadow: none;
       border: 1px solid #ddd;
     }
+
+    /* Half page sections for floor plans and photos */
+    .print-half-page {
+      page-break-inside: avoid;
+      min-height: 45vh;
+      max-height: 50vh;
+      margin-bottom: 1rem;
+    }
+
+    .print-half-page canvas,
+    .print-half-page img {
+      max-height: 40vh;
+      width: auto;
+      object-fit: contain;
+    }
+
+    .print-photos-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+      min-height: 45vh;
+    }
+
+    .print-photos-grid img {
+      max-height: 20vh;
+      width: 100%;
+      object-fit: cover;
+    }
   }
 }
 
