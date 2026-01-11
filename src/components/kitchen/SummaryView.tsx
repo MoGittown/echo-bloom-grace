@@ -347,35 +347,52 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
     setIsGenerating(true);
 
     try {
-      const element = summaryRef.current;
-      const canvas = await html2canvas(element, {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-        backgroundColor: '#ffffff',
-      });
+      const root = summaryRef.current;
+      const pages = Array.from(root.querySelectorAll<HTMLElement>('[data-pdf-page]'));
 
-      const imgData = canvas.toDataURL('image/png');
+      // Fallback (shouldn't happen): export the whole summary as a long image
+      const exportTargets = pages.length > 0 ? pages : [root as unknown as HTMLElement];
+
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
         format: 'a4',
       });
 
-      const imgWidth = 210;
-      const pageHeight = 297;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      let heightLeft = imgHeight;
-      let position = 0;
+      const pageW = pdf.internal.pageSize.getWidth();
+      const pageH = pdf.internal.pageSize.getHeight();
 
-      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
+      for (let i = 0; i < exportTargets.length; i++) {
+        const target = exportTargets[i];
 
-      while (heightLeft >= 0) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
+        const canvas = await html2canvas(target, {
+          scale: 2,
+          useCORS: true,
+          logging: false,
+          backgroundColor: '#ffffff',
+          onclone: (doc) => {
+            // Apply tighter spacing in the cloned DOM (used for PDF rendering only)
+            doc.body.classList.add('pdf-export');
+            doc.body.style.background = '#ffffff';
+            doc.body.style.margin = '0';
+            // Approx. A4 width at 96 DPI, improves consistency across screens
+            doc.body.style.width = '794px';
+          },
+        });
+
+        const imgData = canvas.toDataURL('image/png');
+
+        if (i > 0) pdf.addPage();
+
+        // Fit image into A4 while preserving aspect ratio
+        let renderW = pageW;
+        let renderH = (canvas.height * renderW) / canvas.width;
+        if (renderH > pageH) {
+          renderH = pageH;
+          renderW = (canvas.width * renderH) / canvas.height;
+        }
+        const x = (pageW - renderW) / 2;
+        pdf.addImage(imgData, 'PNG', x, 0, renderW, renderH);
       }
 
       const fileName = `Kuechen-Beratung_${project.customer.lastName || 'Kunde'}_${new Date().toISOString().split('T')[0]}.pdf`;
