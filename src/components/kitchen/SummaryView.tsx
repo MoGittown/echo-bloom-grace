@@ -903,66 +903,55 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
           </div>
         </div>
 
-        {/* ===== PAGE 3: Wall Views 1 & 2 ===== */}
-        {(() => {
-          const walls: ('north' | 'east' | 'south' | 'west')[] = ['north', 'east', 'south', 'west'];
-          const wallsPage3 = walls.slice(0, 2);
-          const wallsPage4 = walls.slice(2, 4);
-          
-          return (
-            <>
-              {/* Page 3: First 2 wall views */}
-              <div className="print-page-break-before">
-                <h3 className="font-semibold flex items-center gap-2 mb-4 text-lg">
-                  <Square className="w-5 h-5 text-primary" />
-                  Wandansichten (1/2)
-                </h3>
-                {wallsPage3.map((wall) => {
-                  const wallElements = project.floorPlan.elements.filter(e => e.wall === wall);
-                  return (
-                    <div key={wall} className="kitchen-card p-6 mb-6 print-half-page">
-                      <h4 className="font-semibold flex items-center gap-2 mb-2">
-                        {WALL_LABELS[wall]} - Wandansicht
-                      </h4>
-                      <div className="flex justify-center print-canvas-container">
-                        <WallViewCanvas 
-                          room={project.room} 
-                          elements={wallElements}
-                          wall={wall}
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
+        {/* ===== PAGE 3: Wall Views Nord & Ost ===== */}
+        <div className="print-page-break-before">
+          <h3 className="font-semibold flex items-center gap-2 mb-2 text-lg">
+            <Square className="w-5 h-5 text-primary" />
+            Wandansichten (1/2)
+          </h3>
+          {(['north', 'east'] as const).map((wall) => {
+            const wallElements = project.floorPlan.elements.filter(e => e.wall === wall);
+            return (
+              <div key={wall} className="kitchen-card p-4 mb-3 print-half-page">
+                <h4 className="font-semibold flex items-center gap-2 mb-1 text-sm">
+                  {WALL_LABELS[wall]} - Wandansicht
+                </h4>
+                <div className="flex justify-center print-canvas-container">
+                  <WallViewCanvas 
+                    room={project.room} 
+                    elements={wallElements}
+                    wall={wall}
+                  />
+                </div>
               </div>
+            );
+          })}
+        </div>
 
-              {/* Page 4: Wall views 3 & 4 */}
-              <div className="print-page-break-before">
-                <h3 className="font-semibold flex items-center gap-2 mb-4 text-lg">
-                  <Square className="w-5 h-5 text-primary" />
-                  Wandansichten (2/2)
-                </h3>
-                {wallsPage4.map((wall) => {
-                  const wallElements = project.floorPlan.elements.filter(e => e.wall === wall);
-                  return (
-                    <div key={wall} className="kitchen-card p-6 mb-6 print-half-page">
-                      <h4 className="font-semibold flex items-center gap-2 mb-2">
-                        {WALL_LABELS[wall]} - Wandansicht
-                      </h4>
-                      <div className="flex justify-center print-canvas-container">
-                        <WallViewCanvas 
-                          room={project.room} 
-                          elements={wallElements}
-                          wall={wall}
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
+        {/* ===== PAGE 4: Wall Views Süd & West ===== */}
+        <div className="print-page-break-before">
+          <h3 className="font-semibold flex items-center gap-2 mb-2 text-lg">
+            <Square className="w-5 h-5 text-primary" />
+            Wandansichten (2/2)
+          </h3>
+          {(['south', 'west'] as const).map((wall) => {
+            const wallElements = project.floorPlan.elements.filter(e => e.wall === wall);
+            return (
+              <div key={wall} className="kitchen-card p-4 mb-3 print-half-page">
+                <h4 className="font-semibold flex items-center gap-2 mb-1 text-sm">
+                  {WALL_LABELS[wall]} - Wandansicht
+                </h4>
+                <div className="flex justify-center print-canvas-container">
+                  <WallViewCanvas 
+                    room={project.room} 
+                    elements={wallElements}
+                    wall={wall}
+                  />
+                </div>
               </div>
-            </>
-          );
-        })()}
+            );
+          })}
+        </div>
 
         {/* ===== PAGE 5: Elements Table, Must-haves, Nice-to-haves, Notes, Photos ===== */}
         <div className="print-page-break-before">

@@ -183,30 +183,73 @@
       background: white !important;
       -webkit-print-color-adjust: exact;
       print-color-adjust: exact;
+      font-size: 10pt !important;
     }
 
     .kitchen-card {
       break-inside: avoid;
       box-shadow: none;
       border: 1px solid #ddd;
-      margin-bottom: 5mm;
+      margin-bottom: 2mm !important;
+      padding: 3mm !important;
+    }
+
+    /* Reduce spacing in print */
+    .space-y-6 > * {
+      margin-bottom: 2mm !important;
+    }
+
+    .mt-6 {
+      margin-top: 2mm !important;
+    }
+
+    .mb-6 {
+      margin-bottom: 2mm !important;
+    }
+
+    .p-6 {
+      padding: 3mm !important;
+    }
+
+    .gap-6 {
+      gap: 2mm !important;
+    }
+
+    .gap-4 {
+      gap: 1.5mm !important;
+    }
+
+    .mb-4 {
+      margin-bottom: 1.5mm !important;
+    }
+
+    .pb-6 {
+      padding-bottom: 2mm !important;
+    }
+
+    .pt-4 {
+      padding-top: 1.5mm !important;
+    }
+
+    .mt-4 {
+      margin-top: 1.5mm !important;
     }
 
     /* Half page sections - DIN A4 is 297mm height, minus margins ~273mm usable, half is ~130mm */
     .print-half-page {
       page-break-inside: avoid !important;
       break-inside: avoid !important;
-      height: 125mm;
-      max-height: 125mm;
-      margin-bottom: 5mm;
-      padding: 5mm;
+      height: auto;
+      max-height: 130mm;
+      margin-bottom: 3mm;
+      padding: 3mm;
       overflow: hidden;
       box-sizing: border-box;
     }
 
     .print-half-page canvas {
       max-width: 170mm !important;
-      max-height: 100mm !important;
+      max-height: 110mm !important;
       height: auto !important;
       width: auto !important;
       display: block;
@@ -229,19 +272,19 @@
     .print-photos-grid {
       display: grid !important;
       grid-template-columns: repeat(2, 1fr) !important;
-      gap: 4mm !important;
+      gap: 3mm !important;
       page-break-inside: avoid !important;
       break-inside: avoid !important;
     }
 
     .print-photos-grid > div {
-      height: 50mm !important;
+      height: 45mm !important;
       overflow: hidden !important;
     }
 
     .print-photos-grid img {
       width: 100% !important;
-      height: 50mm !important;
+      height: 45mm !important;
       object-fit: cover !important;
       border-radius: 2mm;
     }
@@ -249,12 +292,7 @@
     /* Ensure proper page margins */
     @page {
       size: A4 portrait;
-      margin: 12mm;
-    }
-
-    /* Fix for summary content spacing */
-    .space-y-6 > * {
-      margin-bottom: 3mm;
+      margin: 10mm;
     }
 
     /* Canvas containers in half-page sections */
@@ -262,8 +300,35 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      height: 105mm;
+      height: 100mm;
       overflow: hidden;
+    }
+
+    /* Grid adjustments for print */
+    .grid.md\\:grid-cols-2 {
+      gap: 2mm !important;
+    }
+
+    .grid.md\\:grid-cols-4 {
+      gap: 1.5mm !important;
+    }
+
+    /* Text size adjustments */
+    h3 {
+      font-size: 11pt !important;
+      margin-bottom: 1.5mm !important;
+    }
+
+    .text-sm {
+      font-size: 9pt !important;
+    }
+
+    .text-xs {
+      font-size: 8pt !important;
+    }
+
+    .text-2xl {
+      font-size: 14pt !important;
     }
   }
 }
