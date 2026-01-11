@@ -70,7 +70,7 @@ const Index = () => {
         className="fixed inset-0 bg-cover bg-center transition-all duration-700 ease-in-out"
         style={{ backgroundImage: `url(${currentBg})` }}
       >
-        <div className="absolute inset-0 bg-background/85 dark:bg-background/92 backdrop-blur-sm" />
+        <div className="absolute inset-0 bg-background/60 dark:bg-background/70 backdrop-blur-[2px]" />
       </div>
 
       {/* Content */}
