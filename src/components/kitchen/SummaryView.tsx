@@ -1050,21 +1050,32 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
           {/* ALL Photos */}
           {project.photos.length > 0 && (
             <div className="kitchen-card p-4">
-              <h3 className="font-semibold flex items-center gap-2 mb-2">
+              <h3 className="font-semibold flex items-center gap-2 mb-3">
                 <Camera className="w-5 h-5 text-primary" />
                 Fotos ({project.photos.length})
               </h3>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-4">
                 {project.photos.map((photo) => (
-                  <div key={photo.id} className="overflow-hidden rounded-lg">
-                    <img
-                      src={photo.preview}
-                      alt={photo.type === 'room' ? 'Raumfoto' : 'Inspiration'}
-                      className="w-full h-auto max-h-48 object-cover rounded-lg print:max-h-32"
-                    />
-                    {photo.description && (
-                      <p className="text-xs text-muted-foreground mt-1">{photo.description}</p>
+                  <div key={photo.id} className="overflow-hidden rounded-lg border border-border">
+                    {photo.preview ? (
+                      <img
+                        src={photo.preview}
+                        alt={photo.type === 'room' ? 'Raumfoto' : 'Inspiration'}
+                        className="w-full h-40 object-cover"
+                        crossOrigin="anonymous"
+                        style={{ imageRendering: 'auto' }}
+                      />
+                    ) : (
+                      <div className="w-full h-40 bg-muted flex items-center justify-center">
+                        <Camera className="w-8 h-8 text-muted-foreground" />
+                      </div>
                     )}
+                    <div className="p-2 bg-muted/50">
+                      <p className="text-xs text-muted-foreground">
+                        {photo.type === 'room' ? 'Raumfoto' : 'Inspiration'}
+                        {photo.description && `: ${photo.description}`}
+                      </p>
+                    </div>
                   </div>
                 ))}
               </div>
