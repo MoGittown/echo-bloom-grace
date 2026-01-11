@@ -170,6 +170,53 @@
   }
 
   /* Print Styles */
+
+  /* PDF Export Styles (used by html2canvas via .pdf-export on cloned DOM) */
+  .pdf-export .kitchen-card {
+    box-shadow: none;
+  }
+
+  .pdf-export .kitchen-card,
+  .pdf-export .p-6 {
+    padding: 12px !important;
+  }
+
+  .pdf-export .kitchen-card {
+    margin-bottom: 8px !important;
+  }
+
+  .pdf-export .space-y-6 > * {
+    margin-bottom: 8px !important;
+  }
+
+  .pdf-export .mt-6 {
+    margin-top: 8px !important;
+  }
+
+  .pdf-export .mb-6 {
+    margin-bottom: 8px !important;
+  }
+
+  .pdf-export .gap-6 {
+    gap: 8px !important;
+  }
+
+  .pdf-export .gap-4 {
+    gap: 6px !important;
+  }
+
+  .pdf-export .pb-6 {
+    padding-bottom: 12px !important;
+  }
+
+  .pdf-export .pt-4 {
+    padding-top: 8px !important;
+  }
+
+  .pdf-export .mt-4 {
+    margin-top: 8px !important;
+  }
+
   @media print {
     .no-print {
       display: none !important;
