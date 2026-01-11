@@ -13,6 +13,8 @@ interface AppliancesFormProps {
 }
 
 const APPLIANCE_BRANDS = ['Miele', 'Siemens', 'Bosch', 'Gaggenau', 'Neff', 'AEG', 'Bora', 'Liebherr', 'V-Zug', 'Andere'];
+const FRIDGE_TYPES = ['Einbaugerät', 'Freistehend', 'Kühl-Gefrier-Kombi', 'Side-by-Side', 'French Door'];
+const HOOD_TYPES = ['Wandhaube', 'Inselhaube', 'Flachschirmhaube', 'Deckenlüfter', 'Kochfeldabzug (BORA etc.)', 'Downdraft/Muldenlüfter'];
 
 export function AppliancesForm({ data, onChange }: AppliancesFormProps) {
   const updateAppliances = (updates: Partial<typeof data.appliances>) => {
@@ -45,7 +47,7 @@ export function AppliancesForm({ data, onChange }: AppliancesFormProps) {
           </div>
           <div className="space-y-2">
             <Label>Größe / Anzahl Kochzonen</Label>
-            <RadioGroup value={data.appliances.other?.includes('5-Zonen') ? '5-Zonen' : data.appliances.other?.includes('4-Zonen') ? '4-Zonen' : '4-Zonen'} 
+            <RadioGroup value={data.appliances.other?.find(i => ['4-Zonen', '5-Zonen', '6-Zonen'].includes(i)) || '4-Zonen'} 
               onValueChange={v => {
                 const filtered = (data.appliances.other || []).filter(i => !['4-Zonen', '5-Zonen', '6-Zonen'].includes(i));
                 updateAppliances({ other: [...filtered, v] });
@@ -82,19 +84,20 @@ export function AppliancesForm({ data, onChange }: AppliancesFormProps) {
             <Label>Art des Dunstabzugs</Label>
             <Select value={data.appliances.hood} onValueChange={v => updateAppliances({ hood: v })}>
               <SelectTrigger><SelectValue placeholder="Auswählen..." /></SelectTrigger>
-              <SelectContent>{APPLIANCE_TYPES.hood.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+              <SelectContent>{HOOD_TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
             </Select>
           </div>
           <div className="space-y-2">
             <Label>Betriebsart</Label>
-            <RadioGroup value={data.appliances.other?.includes('Abluft') ? 'Abluft' : 'Umluft'} 
+            <RadioGroup value={data.appliances.other?.find(i => ['Abluft', 'Umluft', 'Beides möglich'].includes(i)) || ''} 
               onValueChange={v => {
-                const filtered = (data.appliances.other || []).filter(i => !['Abluft', 'Umluft'].includes(i));
+                const filtered = (data.appliances.other || []).filter(i => !['Abluft', 'Umluft', 'Beides möglich'].includes(i));
                 updateAppliances({ other: [...filtered, v] });
               }}>
-              <div className="flex gap-4">
+              <div className="flex flex-col gap-2">
                 <div className="flex items-center gap-2"><RadioGroupItem value="Abluft" id="abluft" /><Label htmlFor="abluft">Abluft (nach außen)</Label></div>
                 <div className="flex items-center gap-2"><RadioGroupItem value="Umluft" id="umluft" /><Label htmlFor="umluft">Umluft (mit Filter)</Label></div>
+                <div className="flex items-center gap-2"><RadioGroupItem value="Beides möglich" id="beides" /><Label htmlFor="beides">Beides möglich</Label></div>
               </div>
             </RadioGroup>
           </div>
@@ -130,18 +133,46 @@ export function AppliancesForm({ data, onChange }: AppliancesFormProps) {
             </RadioGroup>
           </div>
         </div>
-        <div className="flex flex-wrap gap-4 pt-2">
-          <div className="flex items-center gap-2">
-            <Checkbox id="mw" checked={data.appliances.microwave} onCheckedChange={c => updateAppliances({ microwave: !!c })} />
-            <Label htmlFor="mw">Mikrowelle (separates Gerät)</Label>
+        <div className="space-y-3 pt-2">
+          <Label className="font-medium">Backofen-Features</Label>
+          <div className="flex flex-wrap gap-4">
+            <div className="flex items-center gap-2">
+              <Checkbox id="pyro" checked={data.appliances.other?.includes('Pyrolyse')} onCheckedChange={() => toggleOther('Pyrolyse')} />
+              <Label htmlFor="pyro">Pyrolyse (Selbstreinigung)</Label>
+            </div>
+            <div className="flex items-center gap-2">
+              <Checkbox id="dampf" checked={data.appliances.other?.includes('Dampfgarer')} onCheckedChange={() => toggleOther('Dampfgarer')} />
+              <Label htmlFor="dampf">Dampfgarer-Funktion</Label>
+            </div>
+            <div className="flex items-center gap-2">
+              <Checkbox id="kombi" checked={data.appliances.other?.includes('Kombi-Dampfgarer')} onCheckedChange={() => toggleOther('Kombi-Dampfgarer')} />
+              <Label htmlFor="kombi">Kombi-Dampfgarer</Label>
+            </div>
+            <div className="flex items-center gap-2">
+              <Checkbox id="zweiter" checked={data.appliances.other?.includes('Zweiter Backofen')} onCheckedChange={() => toggleOther('Zweiter Backofen')} />
+              <Label htmlFor="zweiter">Zweiter Backofen</Label>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Checkbox id="warmhalte" checked={data.appliances.other?.includes('Wärmeschublade')} onCheckedChange={() => toggleOther('Wärmeschublade')} />
-            <Label htmlFor="warmhalte">Wärmeschublade</Label>
-          </div>
-          <div className="flex items-center gap-2">
-            <Checkbox id="kaffeevoll" checked={data.appliances.other?.includes('Kaffeevollautomat')} onCheckedChange={() => toggleOther('Kaffeevollautomat')} />
-            <Label htmlFor="kaffeevoll">Einbau-Kaffeevollautomat</Label>
+        </div>
+        <div className="space-y-3 pt-2">
+          <Label className="font-medium">Zusatzgeräte (Einbau)</Label>
+          <div className="flex flex-wrap gap-4">
+            <div className="flex items-center gap-2">
+              <Checkbox id="mw" checked={data.appliances.microwave} onCheckedChange={c => updateAppliances({ microwave: !!c })} />
+              <Label htmlFor="mw">Mikrowelle</Label>
+            </div>
+            <div className="flex items-center gap-2">
+              <Checkbox id="warmhalte" checked={data.appliances.other?.includes('Wärmeschublade')} onCheckedChange={() => toggleOther('Wärmeschublade')} />
+              <Label htmlFor="warmhalte">Wärmeschublade</Label>
+            </div>
+            <div className="flex items-center gap-2">
+              <Checkbox id="vakuum" checked={data.appliances.other?.includes('Vakuumierschublade')} onCheckedChange={() => toggleOther('Vakuumierschublade')} />
+              <Label htmlFor="vakuum">Vakuumierschublade</Label>
+            </div>
+            <div className="flex items-center gap-2">
+              <Checkbox id="kaffeevoll" checked={data.appliances.other?.includes('Kaffeevollautomat')} onCheckedChange={() => toggleOther('Kaffeevollautomat')} />
+              <Label htmlFor="kaffeevoll">Einbau-Kaffeevollautomat</Label>
+            </div>
           </div>
         </div>
       </div>
@@ -154,7 +185,7 @@ export function AppliancesForm({ data, onChange }: AppliancesFormProps) {
             <Label>Art des Kühlschranks</Label>
             <Select value={data.appliances.fridge} onValueChange={v => updateAppliances({ fridge: v })}>
               <SelectTrigger><SelectValue placeholder="Auswählen..." /></SelectTrigger>
-              <SelectContent>{APPLIANCE_TYPES.fridge.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+              <SelectContent>{FRIDGE_TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
             </Select>
           </div>
           <div className="space-y-3">
@@ -181,17 +212,17 @@ export function AppliancesForm({ data, onChange }: AppliancesFormProps) {
           <Label htmlFor="dw" className="font-medium">Geschirrspüler gewünscht</Label>
         </div>
         {data.appliances.dishwasher && (
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid md:grid-cols-3 gap-6">
             <div className="space-y-2">
-              <Label>Einbauart</Label>
+              <Label>Einbauhöhe</Label>
               <RadioGroup value={data.appliances.other?.includes('GS-Hocheinbau') ? 'GS-Hocheinbau' : 'GS-Normal'} 
                 onValueChange={v => {
                   const filtered = (data.appliances.other || []).filter(i => !['GS-Hocheinbau', 'GS-Normal'].includes(i));
                   updateAppliances({ other: [...filtered, v] });
                 }}>
                 <div className="flex flex-col gap-2">
-                  <div className="flex items-center gap-2"><RadioGroupItem value="GS-Normal" id="gs-normal" /><Label htmlFor="gs-normal">Normal (unter Arbeitsplatte)</Label></div>
-                  <div className="flex items-center gap-2"><RadioGroupItem value="GS-Hocheinbau" id="gs-hoch" /><Label htmlFor="gs-hoch">Hocheinbau (rückenschonend)</Label></div>
+                  <div className="flex items-center gap-2"><RadioGroupItem value="GS-Normal" id="gs-normal" /><Label htmlFor="gs-normal">Normal (unter AP)</Label></div>
+                  <div className="flex items-center gap-2"><RadioGroupItem value="GS-Hocheinbau" id="gs-hoch" /><Label htmlFor="gs-hoch">Hocheinbau</Label></div>
                 </div>
               </RadioGroup>
             </div>
@@ -202,14 +233,31 @@ export function AppliancesForm({ data, onChange }: AppliancesFormProps) {
                   const filtered = (data.appliances.other || []).filter(i => !['GS-45cm', 'GS-60cm'].includes(i));
                   updateAppliances({ other: [...filtered, v] });
                 }}>
-                <div className="flex gap-4">
+                <div className="flex flex-col gap-2">
                   <div className="flex items-center gap-2"><RadioGroupItem value="GS-60cm" id="gs-60" /><Label htmlFor="gs-60">60 cm (Standard)</Label></div>
                   <div className="flex items-center gap-2"><RadioGroupItem value="GS-45cm" id="gs-45" /><Label htmlFor="gs-45">45 cm (schmal)</Label></div>
                 </div>
               </RadioGroup>
             </div>
+            <div className="space-y-2">
+              <Label>Integrationsart</Label>
+              <RadioGroup value={data.appliances.other?.find(i => ['GS-Vollintegriert', 'GS-Teilintegriert'].includes(i)) || 'GS-Vollintegriert'} 
+                onValueChange={v => {
+                  const filtered = (data.appliances.other || []).filter(i => !['GS-Vollintegriert', 'GS-Teilintegriert'].includes(i));
+                  updateAppliances({ other: [...filtered, v] });
+                }}>
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center gap-2"><RadioGroupItem value="GS-Vollintegriert" id="gs-voll" /><Label htmlFor="gs-voll">Vollintegriert</Label></div>
+                  <div className="flex items-center gap-2"><RadioGroupItem value="GS-Teilintegriert" id="gs-teil" /><Label htmlFor="gs-teil">Teilintegriert</Label></div>
+                </div>
+              </RadioGroup>
+            </div>
           </div>
         )}
+        <div className="flex items-center gap-2 pt-2">
+          <Checkbox id="dw2" checked={data.appliances.other?.includes('Zweiter Geschirrspüler')} onCheckedChange={() => toggleOther('Zweiter Geschirrspüler')} />
+          <Label htmlFor="dw2">Zweiter Geschirrspüler gewünscht</Label>
+        </div>
       </div>
 
       {/* Gerätemarken */}
