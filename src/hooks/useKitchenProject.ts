@@ -26,15 +26,17 @@ export function useKitchenProject() {
   useEffect(() => {
     if (project) {
       try {
-        // Exclude large photo preview data and File objects from storage to prevent quota issues
+        // Exclude File objects from storage and keep previews reasonably small.
+        // IMPORTANT: previews are needed for print + PDF, so we store a compressed dataURL.
+        const PREVIEW_MAX_CHARS = 250000;
         const storableProject = {
           ...project,
-          photos: project.photos.map(p => ({
+          photos: project.photos.map((p) => ({
             id: p.id,
             type: p.type,
             description: p.description,
-            preview: p.preview && p.preview.length > 50000 ? '' : p.preview // Only store small previews
-          }))
+            preview: p.preview && p.preview.length > PREVIEW_MAX_CHARS ? '' : p.preview,
+          })),
         };
         localStorage.setItem(STORAGE_KEY, JSON.stringify(storableProject));
       } catch (e) {

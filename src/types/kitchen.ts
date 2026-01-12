@@ -71,7 +71,9 @@ export interface KitchenPreferences {
 
 export interface UploadedPhoto {
   id: string;
-  file: File;
+  /** Optional because photos loaded from localStorage won't include the File object */
+  file?: File;
+  /** Data URL (compressed) used for UI, print and PDF */
   preview: string;
   type: 'room' | 'inspiration';
   description?: string;
