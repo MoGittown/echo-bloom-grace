@@ -1047,37 +1047,55 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
             </div>
           )}
 
-          {/* ALL Photos */}
-          {project.photos.length > 0 && (
-            <div className="kitchen-card p-4">
-              <h3 className="font-semibold flex items-center gap-2 mb-3">
-                <Camera className="w-5 h-5 text-primary" />
-                Fotos ({project.photos.length})
-              </h3>
-              {project.photos.some(p => !p.preview) && (
-                <p className="text-xs text-amber-600 mb-2">
-                  ⚠ Einige Fotos haben keine Bilddaten. Bitte im Schritt "Fotos" löschen und erneut hochladen.
-                </p>
-              )}
-              <div className="grid grid-cols-2 gap-4 print:gap-2">
-                {project.photos.filter(p => p.preview).map((photo) => (
-                  <div key={photo.id} className="overflow-hidden rounded-lg border border-border print:break-inside-avoid">
-                    <img
-                      src={photo.preview}
-                      alt={photo.type === 'room' ? 'Raumfoto' : 'Inspiration'}
-                      className="w-full h-40 object-cover print:h-24"
-                    />
-                    <div className="p-2 bg-muted/50 print:p-1">
-                      <p className="text-xs text-muted-foreground">
-                        {photo.type === 'room' ? 'Raumfoto' : 'Inspiration'}
-                        {photo.description && `: ${photo.description}`}
-                      </p>
+          {/* ALL Photos - Split into pages of 6 for print */}
+          {project.photos.length > 0 && (() => {
+            const validPhotos = project.photos.filter(p => p.preview);
+            const photosPerPage = 6;
+            const photoPages: typeof validPhotos[] = [];
+            for (let i = 0; i < validPhotos.length; i += photosPerPage) {
+              photoPages.push(validPhotos.slice(i, i + photosPerPage));
+            }
+            
+            return (
+              <>
+                {project.photos.some(p => !p.preview) && (
+                  <div className="kitchen-card p-4 mb-4">
+                    <p className="text-xs text-amber-600">
+                      ⚠ Einige Fotos haben keine Bilddaten. Bitte im Schritt "Fotos" löschen und erneut hochladen.
+                    </p>
+                  </div>
+                )}
+                {photoPages.map((pagePhotos, pageIndex) => (
+                  <div 
+                    key={pageIndex} 
+                    className={`kitchen-card p-4 ${pageIndex > 0 ? 'print:break-before-page mt-4' : ''}`}
+                  >
+                    <h3 className="font-semibold flex items-center gap-2 mb-3">
+                      <Camera className="w-5 h-5 text-primary" />
+                      Fotos {photoPages.length > 1 ? `(Seite ${pageIndex + 1}/${photoPages.length})` : `(${validPhotos.length})`}
+                    </h3>
+                    <div className="grid grid-cols-2 gap-4 print:gap-3">
+                      {pagePhotos.map((photo) => (
+                        <div key={photo.id} className="overflow-hidden rounded-lg border border-border print:break-inside-avoid">
+                          <img
+                            src={photo.preview}
+                            alt={photo.type === 'room' ? 'Raumfoto' : 'Inspiration'}
+                            className="w-full h-48 object-cover print:h-40"
+                          />
+                          <div className="p-2 bg-muted/50 print:p-1">
+                            <p className="text-xs text-muted-foreground">
+                              {photo.type === 'room' ? 'Raumfoto' : 'Inspiration'}
+                              {photo.description && `: ${photo.description}`}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 ))}
-              </div>
-            </div>
-          )}
+              </>
+            );
+          })()}
         </div>
 
         {/* Additional Notes - Interactive (no-print) */}
