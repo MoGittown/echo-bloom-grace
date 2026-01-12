@@ -20,7 +20,8 @@ const readFileAsDataURL = (file: File) =>
     reader.readAsDataURL(file);
   });
 
-const compressDataURL = (dataUrl: string, maxDim = 1600, quality = 0.85) =>
+// Compress to max ~150-200KB to stay well under localStorage limit
+const compressDataURL = (dataUrl: string, maxDim = 1200, quality = 0.6) =>
   new Promise<string>((resolve) => {
     const img = new Image();
     img.onload = () => {

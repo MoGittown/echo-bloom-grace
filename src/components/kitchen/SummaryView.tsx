@@ -1054,20 +1054,19 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
                 <Camera className="w-5 h-5 text-primary" />
                 Fotos ({project.photos.length})
               </h3>
+              {project.photos.some(p => !p.preview) && (
+                <p className="text-xs text-amber-600 mb-2">
+                  ⚠ Einige Fotos haben keine Bilddaten. Bitte im Schritt "Fotos" löschen und erneut hochladen.
+                </p>
+              )}
               <div className="grid grid-cols-2 gap-4 print:gap-2">
-                {project.photos.map((photo) => (
+                {project.photos.filter(p => p.preview).map((photo) => (
                   <div key={photo.id} className="overflow-hidden rounded-lg border border-border print:break-inside-avoid">
-                    {photo.preview ? (
-                      <img
-                        src={photo.preview}
-                        alt={photo.type === 'room' ? 'Raumfoto' : 'Inspiration'}
-                        className="w-full h-40 object-cover print:h-24"
-                      />
-                    ) : (
-                      <div className="w-full h-40 bg-muted flex items-center justify-center print:h-24">
-                        <Camera className="w-8 h-8 text-muted-foreground" />
-                      </div>
-                    )}
+                    <img
+                      src={photo.preview}
+                      alt={photo.type === 'room' ? 'Raumfoto' : 'Inspiration'}
+                      className="w-full h-40 object-cover print:h-24"
+                    />
                     <div className="p-2 bg-muted/50 print:p-1">
                       <p className="text-xs text-muted-foreground">
                         {photo.type === 'room' ? 'Raumfoto' : 'Inspiration'}
