@@ -222,13 +222,25 @@
     display: none !important;
   }
   
-  /* Remove background images to save ink */
-  body,
-  .min-h-screen,
-  [class*="bg-cover"],
-  [class*="bg-center"] {
+  /* Remove background images to save ink - only on layout containers, not img elements */
+  body::before,
+  body::after,
+  .min-h-screen::before,
+  .min-h-screen::after {
+    display: none !important;
+  }
+  
+  .min-h-screen {
     background-image: none !important;
-    background: white !important;
+    background-color: white !important;
+  }
+  
+  /* Ensure actual photos are visible */
+  img {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    display: block !important;
+    visibility: visible !important;
   }
 
     .print-only {
