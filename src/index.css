@@ -222,25 +222,28 @@
     display: none !important;
   }
   
-  /* Remove background images to save ink - only on layout containers, not img elements */
-  body::before,
-  body::after,
-  .min-h-screen::before,
-  .min-h-screen::after {
-    display: none !important;
-  }
-  
+  /* Remove decorative background images to save ink */
   .min-h-screen {
     background-image: none !important;
     background-color: white !important;
   }
   
-  /* Ensure actual photos are visible */
+  /* Ensure actual photo images are visible in print */
   img {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
-    display: block !important;
+    display: inline-block !important;
     visibility: visible !important;
+    opacity: 1 !important;
+    max-width: 100% !important;
+    height: auto !important;
+  }
+  
+  /* Photo grid for print */
+  .grid img {
+    width: 100% !important;
+    height: 120px !important;
+    object-fit: cover !important;
   }
 
     .print-only {
