@@ -12,28 +12,65 @@ interface PhotoUploadProps {
   onRemove: (photoId: string) => void;
 }
 
+const readFileAsDataURL = (file: File) =>
+  new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+
+const compressDataURL = (dataUrl: string, maxDim = 1600, quality = 0.85) =>
+  new Promise<string>((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const scale = Math.min(1, maxDim / Math.max(img.width, img.height));
+      const w = Math.max(1, Math.round(img.width * scale));
+      const h = Math.max(1, Math.round(img.height * scale));
+
+      const canvas = document.createElement('canvas');
+      canvas.width = w;
+      canvas.height = h;
+
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return resolve(dataUrl);
+
+      ctx.drawImage(img, 0, 0, w, h);
+      resolve(canvas.toDataURL('image/jpeg', quality));
+    };
+    img.onerror = () => resolve(dataUrl);
+    img.src = dataUrl;
+  });
+
 export function PhotoUpload({ photos, onAdd, onRemove }: PhotoUploadProps) {
   const [dragOver, setDragOver] = useState(false);
+
 
   const handleFileChange = useCallback(
     (files: FileList | null, type: 'room' | 'inspiration') => {
       if (!files) return;
 
-      Array.from(files).forEach((file) => {
-        if (!file.type.startsWith('image/')) return;
+      (async () => {
+        for (const file of Array.from(files)) {
+          if (!file.type.startsWith('image/')) continue;
 
-        const reader = new FileReader();
-        reader.onload = () => {
-          const photo: UploadedPhoto = {
-            id: crypto.randomUUID(),
-            file,
-            preview: reader.result as string,
-            type,
-          };
-          onAdd(photo);
-        };
-        reader.readAsDataURL(file);
-      });
+          try {
+            const original = await readFileAsDataURL(file);
+            const preview = await compressDataURL(original);
+
+            const photo: UploadedPhoto = {
+              id: crypto.randomUUID(),
+              file,
+              preview,
+              type,
+            };
+
+            onAdd(photo);
+          } catch {
+            // Fallback: skip invalid images
+          }
+        }
+      })();
     },
     [onAdd]
   );
