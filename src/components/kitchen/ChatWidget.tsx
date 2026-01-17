@@ -35,11 +35,11 @@ export const ChatWidget = () => {
           setIsOpen(true);
         }, 1500);
         
-        // Close after showing for a few seconds
+        // Close after showing for 5 seconds
         const closeTimer = setTimeout(() => {
           setIsOpen(false);
           localStorage.setItem(CHAT_INTRO_SHOWN_KEY, '1');
-        }, 5000);
+        }, 6500);
         
         return () => {
           clearTimeout(openTimer);
