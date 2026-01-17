@@ -80,6 +80,7 @@ export interface KitchenPreferences {
   // Ergonomie & Nutzung
   userHeights: number[]; // Körpergrößen der Hauptnutzer in cm
   cookingFrequency: string; // Kochverhalten
+  householdSize: string; // Für wieviele Personen wird gekocht
   gripType: string; // Griff-Präferenz
 }
 
@@ -157,6 +158,7 @@ export const createDefaultProject = (): KitchenProject => ({
     lighting: [],
     userHeights: [],
     cookingFrequency: '',
+    householdSize: '',
     gripType: '',
   },
   photos: [],

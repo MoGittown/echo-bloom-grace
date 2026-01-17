@@ -773,7 +773,7 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
           </div>
 
           {/* ERGONOMIE & NUTZUNG */}
-          {(project.preferences.userHeights?.length > 0 || project.preferences.cookingFrequency || project.preferences.gripType) && (
+          {(project.preferences.userHeights?.length > 0 || project.preferences.cookingFrequency || project.preferences.householdSize || project.preferences.gripType) && (
             <div className="kitchen-card p-6 mt-6">
               <h3 className="font-semibold flex items-center gap-2 mb-4">
                 <User className="w-5 h-5 text-primary" />
@@ -801,6 +801,17 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
                       {project.preferences.cookingFrequency === 'mehrmals' && 'Mehrmals pro Woche'}
                       {project.preferences.cookingFrequency === 'gelegentlich' && 'Gelegentlich'}
                       {project.preferences.cookingFrequency === 'selten' && 'Selten'}
+                    </span>
+                  </div>
+                )}
+                {project.preferences.householdSize && (
+                  <div>
+                    <span className="text-muted-foreground">Haushaltsgröße:</span>
+                    <span className="ml-2 font-medium">
+                      {project.preferences.householdSize === '1' && '1 Person'}
+                      {project.preferences.householdSize === '2' && '2 Personen'}
+                      {project.preferences.householdSize === '3-4' && '3–4 Personen'}
+                      {project.preferences.householdSize === '5+' && '5+ Personen'}
                     </span>
                   </div>
                 )}
