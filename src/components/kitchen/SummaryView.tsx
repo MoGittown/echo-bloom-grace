@@ -395,13 +395,31 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
           useCORS: true,
           logging: false,
           backgroundColor: '#ffffff',
-          onclone: (doc) => {
+          // Workaround for html2canvas text range error
+          ignoreElements: (element) => {
+            return element.tagName === 'NOSCRIPT';
+          },
+          onclone: (doc, element) => {
             // Apply tighter spacing in the cloned DOM (used for PDF rendering only)
             doc.body.classList.add('pdf-export');
             doc.body.style.background = '#ffffff';
             doc.body.style.margin = '0';
             // Approx. A4 width at 96 DPI, improves consistency across screens
             doc.body.style.width = '794px';
+            
+            // Fix text nodes that might cause range errors
+            const allTextNodes: Text[] = [];
+            const walker = doc.createTreeWalker(element, NodeFilter.SHOW_TEXT, null);
+            let node: Text | null;
+            while ((node = walker.nextNode() as Text)) {
+              allTextNodes.push(node);
+            }
+            // Normalize text content to prevent offset issues
+            allTextNodes.forEach(textNode => {
+              if (textNode.textContent) {
+                textNode.textContent = textNode.textContent.replace(/\s+/g, ' ');
+              }
+            });
           },
         });
 
@@ -424,6 +442,7 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
       pdf.save(fileName);
     } catch (error) {
       console.error('PDF generation failed:', error);
+      toast.error('PDF-Generierung fehlgeschlagen. Bitte versuchen Sie die Druckfunktion.');
     } finally {
       setIsGenerating(false);
     }
