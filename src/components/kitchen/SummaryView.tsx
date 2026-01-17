@@ -387,6 +387,10 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
       const pageW = pdf.internal.pageSize.getWidth();
       const pageH = pdf.internal.pageSize.getHeight();
 
+      // A4 at ~96 DPI (used for stable html2canvas sizing)
+      const A4_PX_W = 794;
+      const A4_PX_H = Math.round((A4_PX_W * 297) / 210);
+
       for (let i = 0; i < exportTargets.length; i++) {
         const target = exportTargets[i];
 
@@ -395,19 +399,26 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
           useCORS: true,
           logging: false,
           backgroundColor: '#ffffff',
-          // Prefer foreignObject rendering to avoid Range-based text measuring
-          foreignObjectRendering: true,
-          // Workaround for html2canvas text range error (emoji/special unicode)
-          ignoreElements: (element) => {
-            return element.tagName === 'NOSCRIPT';
-          },
-          onclone: (doc, element) => {
+          scrollX: 0,
+          scrollY: 0,
+          windowWidth: A4_PX_W,
+          windowHeight: A4_PX_H,
+          removeContainer: true,
+          ignoreElements: (el) => el.tagName === 'NOSCRIPT',
+          onclone: (doc, clonedTarget) => {
             // Apply tighter spacing in the cloned DOM (used for PDF rendering only)
             doc.body.classList.add('pdf-export');
             doc.body.style.background = '#ffffff';
             doc.body.style.margin = '0';
-            // Approx. A4 width at 96 DPI, improves consistency across screens
-            doc.body.style.width = '794px';
+            // Force predictable width for layout calculations
+            doc.body.style.width = `${A4_PX_W}px`;
+
+            const t = clonedTarget as unknown as HTMLElement;
+            t.style.width = `${A4_PX_W}px`;
+            t.style.minHeight = `${A4_PX_H}px`;
+            t.style.boxSizing = 'border-box';
+            t.style.overflow = 'hidden';
+            t.style.background = '#ffffff';
 
             const cleanText = (value: string) => {
               let text = value;
@@ -427,7 +438,7 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
               return text;
             };
 
-            const walker = doc.createTreeWalker(element, NodeFilter.SHOW_TEXT, null);
+            const walker = doc.createTreeWalker(t, NodeFilter.SHOW_TEXT, null);
             let node: Text | null;
             while ((node = walker.nextNode() as Text)) {
               if (node.textContent) node.textContent = cleanText(node.textContent);
