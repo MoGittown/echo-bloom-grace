@@ -103,7 +103,7 @@ export const ChatWidget = () => {
             <Button
               onClick={() => setIsOpen(true)}
               size="lg"
-              className="rounded-full w-14 h-14 shadow-lg hover:shadow-xl transition-shadow bg-primary hover:bg-primary/90"
+              className="rounded-full w-14 h-14 shadow-lg hover:shadow-xl transition-shadow bg-primary hover:bg-primary/90 animate-[pulse_2s_cubic-bezier(0.4,0,0.6,1)_infinite]"
             >
               <MessageCircle className="w-6 h-6" />
             </Button>
