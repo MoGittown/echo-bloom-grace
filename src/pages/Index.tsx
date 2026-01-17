@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useKitchenProject } from '@/hooks/useKitchenProject';
 import { useBranding } from '@/hooks/useBranding';
@@ -15,6 +15,17 @@ import { PhotoUpload } from '@/components/kitchen/PhotoUpload';
 import { SummaryView } from '@/components/kitchen/SummaryView';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Button } from '@/components/ui/button';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { ChevronLeft, ChevronRight, RotateCcw, ChefHat, User, Ruler, LayoutGrid, Square, Palette, Camera, FileText, Plug, Droplets } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
@@ -36,10 +47,39 @@ const STEPS = [
   { title: 'Übersicht', icon: <FileText className="w-5 h-5" />, bg: bgStyle },
 ];
 
+const STARTED_KEY = 'kitchen-has-started';
+
 const Index = () => {
   const navigate = useNavigate();
   const [logoClickCount, setLogoClickCount] = useState(0);
-  const [showLanding, setShowLanding] = useState(true);
+  const [showLanding, setShowLanding] = useState(() => {
+    try {
+      // Explicit flag wins
+      if (localStorage.getItem(STARTED_KEY) === '1') return false;
+
+      // Backward compatible: if a project with meaningful progress exists, don't block with landing
+      const saved = localStorage.getItem('kitchen-project');
+      if (!saved) return true;
+      try {
+        const parsed = JSON.parse(saved);
+        const hasProgress =
+          (parsed?.preferences?.style?.length ?? 0) > 0 ||
+          (parsed?.preferences?.colors?.length ?? 0) > 0 ||
+          (parsed?.preferences?.materials?.length ?? 0) > 0 ||
+          (parsed?.photos?.length ?? 0) > 0 ||
+          !!parsed?.additionalNotes?.trim?.() ||
+          !!parsed?.customer?.firstName?.trim?.() ||
+          !!parsed?.customer?.lastName?.trim?.() ||
+          !!parsed?.customer?.email?.trim?.() ||
+          !!parsed?.customer?.phone?.trim?.();
+        return !hasProgress;
+      } catch {
+        return true;
+      }
+    } catch {
+      return true;
+    }
+  });
   const [customerErrors, setCustomerErrors] = useState<Record<string, string>>({});
 
   const {
@@ -163,7 +203,19 @@ const Index = () => {
 
   // Show landing page if enabled and user hasn't started yet
   if (showLanding && branding.landingPage.showLandingPage) {
-    return <LandingPage branding={branding} onStart={() => setShowLanding(false)} />;
+    return (
+      <LandingPage
+        branding={branding}
+        onStart={() => {
+          try {
+            localStorage.setItem(STARTED_KEY, '1');
+          } catch {
+            // ignore
+          }
+          setShowLanding(false);
+        }}
+      />
+    );
   }
 
   const totalSteps = STEPS.length;
@@ -211,10 +263,39 @@ const Index = () => {
               </div>
               <div className="flex items-center gap-2">
                 <ThemeToggle />
-                <Button variant="ghost" size="sm" onClick={resetProject} className="gap-2">
-                  <RotateCcw className="w-4 h-4" />
-                  <span className="hidden sm:inline">Neu starten</span>
-                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="ghost" size="sm" className="gap-2">
+                      <RotateCcw className="w-4 h-4" />
+                      <span className="hidden sm:inline">Neu starten</span>
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Neu starten?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Alle bisher eingegebenen Daten werden gelöscht. Dies kann nicht rückgängig gemacht werden.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={() => {
+                          try {
+                            localStorage.removeItem(STARTED_KEY);
+                          } catch {
+                            // ignore
+                          }
+                          setCustomerErrors({});
+                          resetProject();
+                          setShowLanding(true);
+                        }}
+                      >
+                        Neu starten
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </div>
             </div>
           </div>
