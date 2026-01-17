@@ -49,6 +49,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { AppointmentRequest } from './AppointmentRequest';
 import { PdfDebugConsole, type PdfDebugEvent, type PdfDebugLevel } from './PdfDebugConsole';
+import { PdfPageHeader } from './PdfPageHeader';
+import { PdfPageFooter } from './PdfPageFooter';
 
 interface SummaryViewProps {
   project: KitchenProject;
@@ -397,6 +399,17 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
   }, []);
 
   const { branding } = useBranding();
+
+  // PDF metadata for professional header/footer
+  const totalPdfPages = 5;
+  const createdIso = project.createdAt instanceof Date ? project.createdAt.toISOString() : String(project.createdAt);
+  const protocolId = `KP-${createdIso.slice(2, 10).replace(/-/g, '')}`;
+  const customerFullName = [project.customer.firstName, project.customer.lastName].filter(Boolean).join(' ') || 'Unbekannt';
+  const contactLine = [
+    branding.contact.phone,
+    branding.contact.email,
+    branding.contact.website,
+  ].filter(Boolean).join(' | ');
 
   const handlePrint = useCallback(() => {
     window.print();
@@ -987,39 +1000,16 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
       {/* Summary Content */}
       <div ref={summaryRef} className="space-y-6 bg-background p-6 rounded-xl">
         {/* ===== PAGE 1: Header, Customer, Style, Appliances ===== */}
-        <div data-pdf-page="1" className="print-page-1 bg-white p-4">
-          {/* Header with Branding */}
-          <div className="text-center border-b pb-6">
-            {branding.logoUrl ? (
-              <div className="flex flex-col items-center gap-3">
-                <img 
-                  src={branding.logoUrl} 
-                  alt="Studio Logo" 
-                  className="h-16 max-w-[200px] object-contain"
-                />
-                {branding.studioName && (
-                  <h1 className="text-xl font-display font-bold text-foreground">
-                    {branding.studioName}
-                  </h1>
-                )}
-                <p className="text-lg text-muted-foreground">Küchen-Beratungsprotokoll</p>
-              </div>
-            ) : branding.studioName ? (
-              <div className="flex flex-col items-center gap-2">
-                <h1 className="text-2xl font-display font-bold text-foreground">
-                  {branding.studioName}
-                </h1>
-                <p className="text-lg text-muted-foreground">Küchen-Beratungsprotokoll</p>
-              </div>
-            ) : (
-              <h1 className="text-2xl font-display font-bold text-foreground">
-                Küchen-Beratungsprotokoll
-              </h1>
-            )}
-            <p className="text-muted-foreground mt-2">
-              Erstellt am {formatDate(project.createdAt)}
-            </p>
-          </div>
+        <div data-pdf-page="1" className="print-page-1 bg-white p-4 flex flex-col min-h-[1100px]">
+          <PdfPageHeader
+            protocolId={protocolId}
+            createdDate={formatDate(project.createdAt)}
+            customerName={customerFullName}
+            studioName={branding.studioName}
+            logoUrl={branding.logoUrl}
+          />
+          
+          <div className="flex-1">
 
           {/* ===== BANT SECTION - PROMINENTLY AT TOP ===== */}
           <div className="mt-6 p-5 rounded-xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border-2 border-primary/20">
@@ -1425,10 +1415,27 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
               </div>
             )}
           </div>
+          </div>
+          
+          <PdfPageFooter
+            pageNumber={1}
+            totalPages={totalPdfPages}
+            contactLine={contactLine}
+            studioName={branding.studioName}
+          />
         </div>
 
         {/* ===== PAGE 2: Sink, Waste, Lighting, Room, Floor Plan ===== */}
-        <div data-pdf-page="2" className="print-page-break-before bg-white p-4">
+        <div data-pdf-page="2" className="print-page-break-before bg-white p-4 flex flex-col min-h-[1100px]">
+          <PdfPageHeader
+            protocolId={protocolId}
+            createdDate={formatDate(project.createdAt)}
+            customerName={customerFullName}
+            studioName={branding.studioName}
+            logoUrl={branding.logoUrl}
+          />
+          
+          <div className="flex-1">
           {/* SPÜLE & ARMATUR */}
           <div className="kitchen-card p-6">
             <h3 className="font-semibold flex items-center gap-2 mb-4">
@@ -1583,10 +1590,27 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
               />
             </div>
           </div>
+          </div>
+          
+          <PdfPageFooter
+            pageNumber={2}
+            totalPages={totalPdfPages}
+            contactLine={contactLine}
+            studioName={branding.studioName}
+          />
         </div>
 
         {/* ===== PAGE 3: Wall Views Nord & Ost ===== */}
-        <div data-pdf-page="3" className="print-page-break-before bg-white p-4">
+        <div data-pdf-page="3" className="print-page-break-before bg-white p-4 flex flex-col min-h-[1100px]">
+          <PdfPageHeader
+            protocolId={protocolId}
+            createdDate={formatDate(project.createdAt)}
+            customerName={customerFullName}
+            studioName={branding.studioName}
+            logoUrl={branding.logoUrl}
+          />
+          
+          <div className="flex-1">
           <h3 className="font-semibold flex items-center gap-2 mb-2 text-lg">
             <Square className="w-5 h-5 text-primary" />
             Wandansichten (1/2)
@@ -1608,10 +1632,27 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
               </div>
             );
           })}
+          </div>
+          
+          <PdfPageFooter
+            pageNumber={3}
+            totalPages={totalPdfPages}
+            contactLine={contactLine}
+            studioName={branding.studioName}
+          />
         </div>
 
         {/* ===== PAGE 4: Wall Views Süd & West + Element Table ===== */}
-        <div data-pdf-page="4" className="print-page-break-before bg-white p-4">
+        <div data-pdf-page="4" className="print-page-break-before bg-white p-4 flex flex-col min-h-[1100px]">
+          <PdfPageHeader
+            protocolId={protocolId}
+            createdDate={formatDate(project.createdAt)}
+            customerName={customerFullName}
+            studioName={branding.studioName}
+            logoUrl={branding.logoUrl}
+          />
+          
+          <div className="flex-1">
           <h3 className="font-semibold flex items-center gap-2 mb-2 text-lg">
             <Square className="w-5 h-5 text-primary" />
             Wandansichten (2/2)
@@ -1665,10 +1706,27 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
               </div>
             </div>
           )}
+          </div>
+          
+          <PdfPageFooter
+            pageNumber={4}
+            totalPages={totalPdfPages}
+            contactLine={contactLine}
+            studioName={branding.studioName}
+          />
         </div>
 
         {/* ===== PAGE 5: Must-haves, Nice-to-haves, Notes, ALL Photos ===== */}
-        <div data-pdf-page="5" className="print-page-break-before bg-white p-4">
+        <div data-pdf-page="5" className="print-page-break-before bg-white p-4 flex flex-col min-h-[1100px]">
+          <PdfPageHeader
+            protocolId={protocolId}
+            createdDate={formatDate(project.createdAt)}
+            customerName={customerFullName}
+            studioName={branding.studioName}
+            logoUrl={branding.logoUrl}
+          />
+          
+          <div className="flex-1">
           {/* Must-haves & Nice-to-haves */}
           {(freeformMustHaves.length > 0 || project.preferences.niceToHaves.length > 0) && (
             <div className="grid md:grid-cols-2 gap-4 mb-4">
@@ -1762,6 +1820,14 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
             );
           })()}
 
+          </div>
+          
+          <PdfPageFooter
+            pageNumber={5}
+            totalPages={totalPdfPages}
+            contactLine={contactLine}
+            studioName={branding.studioName}
+          />
         </div>
 
         {/* Additional Notes - Interactive (no-print) */}
