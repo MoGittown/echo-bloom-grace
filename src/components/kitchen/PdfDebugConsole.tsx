@@ -1,4 +1,4 @@
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
@@ -89,7 +89,7 @@ export function PdfDebugConsole({
           </ScrollArea>
         </div>
 
-        <DialogFooter className="gap-2">
+        <div className="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 gap-2">
           <Button type="button" variant="outline" onClick={handleCopy} className="gap-2">
             <Copy className="h-4 w-4" />
             Kopieren
@@ -101,7 +101,11 @@ export function PdfDebugConsole({
           <Button type="button" onClick={() => onOpenChange(false)}>
             Schließen
           </Button>
-        </DialogFooter>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
       </DialogContent>
     </Dialog>
   );

@@ -380,11 +380,20 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
 
   const formatUnknownError = useCallback((err: unknown): string => {
     if (err instanceof Error) return `${err.name}: ${err.message}\n${err.stack ?? ''}`.trim();
-    try {
-      return JSON.stringify(err, null, 2);
-    } catch {
-      return String(err);
+
+    // DOMException and other error-like objects often stringify to "{}" because fields are non-enumerable.
+    if (err && typeof err === 'object') {
+      const anyErr = err as { name?: unknown; message?: unknown; stack?: unknown };
+      const name = typeof anyErr.name === 'string' ? anyErr.name : undefined;
+      const message = typeof anyErr.message === 'string' ? anyErr.message : undefined;
+      const stack = typeof anyErr.stack === 'string' ? anyErr.stack : undefined;
+
+      if (name || message || stack) {
+        return `${name ?? 'Error'}: ${message ?? ''}\n${stack ?? ''}`.trim();
+      }
     }
+
+    return String(err);
   }, []);
 
   const { branding } = useBranding();
@@ -461,6 +470,25 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
               svgs.forEach((svg) => {
                 svg.style.display = 'inline-block';
               });
+
+              // Normalize tricky unicode chars in text nodes (helps prevent IndexSizeError)
+              const normalize = (s: string) => s.replace(/[\u200B-\u200D\u2060\uFE0E\uFE0F\u202A-\u202E]/g, '');
+              let changed = 0;
+              const walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT);
+              let node: Node | null = walker.nextNode();
+              while (node) {
+                const textNode = node as Text;
+                const original = textNode.nodeValue ?? '';
+                const cleaned = normalize(original);
+                if (cleaned !== original) {
+                  textNode.nodeValue = cleaned;
+                  changed++;
+                }
+                node = walker.nextNode();
+              }
+              if (changed > 0) {
+                addPdfDebugEvent('info', `Text normalisiert (${pageLabel})`, `${changed} Textknoten bereinigt`);
+              }
             },
           });
 
