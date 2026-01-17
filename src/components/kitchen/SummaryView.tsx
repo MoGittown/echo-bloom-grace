@@ -32,6 +32,9 @@ import {
   Square,
   Mail,
   Loader2,
+  FileSpreadsheet,
+  CalendarClock,
+  Briefcase,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import html2canvas from 'html2canvas';
@@ -542,6 +545,92 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
     });
   };
 
+  // CSV Export function
+  const handleDownloadCSV = useCallback(() => {
+    const timeline = TIMELINE_OPTIONS.find(t => t.value === project.customer.timeline)?.label || project.customer.timeline || '';
+    
+    // Build CSV rows
+    const csvRows: string[][] = [
+      ['Kategorie', 'Feld', 'Wert'],
+      [''],
+      ['=== LEAD-DATEN (BANT) ===', '', ''],
+      ['Kunde', 'Vorname', project.customer.firstName || ''],
+      ['Kunde', 'Nachname', project.customer.lastName || ''],
+      ['Kunde', 'E-Mail', project.customer.email || ''],
+      ['Kunde', 'Telefon', project.customer.phone || ''],
+      ['Kunde', 'Straße', project.customer.address || ''],
+      ['Kunde', 'PLZ', project.customer.postalCode || ''],
+      ['Kunde', 'Ort', project.customer.city || ''],
+      ['Timeline', 'Gewünschter Montagezeitraum', timeline],
+      ['Budget', 'Minimum (€)', project.preferences.budget.min.toString()],
+      ['Budget', 'Maximum (€)', project.preferences.budget.max.toString()],
+      [''],
+      ['=== RAUMABMESSUNGEN ===', '', ''],
+      ['Raum', 'Länge (cm)', project.room.length.toString()],
+      ['Raum', 'Breite (cm)', project.room.width.toString()],
+      ['Raum', 'Höhe (cm)', project.room.height.toString()],
+      ['Raum', 'Form', project.room.shape || ''],
+      ['Raum', 'Fläche (m²)', ((project.room.length * project.room.width) / 10000).toFixed(2)],
+      [''],
+      ['=== ERGONOMIE ===', '', ''],
+      ['Ergonomie', 'Körpergröße(n) (cm)', (project.preferences.userHeights || []).join(', ')],
+      ['Ergonomie', 'Kochverhalten', project.preferences.cookingFrequency || ''],
+      ['Ergonomie', 'Haushaltsgröße', project.preferences.householdSize || ''],
+      ['Ergonomie', 'Griff-Präferenz', project.preferences.gripType || ''],
+      [''],
+      ['=== STIL & DESIGN ===', '', ''],
+      ['Stil', 'Küchenstil', project.preferences.style.join(', ')],
+      ['Stil', 'Frontenfarben', project.preferences.colors.join(', ')],
+      ['Stil', 'Frontmaterial', project.preferences.materials.join(', ')],
+      ['Stil', 'Arbeitsplatte', Array.isArray(project.preferences.countertop) ? project.preferences.countertop.join(', ') : (project.preferences.countertop || '')],
+      ['Stil', 'Hersteller', project.preferences.manufacturers.join(', ')],
+      [''],
+      ['=== ELEKTROGERÄTE ===', '', ''],
+      ['Geräte', 'Kochfeld', project.preferences.appliances.cooktop || ''],
+      ['Geräte', 'Dunstabzug', project.preferences.appliances.hood || ''],
+      ['Geräte', 'Backofen', project.preferences.appliances.oven || ''],
+      ['Geräte', 'Kühlschrank', project.preferences.appliances.fridge || ''],
+      ['Geräte', 'Geschirrspüler', project.preferences.appliances.dishwasher ? 'Ja' : 'Nein'],
+      ['Geräte', 'Mikrowelle', project.preferences.appliances.microwave ? 'Ja' : 'Nein'],
+      [''],
+      ['=== SPÜLE & ARMATUR ===', '', ''],
+      ['Spüle', 'Material', project.preferences.sink || ''],
+      [''],
+      ['=== ANSCHLÜSSE ===', '', ''],
+    ];
+
+    // Add floor plan elements
+    project.floorPlan.elements.forEach((element, idx) => {
+      csvRows.push([
+        'Anschluss',
+        `${ELEMENT_TYPE_LABELS[element.type] || element.type} (${WALL_LABELS[element.wall]})`,
+        `${element.width}×${element.height}cm, ${element.distanceFromLeft}cm v. links, ${element.distanceFromFloor}cm v. Boden`
+      ]);
+    });
+
+    csvRows.push(['']);
+    csvRows.push(['=== NOTIZEN ===', '', '']);
+    csvRows.push(['Notizen', 'Zusätzliche Notizen', (project.additionalNotes || '').replace(/\n/g, ' ')]);
+
+    // Convert to CSV string
+    const csvContent = csvRows.map(row => 
+      row.map(cell => `"${(cell || '').replace(/"/g, '""')}"`).join(';')
+    ).join('\n');
+
+    // Download
+    const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `Kuechen-Beratung_${project.customer.lastName || 'Kunde'}_${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    
+    toast.success('CSV-Export erfolgreich heruntergeladen');
+  }, [project]);
+
   // Extract style details from mustHaves
   const frontSurfaces = getTaggedItems(project.preferences.mustHaves, 'Oberfläche:');
   const countertopThickness = getTaggedItems(project.preferences.mustHaves, 'APStärke:');
@@ -704,7 +793,92 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
             </p>
           </div>
 
-          {/* Customer Info */}
+          {/* ===== BANT SECTION - PROMINENTLY AT TOP ===== */}
+          <div className="mt-6 p-5 rounded-xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border-2 border-primary/20">
+            <h3 className="font-bold text-lg flex items-center gap-2 mb-4 text-primary">
+              <Briefcase className="w-5 h-5" />
+              Lead-Übersicht
+            </h3>
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* Timeline/Need */}
+              <div className="bg-background rounded-lg p-4 shadow-sm">
+                <div className="flex items-center gap-2 mb-2 text-muted-foreground text-xs font-medium uppercase tracking-wide">
+                  <CalendarClock className="w-4 h-4" />
+                  Zeitrahmen
+                </div>
+                {project.customer.timeline ? (() => {
+                  const timelineOption = TIMELINE_OPTIONS.find(t => t.value === project.customer.timeline);
+                  const priorityColor = timelineOption?.priority === 'high' 
+                    ? 'text-green-700 dark:text-green-400' 
+                    : timelineOption?.priority === 'medium'
+                    ? 'text-yellow-700 dark:text-yellow-400'
+                    : 'text-muted-foreground';
+                  const priorityBg = timelineOption?.priority === 'high' 
+                    ? 'bg-green-100 dark:bg-green-900/30' 
+                    : timelineOption?.priority === 'medium'
+                    ? 'bg-yellow-100 dark:bg-yellow-900/30'
+                    : 'bg-muted';
+                  return (
+                    <div className={`font-semibold text-sm ${priorityColor} ${priorityBg} px-2 py-1 rounded inline-block`}>
+                      {timelineOption?.label || project.customer.timeline}
+                      {timelineOption?.priority === 'high' && ' ⚡'}
+                    </div>
+                  );
+                })() : (
+                  <span className="text-muted-foreground text-sm italic">Nicht angegeben</span>
+                )}
+              </div>
+
+              {/* Budget */}
+              <div className="bg-background rounded-lg p-4 shadow-sm">
+                <div className="flex items-center gap-2 mb-2 text-muted-foreground text-xs font-medium uppercase tracking-wide">
+                  💰 Budget
+                </div>
+                {project.preferences.budget.min > 0 || project.preferences.budget.max > 0 ? (
+                  <div className="font-semibold text-sm text-foreground">
+                    €{project.preferences.budget.min.toLocaleString('de-DE')} – €{project.preferences.budget.max.toLocaleString('de-DE')}
+                  </div>
+                ) : (
+                  <span className="text-muted-foreground text-sm italic">Nicht angegeben</span>
+                )}
+              </div>
+
+              {/* Contact */}
+              <div className="bg-background rounded-lg p-4 shadow-sm">
+                <div className="flex items-center gap-2 mb-2 text-muted-foreground text-xs font-medium uppercase tracking-wide">
+                  <User className="w-4 h-4" />
+                  Kontakt
+                </div>
+                <div className="text-sm">
+                  <div className="font-semibold text-foreground">
+                    {project.customer.firstName || project.customer.lastName 
+                      ? `${project.customer.firstName} ${project.customer.lastName}`.trim()
+                      : <span className="italic text-muted-foreground">Kein Name</span>
+                    }
+                  </div>
+                  {project.customer.phone && (
+                    <div className="text-muted-foreground">{project.customer.phone}</div>
+                  )}
+                </div>
+              </div>
+
+              {/* Room Size Quick Info */}
+              <div className="bg-background rounded-lg p-4 shadow-sm">
+                <div className="flex items-center gap-2 mb-2 text-muted-foreground text-xs font-medium uppercase tracking-wide">
+                  <Ruler className="w-4 h-4" />
+                  Raumgröße
+                </div>
+                <div className="font-semibold text-sm text-foreground">
+                  {((project.room.length * project.room.width) / 10000).toFixed(1)} m²
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  {project.room.length} × {project.room.width} cm
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Customer Details */}
           <div className="kitchen-card p-6 mt-6">
             <h3 className="font-semibold flex items-center gap-2 mb-4">
               <User className="w-5 h-5 text-primary" />
@@ -739,25 +913,6 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
                       {project.customer.address}{project.customer.address && project.customer.postalCode ? ', ' : ''}
                       {project.customer.postalCode} {project.customer.city}
                     </span>
-                  </div>
-                )}
-                {project.customer.timeline && (
-                  <div className="md:col-span-2">
-                    <span className="text-muted-foreground">Gewünschter Montagezeitraum:</span>
-                    {(() => {
-                      const timelineOption = TIMELINE_OPTIONS.find(t => t.value === project.customer.timeline);
-                      const priorityColor = timelineOption?.priority === 'high' 
-                        ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' 
-                        : timelineOption?.priority === 'medium'
-                        ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400'
-                        : 'bg-muted text-muted-foreground';
-                      return (
-                        <span className={`ml-2 px-2 py-1 rounded text-sm font-medium ${priorityColor}`}>
-                          {timelineOption?.label || project.customer.timeline}
-                          {timelineOption?.priority === 'high' && ' ⚡'}
-                        </span>
-                      );
-                    })()}
                   </div>
                 )}
               </div>
@@ -1423,6 +1578,14 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
           >
             <Download className="w-4 h-4" />
             {isGenerating ? 'Wird erstellt...' : 'Als PDF speichern'}
+          </Button>
+          <Button
+            onClick={handleDownloadCSV}
+            variant="outline"
+            className="gap-2"
+          >
+            <FileSpreadsheet className="w-4 h-4" />
+            CSV-Export
           </Button>
           <Button
             onClick={() => setEmailDialogOpen(true)}
