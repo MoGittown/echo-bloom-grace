@@ -15,7 +15,8 @@ import {
   Loader2,
   Check,
   ChefHat,
-  ArrowLeft
+  ArrowLeft,
+  Palette
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
@@ -39,16 +40,21 @@ export default function AdminPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [editedColor, setEditedColor] = useState('#C2410C');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Local state for editing
   const [editedStudioName, setEditedStudioName] = useState('');
   const [hasChanges, setHasChanges] = useState(false);
+  const [hasColorChanges, setHasColorChanges] = useState(false);
 
   // Initialize edit state when branding loads
   useState(() => {
     if (branding.studioName) {
       setEditedStudioName(branding.studioName);
+    }
+    if (branding.primaryColor) {
+      setEditedColor(branding.primaryColor);
     }
   });
 
@@ -63,6 +69,7 @@ export default function AdminPage() {
     if (success) {
       toast.success('Erfolgreich angemeldet');
       setEditedStudioName(branding.studioName);
+      setEditedColor(branding.primaryColor);
     } else {
       toast.error('Falsches Passwort');
     }
@@ -157,6 +164,33 @@ export default function AdminPage() {
       toast.error('Fehler beim Speichern');
     }
   };
+
+  const handleSaveColor = async () => {
+    if (editedColor === branding.primaryColor) return;
+
+    setIsSaving(true);
+    const success = await updateBranding({ primaryColor: editedColor });
+    setIsSaving(false);
+
+    if (success) {
+      toast.success('Farbe gespeichert');
+      setHasColorChanges(false);
+    } else {
+      toast.error('Fehler beim Speichern');
+    }
+  };
+
+  // Predefined color palette
+  const colorPresets = [
+    { name: 'Terrakotta', value: '#C2410C' },
+    { name: 'Blau', value: '#1D4ED8' },
+    { name: 'Grün', value: '#15803D' },
+    { name: 'Lila', value: '#7C3AED' },
+    { name: 'Pink', value: '#BE185D' },
+    { name: 'Grau', value: '#374151' },
+    { name: 'Braun', value: '#78350F' },
+    { name: 'Teal', value: '#0D9488' },
+  ];
 
   if (isLoading) {
     return (
@@ -427,6 +461,75 @@ export default function AdminPage() {
               >
                 {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Speichern'}
               </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Primary Color */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Palette className="w-5 h-5" />
+              Primärfarbe
+            </CardTitle>
+            <CardDescription>
+              Wählen Sie die Hauptfarbe für Buttons, Akzente und Highlights
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex flex-wrap gap-2">
+              {colorPresets.map((preset) => (
+                <button
+                  key={preset.value}
+                  onClick={() => {
+                    setEditedColor(preset.value);
+                    setHasColorChanges(preset.value !== branding.primaryColor);
+                  }}
+                  className={`w-10 h-10 rounded-lg border-2 transition-all ${
+                    editedColor === preset.value 
+                      ? 'border-foreground scale-110 shadow-lg' 
+                      : 'border-transparent hover:scale-105'
+                  }`}
+                  style={{ backgroundColor: preset.value }}
+                  title={preset.name}
+                />
+              ))}
+            </div>
+            <div className="flex gap-3 items-center">
+              <Label htmlFor="customColor" className="shrink-0">Eigene Farbe:</Label>
+              <div className="flex gap-2 items-center flex-1">
+                <input
+                  type="color"
+                  id="customColor"
+                  value={editedColor}
+                  onChange={(e) => {
+                    setEditedColor(e.target.value);
+                    setHasColorChanges(e.target.value !== branding.primaryColor);
+                  }}
+                  className="w-12 h-10 rounded cursor-pointer border-0"
+                />
+                <Input
+                  value={editedColor}
+                  onChange={(e) => {
+                    setEditedColor(e.target.value);
+                    setHasColorChanges(e.target.value !== branding.primaryColor);
+                  }}
+                  placeholder="#C2410C"
+                  className="w-28 font-mono"
+                />
+              </div>
+              <Button 
+                onClick={handleSaveColor}
+                disabled={!hasColorChanges || isSaving}
+              >
+                {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Speichern'}
+              </Button>
+            </div>
+            <div 
+              className="p-4 rounded-lg text-white text-center font-medium"
+              style={{ backgroundColor: editedColor }}
+            >
+              Vorschau: So sehen Buttons aus
             </div>
           </CardContent>
         </Card>
