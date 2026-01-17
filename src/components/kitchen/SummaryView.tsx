@@ -1327,8 +1327,22 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
         </div>
 
         {/* Contact Footer - displayed at the very end after notes */}
-        {(branding.contact.address || branding.contact.phone || branding.contact.email || branding.contact.website) && (
+        {(branding.studioName || branding.contact.address || branding.contact.phone || branding.contact.email || branding.contact.website) && (
           <div className="mt-6 pt-4 border-t text-center text-sm text-muted-foreground">
+            {/* Studio Logo and Name */}
+            <div className="flex items-center justify-center gap-3 mb-3">
+              {branding.logoUrl && (
+                <img 
+                  src={branding.logoUrl} 
+                  alt={branding.studioName || 'Studio Logo'} 
+                  className="h-10 w-auto object-contain"
+                />
+              )}
+              {branding.studioName && (
+                <span className="font-semibold text-foreground text-base">{branding.studioName}</span>
+              )}
+            </div>
+            {/* Contact Details */}
             <div className="flex flex-wrap justify-center gap-x-4 gap-y-1">
               {branding.contact.address && <span>{branding.contact.address}</span>}
               {branding.contact.phone && <span>Tel: {branding.contact.phone}</span>}
