@@ -136,6 +136,19 @@
     @apply bg-card rounded-xl border border-border shadow-sm hover:shadow-md transition-shadow;
   }
 
+  /* Kompakte PDF-Karten mit einheitlichen Abständen */
+  .pdf-section-card {
+    @apply bg-card rounded-lg border border-border/60 p-4 mb-3;
+  }
+
+  .pdf-section-card h3 {
+    @apply text-[11pt] font-semibold flex items-center gap-2 mb-3 pb-2 border-b border-border/40;
+  }
+
+  .pdf-section-card .section-content {
+    @apply grid gap-2 text-[10pt];
+  }
+
   .kitchen-input {
     @apply bg-background border-2 border-border rounded-lg px-4 py-3 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all;
   }
