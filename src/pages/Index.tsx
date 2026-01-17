@@ -159,15 +159,10 @@ const Index = () => {
               <ChevronLeft className="w-4 h-4" />
               Zurück
             </Button>
-            {currentStep < totalSteps - 1 ? (
+            {currentStep < totalSteps - 1 && (
               <Button onClick={nextStep} className="gap-2 shadow-lg">
                 Weiter
                 <ChevronRight className="w-4 h-4" />
-              </Button>
-            ) : (
-              <Button onClick={() => window.print()} className="gap-2 shadow-lg">
-                <FileText className="w-4 h-4" />
-                Drucken
               </Button>
             )}
           </div>
