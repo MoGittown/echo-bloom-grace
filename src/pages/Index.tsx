@@ -1,3 +1,5 @@
+import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useKitchenProject } from '@/hooks/useKitchenProject';
 import { useBranding } from '@/hooks/useBranding';
 import { StepIndicator } from '@/components/kitchen/StepIndicator';
@@ -14,7 +16,6 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, RotateCcw, ChefHat, User, Ruler, LayoutGrid, Square, Palette, Camera, FileText, Plug, Droplets } from 'lucide-react';
 import { motion } from 'framer-motion';
-
 // Background images
 import bgStyle from '@/assets/bg-style.jpg';
 import bgAppliances from '@/assets/bg-appliances.jpg';
@@ -34,6 +35,9 @@ const STEPS = [
 ];
 
 const Index = () => {
+  const navigate = useNavigate();
+  const [logoClickCount, setLogoClickCount] = useState(0);
+  
   const {
     project,
     currentStep,
@@ -52,6 +56,32 @@ const Index = () => {
   } = useKitchenProject();
 
   const { branding } = useBranding();
+
+  // Hidden admin access via logo clicks (5x)
+  const handleLogoClick = useCallback(() => {
+    setLogoClickCount(prev => {
+      const newCount = prev + 1;
+      if (newCount >= 5) {
+        navigate('/admin');
+        return 0;
+      }
+      // Reset after 2 seconds of inactivity
+      setTimeout(() => setLogoClickCount(0), 2000);
+      return newCount;
+    });
+  }, [navigate]);
+
+  // Hidden admin access via keyboard shortcut (Ctrl+Shift+A)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.shiftKey && e.key === 'A') {
+        e.preventDefault();
+        navigate('/admin');
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [navigate]);
 
   if (isLoading || !project) {
     return (
@@ -85,15 +115,21 @@ const Index = () => {
           <div className="container mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                {branding.logoUrl ? (
-                  <div className="w-10 h-10 rounded-lg overflow-hidden bg-white flex items-center justify-center">
-                    <img src={branding.logoUrl} alt="Studio Logo" className="max-w-full max-h-full object-contain" />
-                  </div>
-                ) : (
-                  <div className="p-2 bg-primary/10 rounded-lg">
-                    <ChefHat className="w-7 h-7 text-primary" />
-                  </div>
-                )}
+                <button 
+                  onClick={handleLogoClick}
+                  className="focus:outline-none cursor-default"
+                  aria-label="Logo"
+                >
+                  {branding.logoUrl ? (
+                    <div className="w-10 h-10 rounded-lg overflow-hidden bg-white flex items-center justify-center">
+                      <img src={branding.logoUrl} alt="Studio Logo" className="max-w-full max-h-full object-contain" />
+                    </div>
+                  ) : (
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                      <ChefHat className="w-7 h-7 text-primary" />
+                    </div>
+                  )}
+                </button>
                 <div>
                   <h1 className="text-xl font-display font-bold">
                     {branding.studioName || 'Küchen-Checkliste'}
