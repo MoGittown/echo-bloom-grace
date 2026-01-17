@@ -1,1 +1,4 @@
 project_id = "pstfazamjmpcywgtkoyt"
+
+[functions.send-protocol-email]
+verify_jwt = false
