@@ -48,6 +48,7 @@ import { RoomDimensions, WallElement } from '@/types/kitchen';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { AppointmentRequest } from './AppointmentRequest';
+import { PdfDebugConsole, type PdfDebugEvent, type PdfDebugLevel } from './PdfDebugConsole';
 
 interface SummaryViewProps {
   project: KitchenProject;
@@ -364,7 +365,28 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
   const [recipientEmail, setRecipientEmail] = useState('');
   const [isSendingEmail, setIsSendingEmail] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
-  
+
+  const [pdfDebugOpen, setPdfDebugOpen] = useState(false);
+  const [pdfDebugEvents, setPdfDebugEvents] = useState<PdfDebugEvent[]>([]);
+
+  const clearPdfDebug = useCallback(() => setPdfDebugEvents([]), []);
+
+  const addPdfDebugEvent = useCallback(
+    (level: PdfDebugLevel, message: string, details?: string) => {
+      setPdfDebugEvents((prev) => [...prev, { ts: Date.now(), level, message, details }]);
+    },
+    [],
+  );
+
+  const formatUnknownError = useCallback((err: unknown): string => {
+    if (err instanceof Error) return `${err.name}: ${err.message}\n${err.stack ?? ''}`.trim();
+    try {
+      return JSON.stringify(err, null, 2);
+    } catch {
+      return String(err);
+    }
+  }, []);
+
   const { branding } = useBranding();
 
   const handlePrint = useCallback(() => {
@@ -375,6 +397,7 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
     if (!summaryRef.current) return;
 
     setIsGenerating(true);
+    clearPdfDebug();
 
     try {
       const root = summaryRef.current;
@@ -397,14 +420,24 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
       const A4_PX_H = Math.round((A4_PX_W * 297) / 210);
 
       console.log(`[PDF Debug] Starting export of ${exportTargets.length} pages`);
+      addPdfDebugEvent('info', `PDF-Export gestartet (${exportTargets.length} Seiten)`);
 
       for (let i = 0; i < exportTargets.length; i++) {
         const target = exportTargets[i];
         const pageLabel = target.getAttribute('data-pdf-page') || `page-${i + 1}`;
-        
+
+        const dimLine = `DOM: ${target.offsetWidth}x${target.offsetHeight}px`;
+        const textLen = target.textContent?.length || 0;
+
         console.log(`[PDF Debug] Processing page ${i + 1}/${exportTargets.length}: "${pageLabel}"`);
         console.log(`[PDF Debug] Page dimensions: ${target.offsetWidth}x${target.offsetHeight}px`);
-        console.log(`[PDF Debug] Page text content length: ${target.textContent?.length || 0} chars`);
+        console.log(`[PDF Debug] Page text content length: ${textLen} chars`);
+
+        addPdfDebugEvent(
+          'info',
+          `Seite ${i + 1}/${exportTargets.length}: ${pageLabel}`,
+          `${dimLine}\nText: ${textLen} Zeichen`,
+        );
 
         try {
           const canvas = await html2canvas(target, {
@@ -420,16 +453,19 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
               doc.body.style.background = '#ffffff';
               doc.body.style.margin = '0';
               doc.body.style.width = `${A4_PX_W}px`;
-              
-              // Hide SVG icons that might cause rendering issues
+              // keep height available for debugging consistency
+              doc.body.style.minHeight = `${A4_PX_H}px`;
+
+              // Keep SVG icons visible (some setups hide them)
               const svgs = doc.querySelectorAll('svg');
-              svgs.forEach(svg => {
+              svgs.forEach((svg) => {
                 svg.style.display = 'inline-block';
               });
             },
           });
-          
+
           console.log(`[PDF Debug] ✓ Page ${i + 1} canvas created: ${canvas.width}x${canvas.height}px`);
+          addPdfDebugEvent('success', `Seite ${i + 1} gerendert`, `Canvas: ${canvas.width}x${canvas.height}px`);
 
           const imgData = canvas.toDataURL('image/png');
 
@@ -444,24 +480,31 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
           }
           const x = (pageW - renderW) / 2;
           pdf.addImage(imgData, 'PNG', x, 0, renderW, renderH);
-          
         } catch (pageError) {
           console.error(`[PDF Debug] ✗ Page ${i + 1} ("${pageLabel}") FAILED:`, pageError);
+          addPdfDebugEvent('error', `Seite ${i + 1} fehlgeschlagen (${pageLabel})`, formatUnknownError(pageError));
+          setPdfDebugOpen(true);
           throw pageError; // Re-throw to trigger outer catch
         }
       }
 
       console.log(`[PDF Debug] ✓ All pages processed successfully`);
+      addPdfDebugEvent('success', 'Alle Seiten erfolgreich verarbeitet');
+
       const fileName = `Kuechen-Beratung_${project.customer.lastName || 'Kunde'}_${new Date().toISOString().split('T')[0]}.pdf`;
       pdf.save(fileName);
+
       console.log(`[PDF Debug] ✓ PDF saved as: ${fileName}`);
+      addPdfDebugEvent('success', `PDF gespeichert: ${fileName}`);
     } catch (error) {
       console.error('PDF generation failed:', error);
+      addPdfDebugEvent('error', 'PDF-Generierung fehlgeschlagen', formatUnknownError(error));
+      setPdfDebugOpen(true);
       toast.error('PDF-Generierung fehlgeschlagen. Bitte versuchen Sie es erneut.');
     } finally {
       setIsGenerating(false);
     }
-  }, [project]);
+  }, [project, addPdfDebugEvent, clearPdfDebug, formatUnknownError]);
 
   const generateSummaryHtml = useCallback(() => {
     const customerName = `${project.customer.firstName} ${project.customer.lastName}`.trim() || 'Unbekannt';
@@ -1706,19 +1749,15 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
             <Printer className="w-4 h-4" />
             Drucken
           </Button>
-          <Button
-            onClick={handleDownloadPDF}
-            className="gap-2"
-            disabled={isGenerating}
-          >
+          <Button onClick={handleDownloadPDF} className="gap-2" disabled={isGenerating}>
             <Download className="w-4 h-4" />
             {isGenerating ? 'Wird erstellt...' : 'Als PDF speichern'}
           </Button>
-          <Button
-            onClick={() => setEmailDialogOpen(true)}
-            variant="secondary"
-            className="gap-2"
-          >
+          <Button onClick={() => setPdfDebugOpen(true)} variant="outline" className="gap-2">
+            <FileText className="w-4 h-4" />
+            PDF-Debug{pdfDebugEvents.length ? ` (${pdfDebugEvents.length})` : ''}
+          </Button>
+          <Button onClick={() => setEmailDialogOpen(true)} variant="secondary" className="gap-2">
             <Mail className="w-4 h-4" />
             Per E-Mail senden
           </Button>
@@ -1728,6 +1767,13 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
             customerPhone={project.customer.phone}
           />
         </div>
+
+        <PdfDebugConsole
+          open={pdfDebugOpen}
+          onOpenChange={setPdfDebugOpen}
+          events={pdfDebugEvents}
+          onClear={clearPdfDebug}
+        />
       </div>
     </motion.div>
   );
