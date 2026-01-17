@@ -1,4 +1,5 @@
 import { useKitchenProject } from '@/hooks/useKitchenProject';
+import { useBranding } from '@/hooks/useBranding';
 import { StepIndicator } from '@/components/kitchen/StepIndicator';
 import { CustomerForm } from '@/components/kitchen/CustomerForm';
 import { RoomForm } from '@/components/kitchen/RoomForm';
@@ -10,6 +11,7 @@ import { SinkForm } from '@/components/kitchen/SinkForm';
 import { PhotoUpload } from '@/components/kitchen/PhotoUpload';
 import { SummaryView } from '@/components/kitchen/SummaryView';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { BrandingSettings } from '@/components/kitchen/BrandingSettings';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, RotateCcw, ChefHat, User, Ruler, LayoutGrid, Square, Palette, Camera, FileText, Plug, Droplets } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -50,6 +52,8 @@ const Index = () => {
     goToStep,
   } = useKitchenProject();
 
+  const { branding } = useBranding();
+
   if (isLoading || !project) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
@@ -82,15 +86,24 @@ const Index = () => {
           <div className="container mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-primary/10 rounded-lg">
-                  <ChefHat className="w-7 h-7 text-primary" />
-                </div>
+                {branding.logoUrl ? (
+                  <div className="w-10 h-10 rounded-lg overflow-hidden bg-white flex items-center justify-center">
+                    <img src={branding.logoUrl} alt="Studio Logo" className="max-w-full max-h-full object-contain" />
+                  </div>
+                ) : (
+                  <div className="p-2 bg-primary/10 rounded-lg">
+                    <ChefHat className="w-7 h-7 text-primary" />
+                  </div>
+                )}
                 <div>
-                  <h1 className="text-xl font-display font-bold">Küchen-Checkliste</h1>
+                  <h1 className="text-xl font-display font-bold">
+                    {branding.studioName || 'Küchen-Checkliste'}
+                  </h1>
                   <p className="text-xs text-muted-foreground">Erstberatung</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
+                <BrandingSettings />
                 <ThemeToggle />
                 <Button variant="ghost" size="sm" onClick={resetProject} className="gap-2">
                   <RotateCcw className="w-4 h-4" />
