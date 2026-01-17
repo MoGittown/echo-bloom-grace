@@ -20,11 +20,27 @@ export const ChatWidget = () => {
   const { messages, isLoading, sendMessage, clearChat } = useKitchenChat();
   const inputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const assistantStartRef = useRef<HTMLDivElement>(null);
+  const lastRoleRef = useRef<'user' | 'assistant' | null>(null);
 
-  // Auto-scroll to bottom when new messages arrive
+  // Scroll behavior:
+  // - When a new assistant answer starts streaming: scroll to the TOP of that answer (so the beginning is readable)
+  // - When the user sends a message / on open: scroll to the end
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+    if (!isOpen) return;
+    const last = messages[messages.length - 1];
+    if (!last) return;
+
+    if (last.role === 'assistant') {
+      if (lastRoleRef.current !== 'assistant') {
+        assistantStartRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    } else {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    }
+
+    lastRoleRef.current = last.role;
+  }, [messages, isOpen]);
 
   // Focus input when opening
   useEffect(() => {
@@ -156,6 +172,7 @@ export const ChatWidget = () => {
                   {messages.map((msg, i) => (
                     <motion.div
                       key={i}
+                      ref={i === messages.length - 1 && msg.role === 'assistant' ? assistantStartRef : undefined}
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       className={cn(
