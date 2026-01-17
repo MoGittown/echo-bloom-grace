@@ -3,13 +3,13 @@ import { FileText } from 'lucide-react';
 interface PdfPageHeaderProps {
   protocolId: string;
   createdDate: string;
-  customerName: string;
+  customerName?: string;
   studioName?: string;
-  logoUrl?: string;
+  logoUrl?: string | null;
 }
 
 /**
- * Compact header for each PDF page showing branding and protocol metadata.
+ * Professional header for each PDF page with studio branding.
  */
 export function PdfPageHeader({
   protocolId,
@@ -19,35 +19,37 @@ export function PdfPageHeader({
   logoUrl,
 }: PdfPageHeaderProps) {
   return (
-    <header className="flex items-center justify-between px-4 py-2 mb-3 border-b border-border/60 text-[10pt]">
+    <header className="pdf-header">
       {/* Left: Logo + Studio */}
-      <div className="flex items-center gap-2">
+      <div className="pdf-header-logo">
         {logoUrl ? (
           <img
             src={logoUrl}
             alt={studioName || 'Studio Logo'}
-            className="h-6 max-w-[80px] object-contain"
           />
         ) : (
-          <FileText className="w-5 h-5 text-primary" />
+          <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+            <FileText className="w-5 h-5 text-primary" />
+          </div>
         )}
         {studioName && (
-          <span className="font-semibold text-foreground text-[11pt]">{studioName}</span>
+          <span className="studio-name">{studioName}</span>
         )}
       </div>
 
       {/* Center: Title */}
-      <div className="text-center">
-        <h1 className="font-bold text-foreground text-[11pt]">
-          Kuechenplanungs-Protokoll
-        </h1>
+      <div className="pdf-header-title">
+        <h1>Kuechen-Planungsprotokoll</h1>
+        <div className="subtitle">Beratungsdokumentation</div>
       </div>
 
       {/* Right: Meta */}
-      <div className="text-right text-muted-foreground leading-tight">
-        <div>Nr.: <span className="font-medium text-foreground">{protocolId}</span></div>
-        <div>Datum: <span className="font-medium text-foreground">{createdDate}</span></div>
-        <div>Kunde: <span className="font-medium text-foreground">{customerName || '-'}</span></div>
+      <div className="pdf-header-meta">
+        <div>Protokoll-Nr.: <span className="value">{protocolId}</span></div>
+        <div>Erstellt: <span className="value">{createdDate}</span></div>
+        {customerName && (
+          <div>Kunde: <span className="value">{customerName}</span></div>
+        )}
       </div>
     </header>
   );

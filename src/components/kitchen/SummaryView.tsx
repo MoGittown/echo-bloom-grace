@@ -999,8 +999,8 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
 
       {/* Summary Content */}
       <div ref={summaryRef} className="space-y-6 bg-background p-6 rounded-xl">
-        {/* ===== PAGE 1: Header, Customer, Style, Appliances ===== */}
-        <div data-pdf-page="1" className="print-page-1 bg-white p-4 flex flex-col min-h-[1100px] text-[11pt]">
+        {/* ===== PAGE 1: Overview & Customer Data ===== */}
+        <div data-pdf-page="1" className="pdf-page">
           <PdfPageHeader
             protocolId={protocolId}
             createdDate={formatDate(project.createdAt)}
@@ -1009,412 +1009,378 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
             logoUrl={branding.logoUrl}
           />
           
-          <div className="flex-1">
-
-          {/* ===== BANT SECTION - PROMINENTLY AT TOP ===== */}
-          <div className="mt-4 p-4 rounded-lg bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20">
-            <h3 className="font-bold text-[11pt] flex items-center gap-2 mb-3 text-primary">
-              <Briefcase className="w-4 h-4" />
-              Auf einen Blick
-            </h3>
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-3">
-              {/* Timeline/Need */}
-              <div className="bg-background rounded-lg p-3 shadow-sm">
-                <div className="flex items-center gap-1.5 mb-1.5 text-muted-foreground text-[9pt] font-medium uppercase tracking-wide">
-                  <CalendarClock className="w-3.5 h-3.5" />
-                  Zeitrahmen
-                </div>
-                {project.customer.timeline ? (() => {
-                  const timelineOption = TIMELINE_OPTIONS.find(t => t.value === project.customer.timeline);
-                  const priorityColor = timelineOption?.priority === 'high' 
-                    ? 'text-green-700 dark:text-green-400' 
-                    : timelineOption?.priority === 'medium'
-                    ? 'text-yellow-700 dark:text-yellow-400'
-                    : 'text-muted-foreground';
-                  const priorityBg = timelineOption?.priority === 'high' 
-                    ? 'bg-green-100 dark:bg-green-900/30' 
-                    : timelineOption?.priority === 'medium'
-                    ? 'bg-yellow-100 dark:bg-yellow-900/30'
-                    : 'bg-muted';
+          <div className="flex-1 space-y-4">
+            {/* HIGHLIGHT BOX - Key Data at a Glance */}
+            <div className="pdf-highlight-box">
+              <div className="pdf-highlight-grid">
+                {/* Timeline */}
+                <div className="pdf-highlight-item">
+                  <div className="pdf-highlight-label">
+                    <CalendarClock className="w-3 h-3" />
+                    Zeitrahmen
+                  </div>
+                  {project.customer.timeline ? (() => {
+                    const timelineOption = TIMELINE_OPTIONS.find(t => t.value === project.customer.timeline);
                     return (
-                      <div className={`font-semibold text-[10pt] ${priorityColor} ${priorityBg} px-2 py-0.5 rounded inline-flex items-center`}>
-                        <span>{timelineOption?.label || project.customer.timeline}</span>
-                        {timelineOption?.priority === 'high' && (
-                          <Zap className="w-3 h-3 ml-1" aria-hidden="true" />
-                        )}
+                      <div className="pdf-highlight-value">
+                        {timelineOption?.label || project.customer.timeline}
                       </div>
                     );
-                })() : (
-                  <span className="text-muted-foreground text-[10pt] italic">Nicht angegeben</span>
-                )}
-              </div>
-
-              {/* Budget */}
-              <div className="bg-background rounded-lg p-3 shadow-sm">
-                <div className="flex items-center gap-1.5 mb-1.5 text-muted-foreground text-[9pt] font-medium uppercase tracking-wide">
-                  <Wallet className="w-3.5 h-3.5" aria-hidden="true" />
-                  Budget
+                  })() : (
+                    <div className="pdf-highlight-value text-muted-foreground">-</div>
+                  )}
                 </div>
-                {project.preferences.budget.min > 0 || project.preferences.budget.max > 0 ? (
-                  <div className="font-semibold text-[10pt] text-foreground">
-                    €{project.preferences.budget.min.toLocaleString('de-DE')} – €{project.preferences.budget.max.toLocaleString('de-DE')}
+
+                {/* Budget */}
+                <div className="pdf-highlight-item">
+                  <div className="pdf-highlight-label">
+                    <Wallet className="w-3 h-3" />
+                    Budget
                   </div>
-                ) : (
-                  <span className="text-muted-foreground text-[10pt] italic">Nicht angegeben</span>
-                )}
-              </div>
-
-              {/* Contact */}
-              <div className="bg-background rounded-lg p-3 shadow-sm">
-                <div className="flex items-center gap-1.5 mb-1.5 text-muted-foreground text-[9pt] font-medium uppercase tracking-wide">
-                  <User className="w-3.5 h-3.5" />
-                  Kontakt
+                  <div className="pdf-highlight-value">
+                    {project.preferences.budget.min > 0 || project.preferences.budget.max > 0 
+                      ? `${project.preferences.budget.min.toLocaleString('de-DE')} - ${project.preferences.budget.max.toLocaleString('de-DE')} EUR`
+                      : '-'}
+                  </div>
                 </div>
-                <div className="text-[10pt]">
-                  <div className="font-semibold text-foreground">
-                    {project.customer.firstName || project.customer.lastName 
-                      ? `${project.customer.firstName} ${project.customer.lastName}`.trim()
-                      : <span className="italic text-muted-foreground">Kein Name</span>
-                    }
+
+                {/* Room Size */}
+                <div className="pdf-highlight-item">
+                  <div className="pdf-highlight-label">
+                    <Ruler className="w-3 h-3" />
+                    Raumgroesse
+                  </div>
+                  <div className="pdf-highlight-value">
+                    {((project.room.length * project.room.width) / 10000).toFixed(1)} m2
+                  </div>
+                  <div className="pdf-highlight-sub">
+                    {project.room.length} x {project.room.width} cm
+                  </div>
+                </div>
+
+                {/* Contact */}
+                <div className="pdf-highlight-item">
+                  <div className="pdf-highlight-label">
+                    <User className="w-3 h-3" />
+                    Ansprechpartner
+                  </div>
+                  <div className="pdf-highlight-value">
+                    {customerFullName || '-'}
                   </div>
                   {project.customer.phone && (
-                    <div className="text-muted-foreground">{project.customer.phone}</div>
+                    <div className="pdf-highlight-sub">{project.customer.phone}</div>
                   )}
                 </div>
               </div>
+            </div>
 
-              {/* Room Size Quick Info */}
-              <div className="bg-background rounded-lg p-3 shadow-sm">
-                <div className="flex items-center gap-1.5 mb-1.5 text-muted-foreground text-[9pt] font-medium uppercase tracking-wide">
-                  <Ruler className="w-3.5 h-3.5" />
-                  Raumgröße
+            {/* Customer Details */}
+            <div className="pdf-section">
+              <div className="pdf-section-header">
+                <User />
+                Kundendaten
+              </div>
+              <div className="pdf-section-body">
+                {project.customer.firstName || project.customer.lastName || project.customer.email ? (
+                  <div className="pdf-data-grid">
+                    {(project.customer.firstName || project.customer.lastName) && (
+                      <div className="pdf-data-item">
+                        <span className="pdf-data-label">Name</span>
+                        <span className="pdf-data-value">{project.customer.firstName} {project.customer.lastName}</span>
+                      </div>
+                    )}
+                    {project.customer.email && (
+                      <div className="pdf-data-item">
+                        <span className="pdf-data-label">E-Mail</span>
+                        <span className="pdf-data-value">{project.customer.email}</span>
+                      </div>
+                    )}
+                    {project.customer.phone && (
+                      <div className="pdf-data-item">
+                        <span className="pdf-data-label">Telefon</span>
+                        <span className="pdf-data-value">{project.customer.phone}</span>
+                      </div>
+                    )}
+                    {(project.customer.address || project.customer.city) && (
+                      <div className="pdf-data-item">
+                        <span className="pdf-data-label">Adresse</span>
+                        <span className="pdf-data-value">
+                          {project.customer.address}{project.customer.address && project.customer.postalCode ? ', ' : ''}
+                          {project.customer.postalCode} {project.customer.city}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground italic">Keine Kontaktdaten angegeben</p>
+                )}
+                {project.customer.notes && (
+                  <div className="mt-3 pt-3 border-t border-border/30">
+                    <span className="pdf-data-label">Anmerkungen</span>
+                    <p className="mt-1 text-[9pt]">{project.customer.notes}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* ERGONOMIE & NUTZUNG */}
+            {(project.preferences.userHeights?.length > 0 || project.preferences.cookingFrequency || project.preferences.householdSize || project.preferences.gripType) && (
+              <div className="pdf-section">
+                <div className="pdf-section-header">
+                  <User />
+                  Ergonomie & Nutzung
                 </div>
-                <div className="font-semibold text-[10pt] text-foreground">
-                  {((project.room.length * project.room.width) / 10000).toFixed(1)} m²
+                <div className="pdf-section-body">
+                  <div className="pdf-data-grid">
+                    {project.preferences.userHeights && project.preferences.userHeights.length > 0 && (
+                      <div className="pdf-data-item">
+                        <span className="pdf-data-label">Koerpergroesse(n)</span>
+                        <div className="pdf-tag-list">
+                          {project.preferences.userHeights.map((h, i) => (
+                            <span key={i} className="pdf-tag">{h} cm</span>
+                          ))}
+                        </div>
+                        <p className="text-[8pt] text-muted-foreground mt-1 flex items-center gap-1">
+                          <Lightbulb className="w-3 h-3" />
+                          Empf. Arbeitshoehe: {Math.round(
+                            project.preferences.userHeights.reduce((sum, h) => sum + (h * 0.6 - 12), 0) /
+                              project.preferences.userHeights.length
+                          )} cm
+                        </p>
+                      </div>
+                    )}
+                    {project.preferences.cookingFrequency && (
+                      <div className="pdf-data-item">
+                        <span className="pdf-data-label">Kochverhalten</span>
+                        <span className="pdf-data-value">
+                          {project.preferences.cookingFrequency === 'daily' && 'Taeglich'}
+                          {project.preferences.cookingFrequency === 'mehrmals' && 'Mehrmals pro Woche'}
+                          {project.preferences.cookingFrequency === 'gelegentlich' && 'Gelegentlich'}
+                          {project.preferences.cookingFrequency === 'selten' && 'Selten'}
+                        </span>
+                      </div>
+                    )}
+                    {project.preferences.householdSize && (
+                      <div className="pdf-data-item">
+                        <span className="pdf-data-label">Haushaltsgroesse</span>
+                        <span className="pdf-data-value">
+                          {project.preferences.householdSize === '1' && '1 Person'}
+                          {project.preferences.householdSize === '2' && '2 Personen'}
+                          {project.preferences.householdSize === '3-4' && '3-4 Personen'}
+                          {project.preferences.householdSize === '5+' && '5+ Personen'}
+                        </span>
+                      </div>
+                    )}
+                    {project.preferences.gripType && (
+                      <div className="pdf-data-item">
+                        <span className="pdf-data-label">Griff-Praeferenz</span>
+                        <span className="pdf-data-value">
+                          {project.preferences.gripType === 'grifflos' && 'Grifflos'}
+                          {project.preferences.gripType === 'griffmulde' && 'Griffmulde'}
+                          {project.preferences.gripType === 'buegelgriff' && 'Buegelgriff'}
+                          {project.preferences.gripType === 'stangengriff' && 'Stangengriff'}
+                        </span>
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <div className="text-[9pt] text-muted-foreground">
-                  {project.room.length} × {project.room.width} cm
+              </div>
+            )}
+
+            {/* STIL & DESIGN */}
+            <div className="pdf-section">
+              <div className="pdf-section-header">
+                <Palette />
+                Stil & Design
+              </div>
+              <div className="pdf-section-body">
+                <div className="pdf-data-grid">
+                  {project.preferences.style.length > 0 && (
+                    <div className="pdf-data-item">
+                      <span className="pdf-data-label">Kuechenstil</span>
+                      <div className="pdf-tag-list">
+                        {project.preferences.style.map((s) => (
+                          <span key={s} className="pdf-tag">{s}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {project.preferences.colors.length > 0 && (
+                    <div className="pdf-data-item">
+                      <span className="pdf-data-label">Frontenfarben</span>
+                      <div className="pdf-tag-list">
+                        {project.preferences.colors.map((c) => (
+                          <span key={c} className="pdf-tag accent">{c}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {project.preferences.materials.length > 0 && (
+                    <div className="pdf-data-item">
+                      <span className="pdf-data-label">Frontmaterial</span>
+                      <div className="pdf-tag-list">
+                        {project.preferences.materials.map((m) => (
+                          <span key={m} className="pdf-tag muted">{m}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {frontSurfaces.length > 0 && (
+                    <div className="pdf-data-item">
+                      <span className="pdf-data-label">Frontenoberflaeche</span>
+                      <div className="pdf-tag-list">
+                        {frontSurfaces.map((s) => (
+                          <span key={s} className="pdf-tag muted">{s}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {project.preferences.countertop.length > 0 && (
+                    <div className="pdf-data-item">
+                      <span className="pdf-data-label">Arbeitsplatte</span>
+                      <div className="pdf-tag-list">
+                        {project.preferences.countertop.map((c) => (
+                          <span key={c} className="pdf-tag muted">{c}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {countertopThickness.length > 0 && (
+                    <div className="pdf-data-item">
+                      <span className="pdf-data-label">AP-Staerke</span>
+                      <span className="pdf-data-value">{countertopThickness.join(', ')}</span>
+                    </div>
+                  )}
+                  {backsplash.length > 0 && (
+                    <div className="pdf-data-item">
+                      <span className="pdf-data-label">Nischenrueckwand</span>
+                      <div className="pdf-tag-list">
+                        {backsplash.map((b) => (
+                          <span key={b} className="pdf-tag muted">{b}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {project.preferences.manufacturers.length > 0 && (
+                    <div className="pdf-data-item">
+                      <span className="pdf-data-label">Kuechenhersteller</span>
+                      <div className="pdf-tag-list">
+                        {project.preferences.manufacturers.map((m) => (
+                          <span key={m} className="pdf-tag muted">{m}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {project.preferences.storage.length > 0 && (
+                    <div className="pdf-data-item">
+                      <span className="pdf-data-label">Stauraum</span>
+                      <div className="pdf-tag-list">
+                        {project.preferences.storage.map((s) => (
+                          <span key={s} className="pdf-tag muted">{s}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
-          </div>
 
-          {/* Customer Details */}
-          <div className="pdf-section-card mt-4">
-            <h3>
-              <User className="w-4 h-4 text-primary" />
-              Kundendaten
-            </h3>
-            {project.customer.firstName || project.customer.lastName || project.customer.email ? (
-              <div className="grid md:grid-cols-2 gap-3 text-sm">
-                {(project.customer.firstName || project.customer.lastName) && (
-                  <div>
-                    <span className="text-muted-foreground">Name:</span>
-                    <span className="ml-2 font-medium">
-                      {project.customer.firstName} {project.customer.lastName}
-                    </span>
-                  </div>
-                )}
-                {project.customer.email && (
-                  <div>
-                    <span className="text-muted-foreground">E-Mail:</span>
-                    <span className="ml-2">{project.customer.email}</span>
-                  </div>
-                )}
-                {project.customer.phone && (
-                  <div>
-                    <span className="text-muted-foreground">Telefon:</span>
-                    <span className="ml-2">{project.customer.phone}</span>
-                  </div>
-                )}
-                {(project.customer.address || project.customer.city) && (
-                  <div>
-                    <span className="text-muted-foreground">Adresse:</span>
-                    <span className="ml-2">
-                      {project.customer.address}{project.customer.address && project.customer.postalCode ? ', ' : ''}
-                      {project.customer.postalCode} {project.customer.city}
-                    </span>
-                  </div>
-                )}
+            {/* ELEKTROGERAETE */}
+            <div className="pdf-section">
+              <div className="pdf-section-header">
+                <Plug />
+                Elektrogeraete
               </div>
-            ) : (
-              <p className="text-sm text-muted-foreground italic">Keine Kontaktdaten angegeben</p>
-            )}
-            {project.customer.notes && (
-              <div className="mt-3 pt-3 border-t border-border/40">
-                <span className="text-muted-foreground text-sm">Anmerkungen:</span>
-                <p className="mt-1">{project.customer.notes}</p>
-              </div>
-            )}
-          </div>
-
-          {/* ERGONOMIE & NUTZUNG */}
-          {(project.preferences.userHeights?.length > 0 || project.preferences.cookingFrequency || project.preferences.householdSize || project.preferences.gripType) && (
-            <div className="pdf-section-card">
-              <h3>
-                <User className="w-4 h-4 text-primary" />
-                Ergonomie & Nutzung
-              </h3>
-              <div className="grid md:grid-cols-2 gap-4 text-sm">
-                {project.preferences.userHeights && project.preferences.userHeights.length > 0 && (
-                  <div>
-                    <span className="text-muted-foreground">Körpergröße(n):</span>
-                    <div className="flex flex-wrap gap-1 mt-1">
-                      {project.preferences.userHeights.map((h, i) => (
-                        <span key={i} className="px-2 py-0.5 bg-primary/10 text-primary rounded text-xs">{h} cm</span>
+              <div className="pdf-section-body">
+                <div className="pdf-check-list">
+                  {project.preferences.appliances.cooktop && (
+                    <div className="pdf-check-item">
+                      <CheckCircle />
+                      <div>
+                        <span className="font-medium">Kochfeld:</span> {project.preferences.appliances.cooktop}
+                        {cooktopSize && <span className="text-muted-foreground"> ({cooktopSize})</span>}
+                        {cooktopExtras.length > 0 && (
+                          <div className="pdf-tag-list mt-1">
+                            {cooktopExtras.map(e => <span key={e} className="pdf-tag accent">{e}</span>)}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  {project.preferences.appliances.hood && (
+                    <div className="pdf-check-item">
+                      <CheckCircle />
+                      <div>
+                        <span className="font-medium">Dunstabzug:</span> {project.preferences.appliances.hood}
+                        {hoodVentilation && <span className="text-muted-foreground"> ({hoodVentilation})</span>}
+                      </div>
+                    </div>
+                  )}
+                  {project.preferences.appliances.oven && (
+                    <div className="pdf-check-item">
+                      <CheckCircle />
+                      <div>
+                        <span className="font-medium">Backofen:</span> {project.preferences.appliances.oven}
+                        {ovenHeight && <span className="text-muted-foreground"> ({ovenHeight})</span>}
+                        {ovenExtras.length > 0 && (
+                          <div className="pdf-tag-list mt-1">
+                            {ovenExtras.map(e => <span key={e} className="pdf-tag accent">{e}</span>)}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  {project.preferences.appliances.fridge && (
+                    <div className="pdf-check-item">
+                      <CheckCircle />
+                      <div>
+                        <span className="font-medium">Kuehlschrank:</span> {project.preferences.appliances.fridge}
+                        {fridgeExtras.length > 0 && (
+                          <div className="pdf-tag-list mt-1">
+                            {fridgeExtras.map(e => <span key={e} className="pdf-tag accent">{e}</span>)}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  {project.preferences.appliances.dishwasher && (
+                    <div className="pdf-check-item">
+                      <CheckCircle />
+                      <div>
+                        <span className="font-medium">Geschirrspueler:</span>
+                        <span> {dishwasherWidth || '60 cm'}</span>
+                        <span>, {dishwasherHeight || 'Normal (unter AP)'}</span>
+                        <span>, {dishwasherIntegration || 'Vollintegriert'}</span>
+                      </div>
+                    </div>
+                  )}
+                  {project.preferences.appliances.microwave && (
+                    <div className="pdf-check-item">
+                      <CheckCircle />
+                      <span>Mikrowelle (Einbau)</span>
+                    </div>
+                  )}
+                </div>
+                
+                {applianceBrands.length > 0 && (
+                  <div className="mt-3 pt-3 border-t border-border/30">
+                    <span className="pdf-data-label">Bevorzugte Geraetemarken</span>
+                    <div className="pdf-tag-list mt-1">
+                      {applianceBrands.map((brand) => (
+                        <span key={brand} className="pdf-tag">{brand}</span>
                       ))}
                     </div>
-                    <p className="text-xs text-accent mt-1 flex items-center gap-1">
-                      <Lightbulb className="w-3 h-3" aria-hidden="true" />
-                      <span>
-                        Empfohlene Arbeitshöhe:{' '}
-                        {Math.round(
-                          project.preferences.userHeights.reduce((sum, h) => sum + (h * 0.6 - 12), 0) /
-                            project.preferences.userHeights.length
-                        )}{' '}
-                        cm
-                      </span>
-                    </p>
                   </div>
                 )}
-                {project.preferences.cookingFrequency && (
-                  <div>
-                    <span className="text-muted-foreground">Kochverhalten:</span>
-                    <span className="ml-2 font-medium">
-                      {project.preferences.cookingFrequency === 'daily' && 'Täglich'}
-                      {project.preferences.cookingFrequency === 'mehrmals' && 'Mehrmals pro Woche'}
-                      {project.preferences.cookingFrequency === 'gelegentlich' && 'Gelegentlich'}
-                      {project.preferences.cookingFrequency === 'selten' && 'Selten'}
-                    </span>
-                  </div>
-                )}
-                {project.preferences.householdSize && (
-                  <div>
-                    <span className="text-muted-foreground">Haushaltsgröße:</span>
-                    <span className="ml-2 font-medium">
-                      {project.preferences.householdSize === '1' && '1 Person'}
-                      {project.preferences.householdSize === '2' && '2 Personen'}
-                      {project.preferences.householdSize === '3-4' && '3–4 Personen'}
-                      {project.preferences.householdSize === '5+' && '5+ Personen'}
-                    </span>
-                  </div>
-                )}
-                {project.preferences.gripType && (
-                  <div>
-                    <span className="text-muted-foreground">Griff-Präferenz:</span>
-                    <span className="ml-2 font-medium capitalize">
-                      {project.preferences.gripType === 'grifflos' && 'Grifflos'}
-                      {project.preferences.gripType === 'griffmulde' && 'Griffmulde'}
-                      {project.preferences.gripType === 'buegelgriff' && 'Bügelgriff'}
-                      {project.preferences.gripType === 'stangengriff' && 'Stangengriff'}
-                    </span>
+                
+                {applianceNotes.length > 0 && (
+                  <div className="mt-3 pt-3 border-t border-border/30">
+                    <span className="pdf-data-label">Sonstige Wuensche</span>
+                    <p className="mt-1">{applianceNotes.join(', ')}</p>
                   </div>
                 )}
               </div>
             </div>
-          )}
-
-          {/* STIL & DESIGN */}
-          <div className="pdf-section-card">
-            <h3>
-              <Palette className="w-4 h-4 text-primary" />
-              Stil & Design
-            </h3>
-            <div className="grid md:grid-cols-2 gap-3 text-sm">
-              {project.preferences.style.length > 0 && (
-                <div>
-                  <span className="text-muted-foreground">Küchenstil:</span>
-                  <div className="flex flex-wrap gap-1 mt-1">
-                    {project.preferences.style.map((s) => (
-                      <span key={s} className="px-2 py-0.5 bg-primary/10 text-primary rounded text-xs">{s}</span>
-                    ))}
-                  </div>
-                </div>
-              )}
-              {project.preferences.colors.length > 0 && (
-                <div>
-                  <span className="text-muted-foreground">Frontenfarben:</span>
-                  <div className="flex flex-wrap gap-1 mt-1">
-                    {project.preferences.colors.map((c) => (
-                      <span key={c} className="px-2 py-0.5 bg-accent/10 text-accent rounded text-xs">{c}</span>
-                    ))}
-                  </div>
-                </div>
-              )}
-              {project.preferences.materials.length > 0 && (
-                <div>
-                  <span className="text-muted-foreground">Frontmaterial:</span>
-                  <div className="flex flex-wrap gap-1 mt-1">
-                    {project.preferences.materials.map((m) => (
-                      <span key={m} className="px-2 py-0.5 bg-muted text-foreground rounded text-xs">{m}</span>
-                    ))}
-                  </div>
-                </div>
-              )}
-              {frontSurfaces.length > 0 && (
-                <div>
-                  <span className="text-muted-foreground">Frontenoberfläche:</span>
-                  <div className="flex flex-wrap gap-1 mt-1">
-                    {frontSurfaces.map((s) => (
-                      <span key={s} className="px-2 py-0.5 bg-muted text-foreground rounded text-xs">{s}</span>
-                    ))}
-                  </div>
-                </div>
-              )}
-              {project.preferences.countertop.length > 0 && (
-                <div>
-                  <span className="text-muted-foreground">Arbeitsplatte Material:</span>
-                  <div className="flex flex-wrap gap-1 mt-1">
-                    {project.preferences.countertop.map((c) => (
-                      <span key={c} className="px-2 py-0.5 bg-muted text-foreground rounded text-xs">{c}</span>
-                    ))}
-                  </div>
-                </div>
-              )}
-              {countertopThickness.length > 0 && (
-                <div>
-                  <span className="text-muted-foreground">Arbeitsplatte Stärke:</span>
-                  <span className="ml-2">{countertopThickness.join(', ')}</span>
-                </div>
-              )}
-              {backsplash.length > 0 && (
-                <div>
-                  <span className="text-muted-foreground">Nischenrückwand:</span>
-                  <div className="flex flex-wrap gap-1 mt-1">
-                    {backsplash.map((b) => (
-                      <span key={b} className="px-2 py-0.5 bg-muted text-foreground rounded text-xs">{b}</span>
-                    ))}
-                  </div>
-                </div>
-              )}
-              {project.preferences.manufacturers.length > 0 && (
-                <div>
-                  <span className="text-muted-foreground">Küchenhersteller:</span>
-                  <div className="flex flex-wrap gap-1 mt-1">
-                    {project.preferences.manufacturers.map((m) => (
-                      <span key={m} className="px-2 py-0.5 bg-muted text-foreground rounded text-xs">{m}</span>
-                    ))}
-                  </div>
-                </div>
-              )}
-              {project.preferences.storage.length > 0 && (
-                <div>
-                  <span className="text-muted-foreground">Stauraum:</span>
-                  <div className="flex flex-wrap gap-1 mt-1">
-                    {project.preferences.storage.map((s) => (
-                      <span key={s} className="px-2 py-0.5 bg-muted text-foreground rounded text-xs">{s}</span>
-                    ))}
-                  </div>
-                </div>
-              )}
-              <div className="md:col-span-2">
-                <span className="text-muted-foreground">Budget:</span>
-                <span className="ml-2 font-medium">
-                  €{project.preferences.budget.min.toLocaleString()} - €{project.preferences.budget.max.toLocaleString()}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* ELEKTROGERÄTE */}
-          <div className="pdf-section-card">
-            <h3>
-              <Plug className="w-4 h-4 text-primary" />
-              Elektrogeräte
-            </h3>
-            <div className="grid md:grid-cols-2 gap-3 text-sm">
-              {project.preferences.appliances.cooktop && (
-                <div className="flex items-start gap-2">
-                  <CheckCircle className="w-3.5 h-3.5 text-accent mt-0.5 flex-shrink-0" />
-                  <div>
-                    <span className="font-medium">Kochfeld:</span> {project.preferences.appliances.cooktop}
-                    {cooktopSize && <span className="text-muted-foreground"> ({cooktopSize})</span>}
-                    {cooktopExtras.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mt-1">
-                        {cooktopExtras.map(e => <span key={e} className="px-2 py-0.5 bg-accent/10 text-accent rounded text-xs">{e}</span>)}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-              {project.preferences.appliances.hood && (
-                <div className="flex items-start gap-2">
-                  <CheckCircle className="w-3.5 h-3.5 text-accent mt-0.5 flex-shrink-0" />
-                  <div>
-                    <span className="font-medium">Dunstabzug:</span> {project.preferences.appliances.hood}
-                    {hoodVentilation && <span className="text-muted-foreground"> ({hoodVentilation})</span>}
-                  </div>
-                </div>
-              )}
-              {project.preferences.appliances.oven && (
-                <div className="flex items-start gap-2">
-                  <CheckCircle className="w-3.5 h-3.5 text-accent mt-0.5 flex-shrink-0" />
-                  <div>
-                    <span className="font-medium">Backofen:</span> {project.preferences.appliances.oven}
-                    {ovenHeight && <span className="text-muted-foreground"> ({ovenHeight})</span>}
-                    {ovenExtras.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mt-1">
-                        {ovenExtras.map(e => <span key={e} className="px-2 py-0.5 bg-accent/10 text-accent rounded text-xs">{e}</span>)}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-              {project.preferences.appliances.fridge && (
-                <div className="flex items-start gap-2">
-                  <CheckCircle className="w-3.5 h-3.5 text-accent mt-0.5 flex-shrink-0" />
-                  <div>
-                    <span className="font-medium">Kühlschrank:</span> {project.preferences.appliances.fridge}
-                    {fridgeExtras.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mt-1">
-                        {fridgeExtras.map(e => <span key={e} className="px-2 py-0.5 bg-accent/10 text-accent rounded text-xs">{e}</span>)}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-              {project.preferences.appliances.dishwasher && (
-                <div className="flex items-start gap-2">
-                  <CheckCircle className="w-3.5 h-3.5 text-accent mt-0.5 flex-shrink-0" />
-                  <div>
-                    <span className="font-medium">Geschirrspüler:</span>
-                    <span> {dishwasherWidth || '60 cm'}</span>
-                    <span>, {dishwasherHeight || 'Normal (unter AP)'}</span>
-                    <span>, {dishwasherIntegration || 'Vollintegriert'}</span>
-                    {dishwasherExtras.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mt-1">
-                        {dishwasherExtras.map(e => <span key={e} className="px-2 py-0.5 bg-accent/10 text-accent rounded text-xs">{e}</span>)}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-              {project.preferences.appliances.microwave && (
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="w-3.5 h-3.5 text-accent" />
-                  <span>Mikrowelle (Einbau)</span>
-                </div>
-              )}
-            </div>
-            
-            {applianceBrands.length > 0 && (
-              <div className="mt-3 pt-3 border-t border-border/40">
-                <span className="text-muted-foreground text-sm">Bevorzugte Gerätemarken:</span>
-                <div className="flex flex-wrap gap-1 mt-1">
-                  {applianceBrands.map((brand) => (
-                    <span key={brand} className="px-2 py-0.5 bg-primary/10 text-primary rounded text-xs">{brand}</span>
-                  ))}
-                </div>
-              </div>
-            )}
-            
-            {applianceNotes.length > 0 && (
-              <div className="mt-3 pt-3 border-t border-border/40">
-                <span className="text-muted-foreground text-sm">Sonstige Wünsche:</span>
-                <p className="mt-1 text-sm">{applianceNotes.join(', ')}</p>
-              </div>
-            )}
-          </div>
           </div>
           
           <PdfPageFooter
@@ -1426,7 +1392,7 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
         </div>
 
         {/* ===== PAGE 2: Sink, Waste, Lighting, Room, Floor Plan ===== */}
-        <div data-pdf-page="2" className="print-page-break-before bg-white p-4 flex flex-col min-h-[1100px] text-[11pt]">
+        <div data-pdf-page="2" className="pdf-page">
           <PdfPageHeader
             protocolId={protocolId}
             createdDate={formatDate(project.createdAt)}
@@ -1436,158 +1402,166 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
           />
           
           <div className="flex-1">
-          {/* SPÜLE & ARMATUR */}
-          <div className="pdf-section-card">
-            <h3>
-              <Droplets className="w-4 h-4 text-primary" />
-              Spüle & Armatur
-            </h3>
-            <div className="grid md:grid-cols-2 gap-3 text-sm">
-              {project.preferences.sink && (
-                <div>
-                  <span className="text-muted-foreground">Material:</span>
-                  <span className="ml-2 font-medium">{project.preferences.sink}</span>
-                </div>
-              )}
-              {sinkColor.length > 0 && (
-                <div>
-                  <span className="text-muted-foreground">Farbe:</span>
-                  <span className="ml-2">{sinkColor.join(', ')}</span>
-                </div>
-              )}
-              {sinkInstall.length > 0 && (
-                <div>
-                  <span className="text-muted-foreground">Einbauart:</span>
-                  <span className="ml-2">{sinkInstall.join(', ')}</span>
-                </div>
-              )}
-              {sinkSize.length > 0 && (
-                <div>
-                  <span className="text-muted-foreground">Becken:</span>
-                  <span className="ml-2">{sinkSize.join(', ')}{hasRestebecken ? ', Restebecken' : ''}</span>
-                </div>
-              )}
-              {faucetType.length > 0 && (
-                <div>
-                  <span className="text-muted-foreground">Armatur:</span>
-                  <span className="ml-2">{faucetType.join(', ')}</span>
-                  {(hasAusziehbar || hasSchwenkbar) && (
-                    <span className="text-muted-foreground"> ({[hasAusziehbar && 'Ausziehbar', hasSchwenkbar && 'Schwenkbar'].filter(Boolean).join(', ')})</span>
-                  )}
-                </div>
-              )}
-              {faucetFinish.length > 0 && (
-                <div>
-                  <span className="text-muted-foreground">Armatur-Oberfläche:</span>
-                  <span className="ml-2">{faucetFinish.join(', ')}</span>
-                </div>
-              )}
-              {sinkBrands.length > 0 && (
-                <div>
-                  <span className="text-muted-foreground">Hersteller:</span>
-                  <div className="flex flex-wrap gap-1 mt-1">
-                    {sinkBrands.map((b) => (
-                      <span key={b} className="px-2 py-0.5 bg-muted text-foreground rounded text-xs">{b}</span>
+          {/* SPUELE & ARMATUR */}
+          <div className="pdf-section">
+            <div className="pdf-section-header">
+              <Droplets />
+              Spuele & Armatur
+            </div>
+            <div className="pdf-section-body">
+              <div className="pdf-data-grid">
+                {project.preferences.sink && (
+                  <div className="pdf-data-item">
+                    <span className="pdf-data-label">Material</span>
+                    <span className="pdf-data-value">{project.preferences.sink}</span>
+                  </div>
+                )}
+                {sinkColor.length > 0 && (
+                  <div className="pdf-data-item">
+                    <span className="pdf-data-label">Farbe</span>
+                    <span className="pdf-data-value">{sinkColor.join(', ')}</span>
+                  </div>
+                )}
+                {sinkInstall.length > 0 && (
+                  <div className="pdf-data-item">
+                    <span className="pdf-data-label">Einbauart</span>
+                    <span className="pdf-data-value">{sinkInstall.join(', ')}</span>
+                  </div>
+                )}
+                {sinkSize.length > 0 && (
+                  <div className="pdf-data-item">
+                    <span className="pdf-data-label">Becken</span>
+                    <span className="pdf-data-value">{sinkSize.join(', ')}{hasRestebecken ? ', Restebecken' : ''}</span>
+                  </div>
+                )}
+                {faucetType.length > 0 && (
+                  <div className="pdf-data-item">
+                    <span className="pdf-data-label">Armatur</span>
+                    <span className="pdf-data-value">
+                      {faucetType.join(', ')}
+                      {(hasAusziehbar || hasSchwenkbar) && ` (${[hasAusziehbar && 'Ausziehbar', hasSchwenkbar && 'Schwenkbar'].filter(Boolean).join(', ')})`}
+                    </span>
+                  </div>
+                )}
+                {faucetFinish.length > 0 && (
+                  <div className="pdf-data-item">
+                    <span className="pdf-data-label">Oberflaeche</span>
+                    <span className="pdf-data-value">{faucetFinish.join(', ')}</span>
+                  </div>
+                )}
+                {sinkBrands.length > 0 && (
+                  <div className="pdf-data-item">
+                    <span className="pdf-data-label">Hersteller</span>
+                    <div className="pdf-tag-list">
+                      {sinkBrands.map((b) => (
+                        <span key={b} className="pdf-tag muted">{b}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+              
+              {faucetExtras.length > 0 && (
+                <div className="mt-3 pt-3 border-t border-border/30">
+                  <span className="pdf-data-label">Zusatzfunktionen</span>
+                  <div className="pdf-tag-list mt-1">
+                    {faucetExtras.map((extra) => (
+                      <span key={extra} className="pdf-tag accent">{extra}</span>
                     ))}
                   </div>
                 </div>
               )}
             </div>
-            
-            {faucetExtras.length > 0 && (
-              <div className="mt-3 pt-3 border-t border-border/40">
-                <span className="text-muted-foreground text-sm">Zusatzfunktionen:</span>
-                <div className="flex flex-wrap gap-1 mt-1">
-                  {faucetExtras.map((extra) => (
-                    <span key={extra} className="px-2 py-0.5 bg-accent/10 text-accent rounded text-xs">{extra}</span>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
 
-          {/* MÜLL & BELEUCHTUNG */}
-          <div className="grid md:grid-cols-2 gap-3 mt-3">
-            <div className="pdf-section-card !mb-0">
-              <h3>
-                <Trash2 className="w-4 h-4 text-primary" />
-                Müllsystem
-              </h3>
-              {wasteSystem.length > 0 ? (
-                <div className="flex flex-wrap gap-1">
-                  {wasteSystem.map((w) => (
-                    <span key={w} className="px-2 py-0.5 bg-muted text-foreground rounded text-xs">{w}</span>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-sm text-muted-foreground italic">Nicht angegeben</p>
-              )}
+          {/* MUELL & BELEUCHTUNG */}
+          <div className="pdf-two-col">
+            <div className="pdf-section">
+              <div className="pdf-section-header">
+                <Trash2 />
+                Muellsystem
+              </div>
+              <div className="pdf-section-body">
+                {wasteSystem.length > 0 ? (
+                  <div className="pdf-tag-list">
+                    {wasteSystem.map((w) => (
+                      <span key={w} className="pdf-tag muted">{w}</span>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground italic">Nicht angegeben</p>
+                )}
+              </div>
             </div>
-            <div className="pdf-section-card !mb-0">
-              <h3>
-                <Lightbulb className="w-4 h-4 text-primary" />
+            <div className="pdf-section">
+              <div className="pdf-section-header">
+                <Lightbulb />
                 Beleuchtung
-              </h3>
-              {lightingOptions.length > 0 ? (
-                <div className="flex flex-wrap gap-1">
-                  {lightingOptions.map((l) => (
-                    <span key={l} className="px-2 py-0.5 bg-muted text-foreground rounded text-xs">{l}</span>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-sm text-muted-foreground italic">Nicht angegeben</p>
-              )}
+              </div>
+              <div className="pdf-section-body">
+                {lightingOptions.length > 0 ? (
+                  <div className="pdf-tag-list">
+                    {lightingOptions.map((l) => (
+                      <span key={l} className="pdf-tag muted">{l}</span>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground italic">Nicht angegeben</p>
+                )}
+              </div>
             </div>
           </div>
 
           {/* Room Dimensions */}
-          <div className="pdf-section-card mt-3">
-            <h3>
-              <Ruler className="w-4 h-4 text-primary" />
-              Raummaße
-            </h3>
-            <div className="grid md:grid-cols-4 gap-3 text-sm">
-              <div className="text-center p-3 bg-muted/50 rounded-lg">
-                <div className="text-xl font-bold text-primary">{project.room.length}</div>
-                <div className="text-muted-foreground text-xs">Länge (cm)</div>
-              </div>
-              <div className="text-center p-3 bg-muted/50 rounded-lg">
-                <div className="text-xl font-bold text-primary">{project.room.width}</div>
-                <div className="text-muted-foreground text-xs">Breite (cm)</div>
-              </div>
-              <div className="text-center p-3 bg-muted/50 rounded-lg">
-                <div className="text-xl font-bold text-primary">{project.room.height}</div>
-                <div className="text-muted-foreground text-xs">Höhe (cm)</div>
-              </div>
-              <div className="text-center p-3 bg-muted/50 rounded-lg">
-                <div className="text-xl font-bold text-accent">
-                  {((project.room.length * project.room.width) / 10000).toFixed(1)}
-                </div>
-                <div className="text-muted-foreground text-xs">Fläche (m²)</div>
-              </div>
+          <div className="pdf-section">
+            <div className="pdf-section-header">
+              <Ruler />
+              Raummasse
             </div>
-            <div className="mt-3">
-              <span className="text-muted-foreground text-sm">Raumform:</span>
-              <span className="ml-2 font-medium capitalize">
-                {project.room.shape === 'rectangular' && 'Rechteckig'}
-                {project.room.shape === 'l-shaped' && 'L-Form'}
-                {project.room.shape === 'u-shaped' && 'U-Form'}
-                {project.room.shape === 'galley' && 'Schlauch'}
-              </span>
+            <div className="pdf-section-body">
+              <div className="pdf-highlight-grid">
+                <div className="pdf-highlight-item">
+                  <div className="pdf-highlight-value">{project.room.length}</div>
+                  <div className="pdf-highlight-sub">Laenge (cm)</div>
+                </div>
+                <div className="pdf-highlight-item">
+                  <div className="pdf-highlight-value">{project.room.width}</div>
+                  <div className="pdf-highlight-sub">Breite (cm)</div>
+                </div>
+                <div className="pdf-highlight-item">
+                  <div className="pdf-highlight-value">{project.room.height}</div>
+                  <div className="pdf-highlight-sub">Hoehe (cm)</div>
+                </div>
+                <div className="pdf-highlight-item">
+                  <div className="pdf-highlight-value">{((project.room.length * project.room.width) / 10000).toFixed(1)} m2</div>
+                  <div className="pdf-highlight-sub">Flaeche</div>
+                </div>
+              </div>
+              <div className="mt-3 pdf-data-item">
+                <span className="pdf-data-label">Raumform</span>
+                <span className="pdf-data-value">
+                  {project.room.shape === 'rectangular' && 'Rechteckig'}
+                  {project.room.shape === 'l-shaped' && 'L-Form'}
+                  {project.room.shape === 'u-shaped' && 'U-Form'}
+                  {project.room.shape === 'galley' && 'Schlauch'}
+                </span>
+              </div>
             </div>
           </div>
 
           {/* Floor Plan Visual */}
-          <div className="pdf-section-card">
-            <h3>
-              <LayoutGrid className="w-4 h-4 text-primary" />
+          <div className="pdf-section">
+            <div className="pdf-section-header">
+              <LayoutGrid />
               Grundriss
-            </h3>
-            <div className="flex justify-center print-canvas-container">
-              <FloorPlanCanvas 
-                room={project.room} 
-                elements={project.floorPlan.elements} 
-              />
+            </div>
+            <div className="pdf-section-body">
+              <div className="pdf-canvas-container">
+                <FloorPlanCanvas 
+                  room={project.room} 
+                  elements={project.floorPlan.elements} 
+                />
+              </div>
             </div>
           </div>
           </div>

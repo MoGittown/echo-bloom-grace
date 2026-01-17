@@ -136,17 +136,230 @@
     @apply bg-card rounded-xl border border-border shadow-sm hover:shadow-md transition-shadow;
   }
 
-  /* Kompakte PDF-Karten mit einheitlichen Abständen */
+  /* ===== PROFESSIONAL PDF DESIGN SYSTEM ===== */
+  
+  /* PDF Page Container */
+  .pdf-page {
+    @apply bg-white p-6 flex flex-col min-h-[1100px];
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 10pt;
+    line-height: 1.4;
+    color: hsl(var(--foreground));
+  }
+
+  /* PDF Header - Clean professional look */
+  .pdf-header {
+    @apply flex items-center justify-between pb-3 mb-4;
+    border-bottom: 2px solid hsl(var(--primary));
+  }
+
+  .pdf-header-logo {
+    @apply flex items-center gap-3;
+  }
+
+  .pdf-header-logo img {
+    @apply h-10 max-w-[120px] object-contain;
+  }
+
+  .pdf-header-logo .studio-name {
+    @apply text-lg font-bold text-foreground;
+  }
+
+  .pdf-header-title {
+    @apply text-center;
+  }
+
+  .pdf-header-title h1 {
+    @apply text-base font-bold text-foreground tracking-tight;
+  }
+
+  .pdf-header-title .subtitle {
+    @apply text-xs text-muted-foreground;
+  }
+
+  .pdf-header-meta {
+    @apply text-right text-xs text-muted-foreground space-y-0.5;
+  }
+
+  .pdf-header-meta .value {
+    @apply font-medium text-foreground;
+  }
+
+  /* PDF Footer - Minimal and elegant */
+  .pdf-footer {
+    @apply flex items-center justify-between pt-3 mt-auto text-[8pt] text-muted-foreground;
+    border-top: 1px solid hsl(var(--border) / 0.5);
+  }
+
+  .pdf-footer .page-number {
+    @apply font-medium;
+  }
+
+  /* PDF Section Cards - Clean and structured */
+  .pdf-section {
+    @apply rounded-lg border border-border/50 mb-4 overflow-hidden;
+    background: hsl(var(--card));
+  }
+
+  .pdf-section-header {
+    @apply flex items-center gap-2 px-4 py-2.5 font-semibold text-[10pt];
+    background: hsl(var(--muted) / 0.5);
+    border-bottom: 1px solid hsl(var(--border) / 0.5);
+  }
+
+  .pdf-section-header svg {
+    @apply w-4 h-4 text-primary flex-shrink-0;
+  }
+
+  .pdf-section-body {
+    @apply p-4 text-[9pt];
+  }
+
+  /* PDF Data Grid - For key-value pairs */
+  .pdf-data-grid {
+    @apply grid gap-x-6 gap-y-2;
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .pdf-data-grid.cols-3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .pdf-data-grid.cols-4 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .pdf-data-item {
+    @apply flex flex-col gap-0.5;
+  }
+
+  .pdf-data-label {
+    @apply text-[8pt] text-muted-foreground uppercase tracking-wide font-medium;
+  }
+
+  .pdf-data-value {
+    @apply text-[9pt] font-medium text-foreground;
+  }
+
+  /* PDF Tags - For multiple values */
+  .pdf-tag-list {
+    @apply flex flex-wrap gap-1;
+  }
+
+  .pdf-tag {
+    @apply px-2 py-0.5 rounded text-[8pt] font-medium;
+    background: hsl(var(--primary) / 0.1);
+    color: hsl(var(--primary));
+  }
+
+  .pdf-tag.accent {
+    background: hsl(var(--accent) / 0.15);
+    color: hsl(var(--accent-foreground));
+  }
+
+  .pdf-tag.muted {
+    background: hsl(var(--muted));
+    color: hsl(var(--muted-foreground));
+  }
+
+  /* PDF Highlight Box - For important summary data */
+  .pdf-highlight-box {
+    @apply rounded-lg p-4 mb-4;
+    background: linear-gradient(135deg, hsl(var(--primary) / 0.08) 0%, hsl(var(--primary) / 0.02) 100%);
+    border: 1px solid hsl(var(--primary) / 0.2);
+  }
+
+  .pdf-highlight-grid {
+    @apply grid gap-3;
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .pdf-highlight-item {
+    @apply rounded-lg p-3 text-center;
+    background: hsl(var(--background));
+    box-shadow: 0 1px 3px hsl(var(--foreground) / 0.05);
+  }
+
+  .pdf-highlight-label {
+    @apply text-[7pt] text-muted-foreground uppercase tracking-wider font-medium mb-1 flex items-center justify-center gap-1;
+  }
+
+  .pdf-highlight-value {
+    @apply text-[11pt] font-bold text-foreground;
+  }
+
+  .pdf-highlight-sub {
+    @apply text-[8pt] text-muted-foreground;
+  }
+
+  /* PDF Table - For structured data */
+  .pdf-table {
+    @apply w-full text-[9pt];
+  }
+
+  .pdf-table th {
+    @apply text-left py-2 px-3 font-semibold text-[8pt] uppercase tracking-wide text-muted-foreground;
+    background: hsl(var(--muted) / 0.5);
+    border-bottom: 1px solid hsl(var(--border));
+  }
+
+  .pdf-table td {
+    @apply py-2 px-3 border-b border-border/30;
+  }
+
+  .pdf-table tr:last-child td {
+    @apply border-b-0;
+  }
+
+  /* PDF Canvas Container - For drawings */
+  .pdf-canvas-container {
+    @apply flex justify-center p-2 rounded-lg;
+    background: hsl(var(--muted) / 0.3);
+  }
+
+  /* PDF Photo Grid */
+  .pdf-photo-grid {
+    @apply grid grid-cols-2 gap-3;
+  }
+
+  .pdf-photo-item {
+    @apply rounded-lg overflow-hidden border border-border/50;
+  }
+
+  .pdf-photo-item img {
+    @apply w-full h-36 object-cover;
+  }
+
+  .pdf-photo-caption {
+    @apply px-2 py-1.5 text-[8pt] text-muted-foreground;
+    background: hsl(var(--muted) / 0.5);
+  }
+
+  /* PDF Inline List with Icons */
+  .pdf-check-list {
+    @apply space-y-1.5;
+  }
+
+  .pdf-check-item {
+    @apply flex items-start gap-2 text-[9pt];
+  }
+
+  .pdf-check-item svg {
+    @apply w-3.5 h-3.5 text-accent mt-0.5 flex-shrink-0;
+  }
+
+  /* PDF Two-Column Layout */
+  .pdf-two-col {
+    @apply grid grid-cols-2 gap-4;
+  }
+
+  /* Legacy compatibility */
   .pdf-section-card {
-    @apply bg-card rounded-lg border border-border/60 p-4 mb-3;
+    @apply pdf-section;
   }
 
   .pdf-section-card h3 {
-    @apply text-[11pt] font-semibold flex items-center gap-2 mb-3 pb-2 border-b border-border/40;
-  }
-
-  .pdf-section-card .section-content {
-    @apply grid gap-2 text-[10pt];
+    @apply pdf-section-header;
   }
 
   .kitchen-input {
