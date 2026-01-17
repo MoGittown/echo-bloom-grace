@@ -17,7 +17,7 @@ const QUICK_QUESTIONS = [
 export const ChatWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState('');
-  const { messages, isLoading, sendMessage, clearChat } = useKitchenChat();
+  const { messages, suggestedQuestions, isLoading, sendMessage, clearChat } = useKitchenChat();
   const inputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const assistantStartRef = useRef<HTMLDivElement>(null);
@@ -225,6 +225,26 @@ export const ChatWidget = () => {
               )}
             </ScrollArea>
 
+            {/* Suggested Questions */}
+            {suggestedQuestions.length > 0 && !isLoading && (
+              <div className="px-3 py-2 border-t bg-muted/30">
+                <p className="text-[10px] text-muted-foreground mb-1.5">Weitere Fragen:</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {suggestedQuestions.map((q, i) => (
+                    <Button
+                      key={i}
+                      variant="outline"
+                      size="sm"
+                      className="text-xs h-auto py-1 px-2 bg-background hover:bg-primary/5"
+                      onClick={() => sendMessage(q)}
+                    >
+                      {q}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Input */}
             <form onSubmit={handleSubmit} className="p-3 border-t bg-background/50">
               <div className="flex gap-2">
@@ -246,7 +266,7 @@ export const ChatWidget = () => {
                 </Button>
               </div>
               <p className="text-[10px] text-muted-foreground text-center mt-2">
-                KI-Assistent • Für individuelle Beratung kontaktieren Sie uns
+                Lisa • Deine KI-Küchenberaterin
               </p>
             </form>
           </motion.div>
