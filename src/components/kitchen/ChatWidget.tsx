@@ -14,6 +14,8 @@ const QUICK_QUESTIONS = [
   'Tipps für kleine Küchen?',
 ];
 
+const CHAT_INTRO_SHOWN_KEY = 'kitchen-chat-intro-shown';
+
 export const ChatWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState('');
@@ -22,6 +24,32 @@ export const ChatWidget = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const assistantStartRef = useRef<HTMLDivElement>(null);
   const lastRoleRef = useRef<'user' | 'assistant' | null>(null);
+
+  // Auto-open chat briefly on first visit to draw attention
+  useEffect(() => {
+    try {
+      const introShown = localStorage.getItem(CHAT_INTRO_SHOWN_KEY);
+      if (!introShown) {
+        // Open after a short delay
+        const openTimer = setTimeout(() => {
+          setIsOpen(true);
+        }, 1500);
+        
+        // Close after showing for a few seconds
+        const closeTimer = setTimeout(() => {
+          setIsOpen(false);
+          localStorage.setItem(CHAT_INTRO_SHOWN_KEY, '1');
+        }, 5000);
+        
+        return () => {
+          clearTimeout(openTimer);
+          clearTimeout(closeTimer);
+        };
+      }
+    } catch {
+      // localStorage not available
+    }
+  }, []);
 
   // Scroll behavior:
   // - When a new assistant answer starts streaming: scroll to the TOP of that answer (so the beginning is readable)
