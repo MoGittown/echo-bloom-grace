@@ -1,5 +1,6 @@
 import { useRef, useCallback, useState, useEffect } from 'react';
 import { KitchenProject, TIMELINE_OPTIONS } from '@/types/kitchen';
+import { useBranding } from '@/hooks/useBranding';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
@@ -353,6 +354,8 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
   const [recipientEmail, setRecipientEmail] = useState('');
   const [isSendingEmail, setIsSendingEmail] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  
+  const { branding } = useBranding();
 
   const handlePrint = useCallback(() => {
     window.print();
@@ -668,11 +671,34 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
       <div ref={summaryRef} className="space-y-6 bg-background p-6 rounded-xl">
         {/* ===== PAGE 1: Header, Customer, Style, Appliances ===== */}
         <div data-pdf-page="1" className="print-page-1 bg-white p-4">
-          {/* Header */}
+          {/* Header with Branding */}
           <div className="text-center border-b pb-6">
-            <h1 className="text-2xl font-display font-bold text-foreground">
-              Küchen-Beratungsprotokoll
-            </h1>
+            {branding.logoUrl ? (
+              <div className="flex flex-col items-center gap-3">
+                <img 
+                  src={branding.logoUrl} 
+                  alt="Studio Logo" 
+                  className="h-16 max-w-[200px] object-contain"
+                />
+                {branding.studioName && (
+                  <h1 className="text-xl font-display font-bold text-foreground">
+                    {branding.studioName}
+                  </h1>
+                )}
+                <p className="text-lg text-muted-foreground">Küchen-Beratungsprotokoll</p>
+              </div>
+            ) : branding.studioName ? (
+              <div className="flex flex-col items-center gap-2">
+                <h1 className="text-2xl font-display font-bold text-foreground">
+                  {branding.studioName}
+                </h1>
+                <p className="text-lg text-muted-foreground">Küchen-Beratungsprotokoll</p>
+              </div>
+            ) : (
+              <h1 className="text-2xl font-display font-bold text-foreground">
+                Küchen-Beratungsprotokoll
+              </h1>
+            )}
             <p className="text-muted-foreground mt-2">
               Erstellt am {formatDate(project.createdAt)}
             </p>
