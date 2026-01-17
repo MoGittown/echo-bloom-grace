@@ -1000,7 +1000,7 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
       {/* Summary Content */}
       <div ref={summaryRef} className="space-y-6 bg-background p-6 rounded-xl">
         {/* ===== PAGE 1: Header, Customer, Style, Appliances ===== */}
-        <div data-pdf-page="1" className="print-page-1 bg-white p-4 flex flex-col min-h-[1100px]">
+        <div data-pdf-page="1" className="print-page-1 bg-white p-4 flex flex-col min-h-[1100px] text-[11pt]">
           <PdfPageHeader
             protocolId={protocolId}
             createdDate={formatDate(project.createdAt)}
@@ -1426,7 +1426,7 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
         </div>
 
         {/* ===== PAGE 2: Sink, Waste, Lighting, Room, Floor Plan ===== */}
-        <div data-pdf-page="2" className="print-page-break-before bg-white p-4 flex flex-col min-h-[1100px]">
+        <div data-pdf-page="2" className="print-page-break-before bg-white p-4 flex flex-col min-h-[1100px] text-[11pt]">
           <PdfPageHeader
             protocolId={protocolId}
             createdDate={formatDate(project.createdAt)}
@@ -1601,7 +1601,7 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
         </div>
 
         {/* ===== PAGE 3: Wall Views Nord & Ost ===== */}
-        <div data-pdf-page="3" className="print-page-break-before bg-white p-4 flex flex-col min-h-[1100px]">
+        <div data-pdf-page="3" className="print-page-break-before bg-white p-4 flex flex-col min-h-[1100px] text-[11pt]">
           <PdfPageHeader
             protocolId={protocolId}
             createdDate={formatDate(project.createdAt)}
@@ -1643,7 +1643,7 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
         </div>
 
         {/* ===== PAGE 4: Wall Views Süd & West + Element Table ===== */}
-        <div data-pdf-page="4" className="print-page-break-before bg-white p-4 flex flex-col min-h-[1100px]">
+        <div data-pdf-page="4" className="print-page-break-before bg-white p-4 flex flex-col min-h-[1100px] text-[11pt]">
           <PdfPageHeader
             protocolId={protocolId}
             createdDate={formatDate(project.createdAt)}
@@ -1717,7 +1717,7 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
         </div>
 
         {/* ===== PAGE 5: Must-haves, Nice-to-haves, Notes, ALL Photos ===== */}
-        <div data-pdf-page="5" className="print-page-break-before bg-white p-4 flex flex-col min-h-[1100px]">
+        <div data-pdf-page="5" className="print-page-break-before bg-white p-4 flex flex-col min-h-[1100px] text-[11pt]">
           <PdfPageHeader
             protocolId={protocolId}
             createdDate={formatDate(project.createdAt)}
