@@ -15,8 +15,8 @@ export function PdfPageFooter({
   studioName,
 }: PdfPageFooterProps) {
   return (
-    <footer className="flex items-center justify-between px-4 py-2 mt-4 border-t border-border bg-muted/30 rounded-b-lg text-[11pt] text-muted-foreground">
-      <div className="truncate max-w-[70%]">
+    <footer className="flex items-center justify-between px-4 py-1.5 mt-4 border-t border-border/50 text-[9pt] text-muted-foreground">
+      <div className="truncate max-w-[75%]">
         {contactLine || studioName || ''}
       </div>
       <div className="font-medium">
