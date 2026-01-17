@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/select';
 import { SquareStack, Droplets, Zap, Flame, Wind, DoorOpen } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { InfoTooltip } from './InfoTooltip';
 
 interface WallViewEditorProps {
   floorPlan: FloorPlan;

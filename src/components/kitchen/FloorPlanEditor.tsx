@@ -29,6 +29,7 @@ import {
   DoorOpen,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { InfoTooltip } from './InfoTooltip';
 
 interface FloorPlanEditorProps {
   floorPlan: FloorPlan;
@@ -289,8 +290,12 @@ export function FloorPlanEditor({ floorPlan, room, onChange }: FloorPlanEditorPr
       className="space-y-6"
     >
       <div className="text-center mb-8">
-        <h2 className="text-2xl md:text-3xl font-display font-bold text-foreground">
+        <h2 className="text-2xl md:text-3xl font-display font-bold text-foreground flex items-center justify-center gap-2">
           Grundriss-Editor
+          <InfoTooltip 
+            description="Hier erfassen Sie alle wichtigen Raumelemente wie Fenster, Türen und Anschlüsse mit exakten Positionen."
+            recommendation="Messen Sie die Abstände von der linken Wandkante und vom Boden für jedes Element."
+          />
         </h2>
         <p className="text-muted-foreground mt-2">
           Fügen Sie Fenster, Türen und Anschlüsse hinzu

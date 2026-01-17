@@ -3,9 +3,9 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Textarea } from '@/components/ui/textarea';
-import { Input } from '@/components/ui/input';
-import { Droplets, Lightbulb, Info, Trash2 } from 'lucide-react';
+import { Droplets, Lightbulb, Trash2 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { InfoTooltip } from './InfoTooltip';
 
 interface SinkFormProps {
   data: KitchenPreferences;
@@ -39,7 +39,14 @@ export function SinkForm({ data, onChange }: SinkFormProps) {
 
       {/* Spülenmaterial */}
       <div className="kitchen-card p-6 space-y-4">
-        <h3 className="font-semibold flex items-center gap-2"><Droplets className="w-5 h-5 text-primary" />Spülenmaterial</h3>
+        <h3 className="font-semibold flex items-center gap-2">
+          <Droplets className="w-5 h-5 text-primary" />
+          Spülenmaterial
+          <InfoTooltip 
+            description="Das Material beeinflusst Optik, Haptik, Pflegeaufwand und Kratzfestigkeit."
+            recommendation="Silgranit ist robust und pflegeleicht. Keramik ist elegant aber empfindlicher. Edelstahl ist zeitlos und hygienisch."
+          />
+        </h3>
         <p className="text-sm text-muted-foreground">Aus welchem Material soll die Spüle sein?</p>
         <div className="flex flex-wrap gap-2">
           {SINK_MATERIALS.map(material => (
@@ -53,7 +60,10 @@ export function SinkForm({ data, onChange }: SinkFormProps) {
 
       {/* Spülenfarbe */}
       <div className="kitchen-card p-6 space-y-4">
-        <h3 className="font-semibold">Spülenfarbe</h3>
+        <h3 className="font-semibold flex items-center gap-2">
+          Spülenfarbe
+          <InfoTooltip description="Die Farbe sollte zur Arbeitsplatte und den Fronten passen. Dunkle Farben zeigen weniger Kalkflecken." />
+        </h3>
         <p className="text-sm text-muted-foreground">In welcher Farbe soll die Spüle sein?</p>
         <div className="flex flex-wrap gap-2">
           {SINK_COLORS.map(color => (
@@ -67,7 +77,12 @@ export function SinkForm({ data, onChange }: SinkFormProps) {
 
       {/* Einbauart */}
       <div className="kitchen-card p-6 space-y-4">
-        <h3 className="font-semibold">Einbauart der Spüle</h3>
+        <h3 className="font-semibold flex items-center gap-2">
+          Einbauart der Spüle
+          <InfoTooltip 
+            description="Die Einbauart bestimmt Optik und Reinigungsfreundlichkeit. Flächenbündige Spülen sind optisch hochwertig aber teurer in der Montage."
+          />
+        </h3>
         <RadioGroup 
           value={data.lighting?.find(l => SINK_TYPES.some(t => l === `Einbau:${t}`))?.replace('Einbau:', '') || ''} 
           onValueChange={v => {
@@ -91,15 +106,17 @@ export function SinkForm({ data, onChange }: SinkFormProps) {
             ))}
           </div>
         </RadioGroup>
-        <div className="bg-muted/50 p-3 rounded-lg flex items-start gap-2 mt-2">
-          <Info className="w-4 h-4 mt-0.5 text-muted-foreground" />
-          <p className="text-sm text-muted-foreground">Flächenbündige Spülen erfordern eine dickere Arbeitsplatte (mind. 12mm) und sind aufwendiger in der Montage.</p>
-        </div>
       </div>
 
       {/* Beckengröße */}
       <div className="kitchen-card p-6 space-y-4">
-        <h3 className="font-semibold">Beckengröße & Aufteilung</h3>
+        <h3 className="font-semibold flex items-center gap-2">
+          Beckengröße & Aufteilung
+          <InfoTooltip 
+            description="Die Beckenwahl hängt vom Nutzungsverhalten ab. Große Einzelbecken sind praktisch für große Töpfe. Doppelbecken ermöglichen Trennung von Abwasch und Abspülen."
+            recommendation="1,5 Becken ist ein guter Kompromiss aus Flexibilität und Platz."
+          />
+        </h3>
         <div className="flex flex-wrap gap-2">
           {SINK_SIZES.map(size => (
             <button key={size} onClick={() => toggleLighting(`Becken:${size}`)}
@@ -114,7 +131,10 @@ export function SinkForm({ data, onChange }: SinkFormProps) {
             checked={data.lighting?.includes('Restebecken')} 
             onCheckedChange={() => toggleLighting('Restebecken')} 
           />
-          <Label htmlFor="restebecken">Kleines Restebecken</Label>
+          <Label htmlFor="restebecken" className="flex items-center gap-1">
+            Kleines Restebecken
+            <InfoTooltip description="Kleines Zusatzbecken für Gemüseabfälle oder zum kurzen Abspülen." />
+          </Label>
         </div>
       </div>
 
@@ -133,7 +153,13 @@ export function SinkForm({ data, onChange }: SinkFormProps) {
 
       {/* Armatur */}
       <div className="kitchen-card p-6 space-y-4">
-        <h3 className="font-semibold">Armatur / Wasserhahn - Typ</h3>
+        <h3 className="font-semibold flex items-center gap-2">
+          Armatur / Wasserhahn - Typ
+          <InfoTooltip 
+            description="Die Armatur ist täglich im Einsatz. Achten Sie auf Bedienkomfort und Funktionalität."
+            recommendation="Ausziehbare Brausen sind sehr praktisch. Bei einem Fenster hinter der Spüle empfehlen wir eine Vorfenster-Armatur."
+          />
+        </h3>
         <p className="text-sm text-muted-foreground">Welche Art von Armatur bevorzugen Sie?</p>
         <div className="flex flex-wrap gap-2">
           {FAUCET_TYPES.map(type => (
@@ -143,15 +169,14 @@ export function SinkForm({ data, onChange }: SinkFormProps) {
             </button>
           ))}
         </div>
-        <div className="bg-muted/50 p-3 rounded-lg flex items-start gap-2 mt-2">
-          <Info className="w-4 h-4 mt-0.5 text-muted-foreground" />
-          <p className="text-sm text-muted-foreground">Bei einem Fenster hinter der Spüle empfehlen wir eine Vorfenster-Armatur, die sich umlegen lässt.</p>
-        </div>
       </div>
 
       {/* Armatur Oberfläche */}
       <div className="kitchen-card p-6 space-y-4">
-        <h3 className="font-semibold">Armatur - Oberfläche/Farbe</h3>
+        <h3 className="font-semibold flex items-center gap-2">
+          Armatur - Oberfläche/Farbe
+          <InfoTooltip description="Die Oberfläche sollte zur Spüle und dem Küchendesign passen. Matte Oberflächen zeigen weniger Fingerabdrücke." />
+        </h3>
         <div className="flex flex-wrap gap-2">
           {FAUCET_FINISHES.map(finish => (
             <button key={finish} onClick={() => toggleLighting(`ArmaturFarbe:${finish}`)}
@@ -164,7 +189,10 @@ export function SinkForm({ data, onChange }: SinkFormProps) {
 
       {/* Zusatzfunktionen Armatur */}
       <div className="kitchen-card p-6 space-y-4">
-        <h3 className="font-semibold">Zusatzfunktionen Armatur</h3>
+        <h3 className="font-semibold flex items-center gap-2">
+          Zusatzfunktionen Armatur
+          <InfoTooltip description="Diese Funktionen erhöhen den Komfort, benötigen aber teilweise zusätzliche Geräte unter der Spüle." />
+        </h3>
         <p className="text-sm text-muted-foreground">Möchten Sie besondere Wasserfunktionen?</p>
         <div className="grid md:grid-cols-2 gap-3">
           {FAUCET_EXTRAS.map(extra => (
@@ -174,19 +202,27 @@ export function SinkForm({ data, onChange }: SinkFormProps) {
                 checked={data.lighting?.includes(`ArmaturExtra:${extra}`)} 
                 onCheckedChange={() => toggleLighting(`ArmaturExtra:${extra}`)} 
               />
-              <Label htmlFor={`extra-${extra}`}>{extra}</Label>
+              <Label htmlFor={`extra-${extra}`} className="flex items-center gap-1">
+                {extra}
+                {extra === 'Kochendwasser (Quooker etc.)' && (
+                  <InfoTooltip description="Liefert sofort 100°C heißes Wasser. Praktisch für Tee, Pasta etc. Benötigt einen Boiler unter der Spüle." />
+                )}
+              </Label>
             </div>
           ))}
-        </div>
-        <div className="bg-muted/50 p-3 rounded-lg flex items-start gap-2 mt-2">
-          <Info className="w-4 h-4 mt-0.5 text-muted-foreground" />
-          <p className="text-sm text-muted-foreground">Kochendwasser-Armaturen (z.B. Quooker) erfordern einen speziellen Boiler unter der Spüle.</p>
         </div>
       </div>
 
       {/* Müllsystem */}
       <div className="kitchen-card p-6 space-y-4">
-        <h3 className="font-semibold flex items-center gap-2"><Trash2 className="w-5 h-5 text-primary" />Müll- & Entsorgungssystem</h3>
+        <h3 className="font-semibold flex items-center gap-2">
+          <Trash2 className="w-5 h-5 text-primary" />
+          Müll- & Entsorgungssystem
+          <InfoTooltip 
+            description="Ein gutes Müllsystem erleichtert die Trennung und hält die Küche sauber."
+            recommendation="Auszug-Systeme im Unterschrank sind hygienisch und praktisch. 3-fach Trennung für Restmüll, Papier und Verpackungen."
+          />
+        </h3>
         <p className="text-sm text-muted-foreground">Wie soll der Müll in der Küche organisiert werden?</p>
         <div className="flex flex-wrap gap-2">
           {WASTE_SYSTEMS.map(system => (
@@ -200,7 +236,14 @@ export function SinkForm({ data, onChange }: SinkFormProps) {
 
       {/* Beleuchtung */}
       <div className="kitchen-card p-6 space-y-4">
-        <h3 className="font-semibold flex items-center gap-2"><Lightbulb className="w-5 h-5 text-primary" />Küchenbeleuchtung</h3>
+        <h3 className="font-semibold flex items-center gap-2">
+          <Lightbulb className="w-5 h-5 text-primary" />
+          Küchenbeleuchtung
+          <InfoTooltip 
+            description="Gute Beleuchtung ist essentiell für sicheres Arbeiten und Atmosphäre."
+            recommendation="Unterschrankbeleuchtung ist ein Muss. Warmweiß (3000K) für gemütliche Atmosphäre, Neutralweiß (4000K) für bessere Farbwiedergabe."
+          />
+        </h3>
         <p className="text-sm text-muted-foreground">Welche Beleuchtungselemente sollen integriert werden?</p>
         <div className="grid md:grid-cols-2 gap-3">
           {LIGHTING_OPTIONS.map(option => (

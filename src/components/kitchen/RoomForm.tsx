@@ -4,6 +4,7 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Ruler, Square, LayoutGrid } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { InfoTooltip } from './InfoTooltip';
 
 interface RoomFormProps {
   data: RoomDimensions;
@@ -11,10 +12,10 @@ interface RoomFormProps {
 }
 
 const roomShapes = [
-  { value: 'rectangular', label: 'Rechteckig', icon: '▭' },
-  { value: 'l-shaped', label: 'L-Form', icon: '⌐' },
-  { value: 'u-shaped', label: 'U-Form', icon: '⊔' },
-  { value: 'galley', label: 'Schlauch', icon: '═' },
+  { value: 'rectangular', label: 'Rechteckig', icon: '▭', description: 'Standard-Grundriss mit vier rechten Winkeln' },
+  { value: 'l-shaped', label: 'L-Form', icon: '⌐', description: 'Raum mit einem Eckvorsprung oder Nische' },
+  { value: 'u-shaped', label: 'U-Form', icon: '⊔', description: 'Raum mit drei zusammenhängenden Wänden' },
+  { value: 'galley', label: 'Schlauch', icon: '═', description: 'Langer, schmaler Raum (Durchgangsküche)' },
 ] as const;
 
 export function RoomForm({ data, onChange }: RoomFormProps) {
@@ -38,6 +39,10 @@ export function RoomForm({ data, onChange }: RoomFormProps) {
         <Label className="flex items-center gap-2 text-base">
           <LayoutGrid className="w-5 h-5" />
           Raumform
+          <InfoTooltip 
+            description="Die Raumform bestimmt die möglichen Küchenplanungen. L- und U-Formen bieten oft mehr Arbeitsfläche."
+            recommendation="Messen Sie alle Wandabschnitte einzeln, besonders bei L- und U-Formen."
+          />
         </Label>
         <RadioGroup
           value={data.shape}
@@ -56,6 +61,7 @@ export function RoomForm({ data, onChange }: RoomFormProps) {
               <RadioGroupItem value={shape.value} id={shape.value} className="sr-only" />
               <span className="text-3xl block mb-2">{shape.icon}</span>
               <span className="text-sm font-medium">{shape.label}</span>
+              <p className="text-xs text-muted-foreground mt-1">{shape.description}</p>
             </Label>
           ))}
         </RadioGroup>
@@ -67,6 +73,10 @@ export function RoomForm({ data, onChange }: RoomFormProps) {
           <Label htmlFor="length" className="flex items-center gap-2">
             <Ruler className="w-4 h-4" />
             Länge (cm) *
+            <InfoTooltip 
+              description="Die längste Wand des Raumes. Bei L-Form die längste durchgehende Seite."
+              recommendation="Messen Sie von Wand zu Wand, nicht von Fußleiste zu Fußleiste."
+            />
           </Label>
           <Input
             id="length"
@@ -84,6 +94,10 @@ export function RoomForm({ data, onChange }: RoomFormProps) {
           <Label htmlFor="width" className="flex items-center gap-2">
             <Ruler className="w-4 h-4 rotate-90" />
             Breite (cm) *
+            <InfoTooltip 
+              description="Die Breite des Raumes (senkrecht zur Länge). Wichtig für die Bewegungsfreiheit."
+              recommendation="Mindestens 120 cm zwischen Küchenzeilen für bequemes Arbeiten."
+            />
           </Label>
           <Input
             id="width"
@@ -101,6 +115,10 @@ export function RoomForm({ data, onChange }: RoomFormProps) {
           <Label htmlFor="height" className="flex items-center gap-2">
             <Square className="w-4 h-4" />
             Deckenhöhe (cm) *
+            <InfoTooltip 
+              description="Die Raumhöhe beeinflusst die Höhe der Oberschränke und eventuelle Aufsatzschränke."
+              recommendation="Bei 250+ cm sind Oberschränke bis zur Decke möglich. Standard-Oberschränke sind 70-90 cm hoch."
+            />
           </Label>
           <Input
             id="height"
@@ -120,6 +138,7 @@ export function RoomForm({ data, onChange }: RoomFormProps) {
         <h3 className="font-semibold mb-4 flex items-center gap-2">
           <Square className="w-5 h-5" />
           Vorschau (Maßstab: ~1:50)
+          <InfoTooltip description="Dies ist eine vereinfachte Darstellung. Im nächsten Schritt können Sie Fenster, Türen und Anschlüsse einzeichnen." />
         </h3>
         <div className="flex items-center justify-center p-4 bg-muted rounded-lg">
           <div
