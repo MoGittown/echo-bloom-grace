@@ -464,6 +464,7 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
                 * {
                   letter-spacing: 0 !important;
                   word-spacing: 0 !important;
+                  text-transform: none !important;
                   font-kerning: none !important;
                   font-variant-ligatures: none !important;
                   text-rendering: geometricPrecision !important;
@@ -472,7 +473,6 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
               `;
               doc.head.appendChild(fixStyle);
 
-              doc.body.classList.add('pdf-export');
               doc.body.style.background = '#ffffff';
               doc.body.style.margin = '0';
               doc.body.style.width = `${A4_PX_W}px`;
