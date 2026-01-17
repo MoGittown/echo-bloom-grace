@@ -396,48 +396,65 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
       const A4_PX_W = 794;
       const A4_PX_H = Math.round((A4_PX_W * 297) / 210);
 
+      console.log(`[PDF Debug] Starting export of ${exportTargets.length} pages`);
+
       for (let i = 0; i < exportTargets.length; i++) {
         const target = exportTargets[i];
+        const pageLabel = target.getAttribute('data-pdf-page') || `page-${i + 1}`;
+        
+        console.log(`[PDF Debug] Processing page ${i + 1}/${exportTargets.length}: "${pageLabel}"`);
+        console.log(`[PDF Debug] Page dimensions: ${target.offsetWidth}x${target.offsetHeight}px`);
+        console.log(`[PDF Debug] Page text content length: ${target.textContent?.length || 0} chars`);
 
-        const canvas = await html2canvas(target, {
-          scale: 1.5,
-          useCORS: true,
-          logging: false,
-          backgroundColor: '#ffffff',
-          allowTaint: true,
-          foreignObjectRendering: false,
-          imageTimeout: 15000,
-          onclone: (doc) => {
-            doc.body.classList.add('pdf-export');
-            doc.body.style.background = '#ffffff';
-            doc.body.style.margin = '0';
-            doc.body.style.width = `${A4_PX_W}px`;
-            
-            // Hide SVG icons that might cause rendering issues
-            const svgs = doc.querySelectorAll('svg');
-            svgs.forEach(svg => {
-              svg.style.display = 'inline-block';
-            });
-          },
-        });
+        try {
+          const canvas = await html2canvas(target, {
+            scale: 1.5,
+            useCORS: true,
+            logging: false,
+            backgroundColor: '#ffffff',
+            allowTaint: true,
+            foreignObjectRendering: false,
+            imageTimeout: 15000,
+            onclone: (doc) => {
+              doc.body.classList.add('pdf-export');
+              doc.body.style.background = '#ffffff';
+              doc.body.style.margin = '0';
+              doc.body.style.width = `${A4_PX_W}px`;
+              
+              // Hide SVG icons that might cause rendering issues
+              const svgs = doc.querySelectorAll('svg');
+              svgs.forEach(svg => {
+                svg.style.display = 'inline-block';
+              });
+            },
+          });
+          
+          console.log(`[PDF Debug] ✓ Page ${i + 1} canvas created: ${canvas.width}x${canvas.height}px`);
 
-        const imgData = canvas.toDataURL('image/png');
+          const imgData = canvas.toDataURL('image/png');
 
-        if (i > 0) pdf.addPage();
+          if (i > 0) pdf.addPage();
 
-        // Fit image into A4 while preserving aspect ratio
-        let renderW = pageW;
-        let renderH = (canvas.height * renderW) / canvas.width;
-        if (renderH > pageH) {
-          renderH = pageH;
-          renderW = (canvas.width * renderH) / canvas.height;
+          // Fit image into A4 while preserving aspect ratio
+          let renderW = pageW;
+          let renderH = (canvas.height * renderW) / canvas.width;
+          if (renderH > pageH) {
+            renderH = pageH;
+            renderW = (canvas.width * renderH) / canvas.height;
+          }
+          const x = (pageW - renderW) / 2;
+          pdf.addImage(imgData, 'PNG', x, 0, renderW, renderH);
+          
+        } catch (pageError) {
+          console.error(`[PDF Debug] ✗ Page ${i + 1} ("${pageLabel}") FAILED:`, pageError);
+          throw pageError; // Re-throw to trigger outer catch
         }
-        const x = (pageW - renderW) / 2;
-        pdf.addImage(imgData, 'PNG', x, 0, renderW, renderH);
       }
 
+      console.log(`[PDF Debug] ✓ All pages processed successfully`);
       const fileName = `Kuechen-Beratung_${project.customer.lastName || 'Kunde'}_${new Date().toISOString().split('T')[0]}.pdf`;
       pdf.save(fileName);
+      console.log(`[PDF Debug] ✓ PDF saved as: ${fileName}`);
     } catch (error) {
       console.error('PDF generation failed:', error);
       toast.error('PDF-Generierung fehlgeschlagen. Bitte versuchen Sie es erneut.');
