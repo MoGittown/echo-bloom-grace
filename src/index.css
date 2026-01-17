@@ -172,6 +172,13 @@
   /* Print Styles */
 
   /* PDF Export Styles (used by html2canvas via .pdf-export on cloned DOM) */
+  .pdf-export * {
+    /* Workaround for html2canvas Range/letter-spacing bugs */
+    letter-spacing: normal !important;
+    font-variant-ligatures: none !important;
+    font-kerning: none !important;
+  }
+
   .pdf-export .kitchen-card {
     box-shadow: none;
   }
