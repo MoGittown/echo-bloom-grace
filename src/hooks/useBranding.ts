@@ -1,19 +1,43 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
+export interface LandingPageData {
+  headline: string;
+  subheadline: string;
+  benefit1: string;
+  benefit2: string;
+  benefit3: string;
+  ctaText: string;
+  whyText: string;
+  showLandingPage: boolean;
+}
+
 export interface BrandingData {
   id?: string;
   studioName: string;
   logoUrl: string | null;
   primaryColor: string;
   showDefaultBranding: boolean;
+  landingPage: LandingPageData;
 }
+
+const DEFAULT_LANDING: LandingPageData = {
+  headline: 'Vermeiden Sie die 3 teuersten Fehler beim ersten Küchentermin',
+  subheadline: 'In nur 7 Minuten perfekt vorbereitet für Ihre Küchenberatung',
+  benefit1: 'Sparen Sie Zeit im Beratungsgespräch',
+  benefit2: 'Vermeiden Sie kostspielige Planungsfehler',
+  benefit3: 'Erhalten Sie ein maßgeschneidertes Angebot',
+  ctaText: 'Jetzt starten',
+  whyText: 'Studios mit vorbereiteten Kunden können sofort mit der Planung beginnen – das spart Zeit und führt zu besseren Ergebnissen.',
+  showLandingPage: true,
+};
 
 const DEFAULT_BRANDING: BrandingData = {
   studioName: '',
   logoUrl: null,
   primaryColor: '#8B7355',
   showDefaultBranding: true,
+  landingPage: DEFAULT_LANDING,
 };
 
 // Helper to convert hex to HSL
@@ -78,6 +102,27 @@ function applyPrimaryColor(hexColor: string) {
   `;
 }
 
+// Helper to parse branding data from database response
+function parseBrandingData(data: any): BrandingData {
+  return {
+    id: data.id,
+    studioName: data.studio_name || '',
+    logoUrl: data.logo_url,
+    primaryColor: data.primary_color || '#C2410C',
+    showDefaultBranding: data.show_default_branding ?? true,
+    landingPage: {
+      headline: data.landing_headline || DEFAULT_LANDING.headline,
+      subheadline: data.landing_subheadline || DEFAULT_LANDING.subheadline,
+      benefit1: data.landing_benefit_1 || DEFAULT_LANDING.benefit1,
+      benefit2: data.landing_benefit_2 || DEFAULT_LANDING.benefit2,
+      benefit3: data.landing_benefit_3 || DEFAULT_LANDING.benefit3,
+      ctaText: data.landing_cta_text || DEFAULT_LANDING.ctaText,
+      whyText: data.landing_why_text || DEFAULT_LANDING.whyText,
+      showLandingPage: data.show_landing_page ?? true,
+    },
+  };
+}
+
 export function useBranding() {
   const [branding, setBranding] = useState<BrandingData>(DEFAULT_BRANDING);
   const [isLoading, setIsLoading] = useState(true);
@@ -88,18 +133,12 @@ export function useBranding() {
       try {
         const { data, error } = await supabase
           .from('studio_branding')
-          .select('id, studio_name, logo_url, primary_color, show_default_branding')
+          .select('*')
           .limit(1)
-          .single();
+          .maybeSingle();
 
         if (data && !error) {
-          const brandingData = {
-            id: data.id,
-            studioName: data.studio_name || '',
-            logoUrl: data.logo_url,
-            primaryColor: data.primary_color || '#8B7355',
-            showDefaultBranding: data.show_default_branding ?? true,
-          };
+          const brandingData = parseBrandingData(data);
           setBranding(brandingData);
           
           // Apply the primary color to CSS
@@ -137,21 +176,17 @@ export function useBrandingAdmin() {
       try {
         const { data, error } = await supabase
           .from('studio_branding')
-          .select('id, studio_name, logo_url, primary_color, show_default_branding')
+          .select('*')
           .limit(1)
-          .single();
+          .maybeSingle();
 
         if (error && error.code === 'PGRST116') {
           // No rows = needs setup
           setNeedsSetup(true);
+        } else if (!data) {
+          setNeedsSetup(true);
         } else if (data) {
-          setBranding({
-            id: data.id,
-            studioName: data.studio_name || '',
-            logoUrl: data.logo_url,
-            primaryColor: data.primary_color || '#8B7355',
-            showDefaultBranding: data.show_default_branding ?? true,
-          });
+          setBranding(parseBrandingData(data));
         }
       } catch (error) {
         console.error('Failed to check branding status:', error);
@@ -180,13 +215,7 @@ export function useBrandingAdmin() {
         setIsAuthenticated(true);
         setSessionPassword(password);
         if (data.branding) {
-          setBranding({
-            id: data.branding.id,
-            studioName: data.branding.studio_name || '',
-            logoUrl: data.branding.logo_url,
-            primaryColor: data.branding.primary_color || '#8B7355',
-            showDefaultBranding: data.branding.show_default_branding ?? true,
-          });
+          setBranding(parseBrandingData(data.branding));
         }
         return true;
       }
@@ -217,13 +246,7 @@ export function useBrandingAdmin() {
         setSessionPassword(password);
         setNeedsSetup(false);
         if (data.branding) {
-          setBranding({
-            id: data.branding.id,
-            studioName: data.branding.studio_name || '',
-            logoUrl: data.branding.logo_url,
-            primaryColor: data.branding.primary_color || '#8B7355',
-            showDefaultBranding: data.branding.show_default_branding ?? true,
-          });
+          setBranding(parseBrandingData(data.branding));
         }
         return true;
       }
@@ -234,7 +257,7 @@ export function useBrandingAdmin() {
     }
   }, []);
 
-  const updateBranding = useCallback(async (updates: Partial<BrandingData>): Promise<boolean> => {
+  const updateBranding = useCallback(async (updates: Partial<BrandingData> & { landingPage?: Partial<LandingPageData> }): Promise<boolean> => {
     if (!sessionPassword) return false;
 
     try {
@@ -246,19 +269,21 @@ export function useBrandingAdmin() {
           logoUrl: updates.logoUrl,
           primaryColor: updates.primaryColor,
           showDefaultBranding: updates.showDefaultBranding,
+          landingHeadline: updates.landingPage?.headline,
+          landingSubheadline: updates.landingPage?.subheadline,
+          landingBenefit1: updates.landingPage?.benefit1,
+          landingBenefit2: updates.landingPage?.benefit2,
+          landingBenefit3: updates.landingPage?.benefit3,
+          landingCtaText: updates.landingPage?.ctaText,
+          landingWhyText: updates.landingPage?.whyText,
+          showLandingPage: updates.landingPage?.showLandingPage,
         },
       });
 
       if (error) throw error;
 
       if (data.success && data.branding) {
-        const newBranding = {
-          id: data.branding.id,
-          studioName: data.branding.studio_name || '',
-          logoUrl: data.branding.logo_url,
-          primaryColor: data.branding.primary_color || '#8B7355',
-          showDefaultBranding: data.branding.show_default_branding ?? true,
-        };
+        const newBranding = parseBrandingData(data.branding);
         setBranding(newBranding);
         
         // Apply the primary color immediately

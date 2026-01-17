@@ -19,9 +19,17 @@ export type Database = {
           admin_password_hash: string
           created_at: string
           id: string
+          landing_benefit_1: string | null
+          landing_benefit_2: string | null
+          landing_benefit_3: string | null
+          landing_cta_text: string | null
+          landing_headline: string | null
+          landing_subheadline: string | null
+          landing_why_text: string | null
           logo_url: string | null
           primary_color: string | null
           show_default_branding: boolean | null
+          show_landing_page: boolean | null
           studio_name: string
           updated_at: string
         }
@@ -29,9 +37,17 @@ export type Database = {
           admin_password_hash: string
           created_at?: string
           id?: string
+          landing_benefit_1?: string | null
+          landing_benefit_2?: string | null
+          landing_benefit_3?: string | null
+          landing_cta_text?: string | null
+          landing_headline?: string | null
+          landing_subheadline?: string | null
+          landing_why_text?: string | null
           logo_url?: string | null
           primary_color?: string | null
           show_default_branding?: boolean | null
+          show_landing_page?: boolean | null
           studio_name?: string
           updated_at?: string
         }
@@ -39,9 +55,17 @@ export type Database = {
           admin_password_hash?: string
           created_at?: string
           id?: string
+          landing_benefit_1?: string | null
+          landing_benefit_2?: string | null
+          landing_benefit_3?: string | null
+          landing_cta_text?: string | null
+          landing_headline?: string | null
+          landing_subheadline?: string | null
+          landing_why_text?: string | null
           logo_url?: string | null
           primary_color?: string | null
           show_default_branding?: boolean | null
+          show_landing_page?: boolean | null
           studio_name?: string
           updated_at?: string
         }
