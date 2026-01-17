@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useBrandingAdmin } from '@/hooks/useBranding';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -66,7 +66,7 @@ export default function AdminPage() {
   });
 
   // Initialize edit state when branding loads
-  useState(() => {
+  useEffect(() => {
     if (branding.studioName) {
       setEditedStudioName(branding.studioName);
     }
@@ -85,7 +85,7 @@ export default function AdminPage() {
         showLandingPage: branding.landingPage.showLandingPage,
       });
     }
-  });
+  }, [branding]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
