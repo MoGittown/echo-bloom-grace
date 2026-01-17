@@ -405,7 +405,7 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
           windowHeight: A4_PX_H,
           removeContainer: true,
           ignoreElements: (el) => el.tagName === 'NOSCRIPT',
-          onclone: (doc, clonedTarget) => {
+          onclone: (doc) => {
             // Apply tighter spacing in the cloned DOM (used for PDF rendering only)
             doc.body.classList.add('pdf-export');
             doc.body.style.background = '#ffffff';
@@ -413,35 +413,25 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
             // Force predictable width for layout calculations
             doc.body.style.width = `${A4_PX_W}px`;
 
-            const t = clonedTarget as unknown as HTMLElement;
-            t.style.width = `${A4_PX_W}px`;
-            t.style.minHeight = `${A4_PX_H}px`;
-            t.style.boxSizing = 'border-box';
-            t.style.overflow = 'hidden';
-            t.style.background = '#ffffff';
-
+            // Clean ALL text in the entire cloned document to avoid IndexSizeError
             const cleanText = (value: string) => {
               let text = value;
-              // Remove characters that frequently break html2canvas Range measurements
-              // - ZWJ + emoji variation selectors
+              // Remove ZWJ, variation selectors, and common emoji ranges
               text = text.replace(/[\u200D\uFE0F]/g, '');
-              // - Emoji / pictographs (property escapes are supported in modern browsers)
-              try {
-                const emojiRe = new RegExp('\\p{Extended_Pictographic}', 'gu');
-                text = text.replace(emojiRe, '');
-              } catch {
-                // Fallback: broad ranges for common emoji blocks
-                text = text.replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}]/gu, '');
-              }
+              // Broad emoji ranges (covers most pictographs)
+              text = text.replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{2300}-\u{23FF}\u{2B50}\u{2934}\u{2935}\u{25AA}\u{25AB}\u{25B6}\u{25C0}\u{25FB}-\u{25FE}\u{2614}\u{2615}\u{2648}-\u{2653}\u{267F}\u{2693}\u{26A1}\u{26AA}\u{26AB}\u{26BD}\u{26BE}\u{26C4}\u{26C5}\u{26CE}\u{26D4}\u{26EA}\u{26F2}\u{26F3}\u{26F5}\u{26FA}\u{26FD}\u{2702}\u{2705}\u{2708}-\u{270D}\u{270F}\u{2712}\u{2714}\u{2716}\u{271D}\u{2721}\u{2728}\u{2733}\u{2734}\u{2744}\u{2747}\u{274C}\u{274E}\u{2753}-\u{2755}\u{2757}\u{2763}\u{2764}\u{2795}-\u{2797}\u{27A1}\u{27B0}\u{27BF}\u{00A9}\u{00AE}\u{203C}\u{2049}\u{2122}\u{2139}\u{2194}-\u{2199}\u{21A9}\u{21AA}\u{231A}\u{231B}\u{2328}\u{23CF}\u{23E9}-\u{23F3}\u{23F8}-\u{23FA}\u{24C2}\u{25AA}\u{25AB}\u{25B6}\u{25C0}\u{25FB}-\u{25FE}\u{2660}\u{2663}\u{2665}\u{2666}\u{2668}\u{267B}\u{267E}]/gu, '');
               // Normalize whitespace
               text = text.replace(/\s+/g, ' ');
               return text;
             };
 
-            const walker = doc.createTreeWalker(t, NodeFilter.SHOW_TEXT, null);
+            // Walk ALL text nodes in entire document (not just cloned target)
+            const walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT, null);
             let node: Text | null;
             while ((node = walker.nextNode() as Text)) {
-              if (node.textContent) node.textContent = cleanText(node.textContent);
+              if (node.textContent) {
+                node.textContent = cleanText(node.textContent);
+              }
             }
           },
         });
