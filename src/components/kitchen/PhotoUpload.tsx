@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Camera, ImagePlus, X, Home, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { InfoTooltip } from './InfoTooltip';
 
 interface PhotoUploadProps {
   photos: UploadedPhoto[];
@@ -95,8 +96,12 @@ export function PhotoUpload({ photos, onAdd, onRemove }: PhotoUploadProps) {
       className="space-y-8"
     >
       <div className="text-center mb-8">
-        <h2 className="text-2xl md:text-3xl font-display font-bold text-foreground">
+        <h2 className="text-2xl md:text-3xl font-display font-bold text-foreground flex items-center justify-center gap-2">
           Fotos
+          <InfoTooltip 
+            description="Fotos helfen dem Planer, den aktuellen Zustand und Ihre Stilvorstellungen zu verstehen."
+            recommendation="Laden Sie Raumfotos aus allen Ecken hoch sowie 2-3 Inspirationsbilder von Küchen, die Ihnen gefallen."
+          />
         </h2>
         <p className="text-muted-foreground mt-2">
           Laden Sie Fotos des Raumes und Inspirationsbilder hoch
@@ -108,6 +113,7 @@ export function PhotoUpload({ photos, onAdd, onRemove }: PhotoUploadProps) {
         <h3 className="font-semibold flex items-center gap-2">
           <Home className="w-5 h-5 text-primary" />
           Raumfotos
+          <InfoTooltip description="Fotografieren Sie den Raum aus verschiedenen Blickwinkeln. Achten Sie auf gute Beleuchtung und zeigen Sie besonders Anschlüsse und Fenster." />
         </h3>
         <p className="text-sm text-muted-foreground">
           Aktuelle Fotos des Küchenraums aus verschiedenen Blickwinkeln
@@ -182,6 +188,7 @@ export function PhotoUpload({ photos, onAdd, onRemove }: PhotoUploadProps) {
         <h3 className="font-semibold flex items-center gap-2">
           <Sparkles className="w-5 h-5 text-accent" />
           Inspirationsbilder
+          <InfoTooltip description="Bilder von Küchen, die Ihnen gefallen – aus Pinterest, Magazinen oder von Herstellerwebsites. Helfen dem Planer, Ihren Geschmack zu verstehen." />
         </h3>
         <p className="text-sm text-muted-foreground">
           Bilder von Küchen, die dem Kunden gefallen
