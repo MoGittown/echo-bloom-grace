@@ -11,7 +11,6 @@ import { SinkForm } from '@/components/kitchen/SinkForm';
 import { PhotoUpload } from '@/components/kitchen/PhotoUpload';
 import { SummaryView } from '@/components/kitchen/SummaryView';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import { BrandingSettings } from '@/components/kitchen/BrandingSettings';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, RotateCcw, ChefHat, User, Ruler, LayoutGrid, Square, Palette, Camera, FileText, Plug, Droplets } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -103,7 +102,6 @@ const Index = () => {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <BrandingSettings />
                 <ThemeToggle />
                 <Button variant="ghost" size="sm" onClick={resetProject} className="gap-2">
                   <RotateCcw className="w-4 h-4" />
