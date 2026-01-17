@@ -1322,6 +1322,30 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
             className="kitchen-input min-h-[120px]"
           />
         </div>
+
+        {/* Bottom Action Buttons */}
+        <div className="flex flex-wrap gap-3 justify-center no-print pt-4">
+          <Button onClick={handlePrint} variant="outline" className="gap-2">
+            <Printer className="w-4 h-4" />
+            Drucken
+          </Button>
+          <Button
+            onClick={handleDownloadPDF}
+            className="gap-2"
+            disabled={isGenerating}
+          >
+            <Download className="w-4 h-4" />
+            {isGenerating ? 'Wird erstellt...' : 'Als PDF speichern'}
+          </Button>
+          <Button
+            onClick={() => setEmailDialogOpen(true)}
+            variant="secondary"
+            className="gap-2"
+          >
+            <Mail className="w-4 h-4" />
+            Per E-Mail senden
+          </Button>
+        </div>
       </div>
     </motion.div>
   );
