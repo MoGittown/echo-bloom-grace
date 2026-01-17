@@ -797,7 +797,7 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
           <div className="mt-6 p-5 rounded-xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border-2 border-primary/20">
             <h3 className="font-bold text-lg flex items-center gap-2 mb-4 text-primary">
               <Briefcase className="w-5 h-5" />
-              Lead-Übersicht
+              Auf einen Blick
             </h3>
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
               {/* Timeline/Need */}
