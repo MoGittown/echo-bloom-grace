@@ -2,6 +2,16 @@ import { useRef, useCallback, useState, useEffect } from 'react';
 import { KitchenProject, TIMELINE_OPTIONS } from '@/types/kitchen';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import {
   Printer,
   Download,
@@ -19,11 +29,15 @@ import {
   Trash2,
   LayoutGrid,
   Square,
+  Mail,
+  Loader2,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { RoomDimensions, WallElement } from '@/types/kitchen';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface SummaryViewProps {
   project: KitchenProject;
@@ -335,6 +349,9 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
   const summaryRef = useRef<HTMLDivElement>(null);
   const floorPlanCanvasRef = useRef<HTMLCanvasElement>(null);
   const wallViewCanvasRefs = useRef<Record<string, HTMLCanvasElement | null>>({});
+  const [emailDialogOpen, setEmailDialogOpen] = useState(false);
+  const [recipientEmail, setRecipientEmail] = useState('');
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
 
   const handlePrint = useCallback(() => {
@@ -403,6 +420,114 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
       setIsGenerating(false);
     }
   }, [project]);
+
+  const generateSummaryHtml = useCallback(() => {
+    const customerName = `${project.customer.firstName} ${project.customer.lastName}`.trim() || 'Unbekannt';
+    const timeline = TIMELINE_OPTIONS.find(t => t.value === project.customer.timeline)?.label || project.customer.timeline || 'Nicht angegeben';
+    
+    let html = `
+      <div class="section">
+        <div class="section-title">👤 Kundendaten</div>
+        <div class="info-row"><span class="info-label">Name:</span><span class="info-value">${customerName}</span></div>
+        <div class="info-row"><span class="info-label">E-Mail:</span><span class="info-value">${project.customer.email || '-'}</span></div>
+        <div class="info-row"><span class="info-label">Telefon:</span><span class="info-value">${project.customer.phone || '-'}</span></div>
+        <div class="info-row"><span class="info-label">Adresse:</span><span class="info-value">${project.customer.address || '-'}, ${project.customer.postalCode || ''} ${project.customer.city || ''}</span></div>
+        <div class="info-row"><span class="info-label">Zeitrahmen:</span><span class="info-value">${timeline}</span></div>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">📐 Raummaße</div>
+        <div class="info-row"><span class="info-label">Länge:</span><span class="info-value">${project.room.length} cm</span></div>
+        <div class="info-row"><span class="info-label">Breite:</span><span class="info-value">${project.room.width} cm</span></div>
+        <div class="info-row"><span class="info-label">Höhe:</span><span class="info-value">${project.room.height} cm</span></div>
+      </div>
+    `;
+
+    if (project.preferences.style.length > 0) {
+      html += `
+        <div class="section">
+          <div class="section-title">🎨 Stil & Design</div>
+          <div>${project.preferences.style.map(s => `<span class="tag">${s}</span>`).join(' ')}</div>
+        </div>
+      `;
+    }
+
+    if (project.preferences.colors.length > 0 || project.preferences.materials.length > 0) {
+      html += `
+        <div class="section">
+          <div class="section-title">🎨 Farben & Materialien</div>
+          ${project.preferences.colors.length > 0 ? `<div><strong>Farben:</strong> ${project.preferences.colors.map(c => `<span class="tag">${c}</span>`).join(' ')}</div>` : ''}
+          ${project.preferences.materials.length > 0 ? `<div style="margin-top: 8px;"><strong>Materialien:</strong> ${project.preferences.materials.map(m => `<span class="tag">${m}</span>`).join(' ')}</div>` : ''}
+        </div>
+      `;
+    }
+
+    if (project.preferences.appliances.cooktop || project.preferences.appliances.oven || project.preferences.appliances.hood) {
+      html += `
+        <div class="section">
+          <div class="section-title">🍳 Geräte</div>
+          ${project.preferences.appliances.cooktop ? `<div class="info-row"><span class="info-label">Kochfeld:</span><span class="info-value">${project.preferences.appliances.cooktop}</span></div>` : ''}
+          ${project.preferences.appliances.oven ? `<div class="info-row"><span class="info-label">Backofen:</span><span class="info-value">${project.preferences.appliances.oven}</span></div>` : ''}
+          ${project.preferences.appliances.hood ? `<div class="info-row"><span class="info-label">Dunstabzug:</span><span class="info-value">${project.preferences.appliances.hood}</span></div>` : ''}
+          ${project.preferences.appliances.fridge ? `<div class="info-row"><span class="info-label">Kühlschrank:</span><span class="info-value">${project.preferences.appliances.fridge}</span></div>` : ''}
+        </div>
+      `;
+    }
+
+    if (project.preferences.budget.min > 0 || project.preferences.budget.max > 0) {
+      html += `
+        <div class="section">
+          <div class="section-title">💰 Budget</div>
+          <div class="info-row"><span class="info-label">Budget:</span><span class="info-value">${project.preferences.budget.min.toLocaleString('de-DE')} € - ${project.preferences.budget.max.toLocaleString('de-DE')} €</span></div>
+        </div>
+      `;
+    }
+
+    if (project.additionalNotes) {
+      html += `
+        <div class="section">
+          <div class="section-title">📝 Notizen</div>
+          <p>${project.additionalNotes}</p>
+        </div>
+      `;
+    }
+
+    return html;
+  }, [project]);
+
+  const handleSendEmail = useCallback(async () => {
+    if (!recipientEmail || !recipientEmail.includes('@')) {
+      toast.error('Bitte geben Sie eine gültige E-Mail-Adresse ein');
+      return;
+    }
+
+    setIsSendingEmail(true);
+    try {
+      const customerName = `${project.customer.firstName} ${project.customer.lastName}`.trim() || 'Unbekannt';
+      const projectDate = formatDate(project.createdAt);
+      const summaryHtml = generateSummaryHtml();
+
+      const { data, error } = await supabase.functions.invoke('send-protocol-email', {
+        body: {
+          recipientEmail,
+          customerName,
+          projectDate,
+          summaryHtml,
+        },
+      });
+
+      if (error) throw error;
+
+      toast.success('E-Mail wurde erfolgreich versendet!');
+      setEmailDialogOpen(false);
+      setRecipientEmail('');
+    } catch (error: any) {
+      console.error('Email sending failed:', error);
+      toast.error(`E-Mail konnte nicht gesendet werden: ${error.message || 'Unbekannter Fehler'}`);
+    } finally {
+      setIsSendingEmail(false);
+    }
+  }, [recipientEmail, project, generateSummaryHtml]);
 
   const formatDate = (date: Date) => {
     return new Date(date).toLocaleDateString('de-DE', {
@@ -494,7 +619,74 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
           <Download className="w-4 h-4" />
           {isGenerating ? 'Wird erstellt...' : 'Als PDF speichern'}
         </Button>
+        <Button
+          onClick={() => setEmailDialogOpen(true)}
+          variant="secondary"
+          className="gap-2"
+        >
+          <Mail className="w-4 h-4" />
+          Per E-Mail senden
+        </Button>
       </div>
+
+      {/* Email Dialog */}
+      <Dialog open={emailDialogOpen} onOpenChange={setEmailDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Mail className="w-5 h-5" />
+              Protokoll per E-Mail senden
+            </DialogTitle>
+            <DialogDescription>
+              Geben Sie die E-Mail-Adresse des Küchenstudios ein, um das Beratungsprotokoll zu senden.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="recipientEmail">E-Mail-Adresse</Label>
+              <Input
+                id="recipientEmail"
+                type="email"
+                placeholder="studio@kuechenstudio.de"
+                value={recipientEmail}
+                onChange={(e) => setRecipientEmail(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleSendEmail();
+                  }
+                }}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setEmailDialogOpen(false)}
+              disabled={isSendingEmail}
+            >
+              Abbrechen
+            </Button>
+            <Button
+              onClick={handleSendEmail}
+              disabled={isSendingEmail || !recipientEmail}
+              className="gap-2"
+            >
+              {isSendingEmail ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Wird gesendet...
+                </>
+              ) : (
+                <>
+                  <Mail className="w-4 h-4" />
+                  Senden
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Summary Content */}
       <div ref={summaryRef} className="space-y-6 bg-background p-6 rounded-xl">
