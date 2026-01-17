@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Slider } from '@/components/ui/slider';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Button } from '@/components/ui/button';
-import { Palette, Heart, Star, Euro, Package, Layers, User, ChefHat, Hand, Plus, X } from 'lucide-react';
+import { Palette, Heart, Star, Euro, Package, Layers, User, ChefHat, Hand, Plus, X, Users } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { InfoTooltip } from './InfoTooltip';
 
@@ -31,6 +31,13 @@ const COOKING_FREQUENCY = [
   { value: 'mehrmals', label: 'Mehrmals pro Woche', description: 'Regelmäßiges Kochen mit gelegentlichem Bestellen oder Fertiggerichten.' },
   { value: 'gelegentlich', label: 'Gelegentlich', description: 'Sie kochen am Wochenende oder bei besonderen Anlässen.' },
   { value: 'selten', label: 'Selten', description: 'Die Küche wird hauptsächlich für einfache Mahlzeiten genutzt.' },
+];
+
+const HOUSEHOLD_SIZE = [
+  { value: '1', label: '1 Person', description: 'Single-Haushalt – kompakte Lösungen oft ausreichend.' },
+  { value: '2', label: '2 Personen', description: 'Paar-Haushalt – Standard-Geräte meist passend.' },
+  { value: '3-4', label: '3–4 Personen', description: 'Familie – mehr Stauraum und größere Geräte empfohlen.' },
+  { value: '5+', label: '5+ Personen', description: 'Großfamilie – großzügige Küche mit viel Kapazität nötig.' },
 ];
 
 const STYLE_TOOLTIPS: Record<string, { description: string; recommendation?: string }> = {
@@ -184,6 +191,38 @@ export function StyleForm({ data, onChange }: StyleFormProps) {
                 <RadioGroupItem value={option.value} id={`cook-${option.value}`} className="mt-0.5" />
                 <div className="flex-1">
                   <Label htmlFor={`cook-${option.value}`} className="font-medium cursor-pointer">
+                    {option.label}
+                  </Label>
+                  <p className="text-xs text-muted-foreground mt-0.5">{option.description}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </RadioGroup>
+      </div>
+
+      {/* NEU: Haushaltsgröße */}
+      <div className="kitchen-card p-6 space-y-4">
+        <h3 className="font-semibold flex items-center gap-2">
+          <Users className="w-5 h-5 text-primary" />
+          Für wie viele Personen wird gekocht?
+          <InfoTooltip 
+            description="Die Haushaltsgröße beeinflusst die Dimensionierung von Kühlschrank, Geschirrspüler und Stauraum."
+            recommendation="Ab 4 Personen empfehlen wir einen 60cm Geschirrspüler und einen größeren Kühlschrank."
+          />
+        </h3>
+        <p className="text-sm text-muted-foreground">Beeinflusst die Geräte- und Stauraumempfehlung</p>
+        
+        <RadioGroup 
+          value={data.householdSize || ''} 
+          onValueChange={(v) => onChange({ householdSize: v })}
+        >
+          <div className="grid sm:grid-cols-2 gap-3">
+            {HOUSEHOLD_SIZE.map((option) => (
+              <div key={option.value} className="flex items-start gap-3 p-3 rounded-lg border border-border hover:border-primary/50 transition-colors">
+                <RadioGroupItem value={option.value} id={`household-${option.value}`} className="mt-0.5" />
+                <div className="flex-1">
+                  <Label htmlFor={`household-${option.value}`} className="font-medium cursor-pointer">
                     {option.label}
                   </Label>
                   <p className="text-xs text-muted-foreground mt-0.5">{option.description}</p>
