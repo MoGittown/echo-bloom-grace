@@ -17,6 +17,10 @@ export type Database = {
       studio_branding: {
         Row: {
           admin_password_hash: string
+          contact_address: string | null
+          contact_email: string | null
+          contact_phone: string | null
+          contact_website: string | null
           created_at: string
           id: string
           landing_benefit_1: string | null
@@ -35,6 +39,10 @@ export type Database = {
         }
         Insert: {
           admin_password_hash: string
+          contact_address?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          contact_website?: string | null
           created_at?: string
           id?: string
           landing_benefit_1?: string | null
@@ -53,6 +61,10 @@ export type Database = {
         }
         Update: {
           admin_password_hash?: string
+          contact_address?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          contact_website?: string | null
           created_at?: string
           id?: string
           landing_benefit_1?: string | null

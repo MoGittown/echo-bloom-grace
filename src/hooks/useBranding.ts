@@ -12,6 +12,13 @@ export interface LandingPageData {
   showLandingPage: boolean;
 }
 
+export interface ContactData {
+  address: string | null;
+  phone: string | null;
+  email: string | null;
+  website: string | null;
+}
+
 export interface BrandingData {
   id?: string;
   studioName: string;
@@ -19,6 +26,7 @@ export interface BrandingData {
   primaryColor: string;
   showDefaultBranding: boolean;
   landingPage: LandingPageData;
+  contact: ContactData;
 }
 
 const DEFAULT_LANDING: LandingPageData = {
@@ -32,12 +40,20 @@ const DEFAULT_LANDING: LandingPageData = {
   showLandingPage: true,
 };
 
+const DEFAULT_CONTACT: ContactData = {
+  address: null,
+  phone: null,
+  email: null,
+  website: null,
+};
+
 const DEFAULT_BRANDING: BrandingData = {
   studioName: '',
   logoUrl: null,
   primaryColor: '#8B7355',
   showDefaultBranding: true,
   landingPage: DEFAULT_LANDING,
+  contact: DEFAULT_CONTACT,
 };
 
 // Helper to convert hex to HSL
@@ -119,6 +135,12 @@ function parseBrandingData(data: any): BrandingData {
       ctaText: data.landing_cta_text || DEFAULT_LANDING.ctaText,
       whyText: data.landing_why_text || DEFAULT_LANDING.whyText,
       showLandingPage: data.show_landing_page ?? true,
+    },
+    contact: {
+      address: data.contact_address || null,
+      phone: data.contact_phone || null,
+      email: data.contact_email || null,
+      website: data.contact_website || null,
     },
   };
 }
@@ -257,7 +279,7 @@ export function useBrandingAdmin() {
     }
   }, []);
 
-  const updateBranding = useCallback(async (updates: Partial<Omit<BrandingData, 'landingPage'>> & { landingPage?: Partial<LandingPageData> }): Promise<boolean> => {
+  const updateBranding = useCallback(async (updates: Partial<Omit<BrandingData, 'landingPage' | 'contact'>> & { landingPage?: Partial<LandingPageData>; contact?: Partial<ContactData> }): Promise<boolean> => {
     if (!sessionPassword) return false;
 
     try {
@@ -277,6 +299,10 @@ export function useBrandingAdmin() {
           landingCtaText: updates.landingPage?.ctaText,
           landingWhyText: updates.landingPage?.whyText,
           showLandingPage: updates.landingPage?.showLandingPage,
+          contactAddress: updates.contact?.address,
+          contactPhone: updates.contact?.phone,
+          contactEmail: updates.contact?.email,
+          contactWebsite: updates.contact?.website,
         },
       });
 

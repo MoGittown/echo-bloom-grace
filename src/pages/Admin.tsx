@@ -20,7 +20,11 @@ import {
   Palette,
   LayoutTemplate,
   Type,
-  Sparkles
+  Sparkles,
+  MapPin,
+  Phone,
+  AtSign,
+  Globe
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
@@ -52,6 +56,7 @@ export default function AdminPage() {
   const [hasChanges, setHasChanges] = useState(false);
   const [hasColorChanges, setHasColorChanges] = useState(false);
   const [hasLandingChanges, setHasLandingChanges] = useState(false);
+  const [hasContactChanges, setHasContactChanges] = useState(false);
   
   // Landing page editing
   const [editedLanding, setEditedLanding] = useState({
@@ -63,6 +68,14 @@ export default function AdminPage() {
     ctaText: '',
     whyText: '',
     showLandingPage: true,
+  });
+
+  // Contact editing
+  const [editedContact, setEditedContact] = useState({
+    address: '',
+    phone: '',
+    email: '',
+    website: '',
   });
 
   // Initialize edit state when branding loads
@@ -83,6 +96,14 @@ export default function AdminPage() {
         ctaText: branding.landingPage.ctaText,
         whyText: branding.landingPage.whyText,
         showLandingPage: branding.landingPage.showLandingPage,
+      });
+    }
+    if (branding.contact) {
+      setEditedContact({
+        address: branding.contact.address || '',
+        phone: branding.contact.phone || '',
+        email: branding.contact.email || '',
+        website: branding.contact.website || '',
       });
     }
   }, [branding]);
@@ -250,6 +271,31 @@ export default function AdminPage() {
   const updateLandingField = (field: string, value: string) => {
     setEditedLanding(prev => ({ ...prev, [field]: value }));
     setHasLandingChanges(true);
+  };
+
+  const updateContactField = (field: string, value: string) => {
+    setEditedContact(prev => ({ ...prev, [field]: value }));
+    setHasContactChanges(true);
+  };
+
+  const handleSaveContact = async () => {
+    setIsSaving(true);
+    const success = await updateBranding({ 
+      contact: {
+        address: editedContact.address || null,
+        phone: editedContact.phone || null,
+        email: editedContact.email || null,
+        website: editedContact.website || null,
+      }
+    });
+    setIsSaving(false);
+
+    if (success) {
+      toast.success('Kontaktdaten gespeichert');
+      setHasContactChanges(false);
+    } else {
+      toast.error('Fehler beim Speichern');
+    }
   };
 
   // Predefined color palette
@@ -709,6 +755,82 @@ export default function AdminPage() {
             >
               {isSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
               Landing Page speichern
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Contact Details */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <MapPin className="w-5 h-5" />
+              Kontaktdaten
+            </CardTitle>
+            <CardDescription>
+              Diese Daten erscheinen in der Fußzeile des PDF-Protokolls
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="contactAddress" className="flex items-center gap-2">
+                <MapPin className="w-4 h-4" />
+                Adresse
+              </Label>
+              <Input
+                id="contactAddress"
+                placeholder="Musterstraße 123, 12345 Musterstadt"
+                value={editedContact.address}
+                onChange={(e) => updateContactField('address', e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="contactPhone" className="flex items-center gap-2">
+                <Phone className="w-4 h-4" />
+                Telefon
+              </Label>
+              <Input
+                id="contactPhone"
+                placeholder="+49 123 456789"
+                value={editedContact.phone}
+                onChange={(e) => updateContactField('phone', e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="contactEmail" className="flex items-center gap-2">
+                <AtSign className="w-4 h-4" />
+                E-Mail
+              </Label>
+              <Input
+                id="contactEmail"
+                type="email"
+                placeholder="info@mein-kuechenstudio.de"
+                value={editedContact.email}
+                onChange={(e) => updateContactField('email', e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="contactWebsite" className="flex items-center gap-2">
+                <Globe className="w-4 h-4" />
+                Website
+              </Label>
+              <Input
+                id="contactWebsite"
+                placeholder="www.mein-kuechenstudio.de"
+                value={editedContact.website}
+                onChange={(e) => updateContactField('website', e.target.value)}
+              />
+            </div>
+
+            <Button 
+              onClick={handleSaveContact}
+              disabled={!hasContactChanges || isSaving}
+              className="w-full"
+            >
+              {isSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+              Kontaktdaten speichern
             </Button>
           </CardContent>
         </Card>

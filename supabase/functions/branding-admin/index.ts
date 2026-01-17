@@ -45,7 +45,11 @@ serve(async (req: Request) => {
       landingBenefit3,
       landingCtaText,
       landingWhyText,
-      showLandingPage
+      showLandingPage,
+      contactAddress,
+      contactPhone,
+      contactEmail,
+      contactWebsite
     } = await req.json();
 
     // Get existing branding
@@ -139,6 +143,10 @@ serve(async (req: Request) => {
         if (landingCtaText !== undefined) updateData.landing_cta_text = landingCtaText;
         if (landingWhyText !== undefined) updateData.landing_why_text = landingWhyText;
         if (showLandingPage !== undefined) updateData.show_landing_page = showLandingPage;
+        if (contactAddress !== undefined) updateData.contact_address = contactAddress;
+        if (contactPhone !== undefined) updateData.contact_phone = contactPhone;
+        if (contactEmail !== undefined) updateData.contact_email = contactEmail;
+        if (contactWebsite !== undefined) updateData.contact_website = contactWebsite;
         
         // Handle password change
         if (newPassword && newPassword.length >= 6) {

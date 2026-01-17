@@ -1309,6 +1309,18 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
               </>
             );
           })()}
+
+          {/* Contact Footer for PDF */}
+          {(branding.contact.address || branding.contact.phone || branding.contact.email || branding.contact.website) && (
+            <div className="mt-6 pt-4 border-t text-center text-sm text-muted-foreground">
+              <div className="flex flex-wrap justify-center gap-x-4 gap-y-1">
+                {branding.contact.address && <span>{branding.contact.address}</span>}
+                {branding.contact.phone && <span>Tel: {branding.contact.phone}</span>}
+                {branding.contact.email && <span>{branding.contact.email}</span>}
+                {branding.contact.website && <span>{branding.contact.website}</span>}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Additional Notes - Interactive (no-print) */}
