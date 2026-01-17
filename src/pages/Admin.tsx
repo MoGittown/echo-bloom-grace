@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Textarea } from '@/components/ui/textarea';
 import { 
   Upload, 
   Trash2, 
@@ -16,7 +17,10 @@ import {
   Check,
   ChefHat,
   ArrowLeft,
-  Palette
+  Palette,
+  LayoutTemplate,
+  Type,
+  Sparkles
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
@@ -47,6 +51,19 @@ export default function AdminPage() {
   const [editedStudioName, setEditedStudioName] = useState('');
   const [hasChanges, setHasChanges] = useState(false);
   const [hasColorChanges, setHasColorChanges] = useState(false);
+  const [hasLandingChanges, setHasLandingChanges] = useState(false);
+  
+  // Landing page editing
+  const [editedLanding, setEditedLanding] = useState({
+    headline: '',
+    subheadline: '',
+    benefit1: '',
+    benefit2: '',
+    benefit3: '',
+    ctaText: '',
+    whyText: '',
+    showLandingPage: true,
+  });
 
   // Initialize edit state when branding loads
   useState(() => {
@@ -55,6 +72,18 @@ export default function AdminPage() {
     }
     if (branding.primaryColor) {
       setEditedColor(branding.primaryColor);
+    }
+    if (branding.landingPage) {
+      setEditedLanding({
+        headline: branding.landingPage.headline,
+        subheadline: branding.landingPage.subheadline,
+        benefit1: branding.landingPage.benefit1,
+        benefit2: branding.landingPage.benefit2,
+        benefit3: branding.landingPage.benefit3,
+        ctaText: branding.landingPage.ctaText,
+        whyText: branding.landingPage.whyText,
+        showLandingPage: branding.landingPage.showLandingPage,
+      });
     }
   });
 
@@ -70,6 +99,16 @@ export default function AdminPage() {
       toast.success('Erfolgreich angemeldet');
       setEditedStudioName(branding.studioName);
       setEditedColor(branding.primaryColor);
+      setEditedLanding({
+        headline: branding.landingPage.headline,
+        subheadline: branding.landingPage.subheadline,
+        benefit1: branding.landingPage.benefit1,
+        benefit2: branding.landingPage.benefit2,
+        benefit3: branding.landingPage.benefit3,
+        ctaText: branding.landingPage.ctaText,
+        whyText: branding.landingPage.whyText,
+        showLandingPage: branding.landingPage.showLandingPage,
+      });
     } else {
       toast.error('Falsches Passwort');
     }
@@ -178,6 +217,39 @@ export default function AdminPage() {
     } else {
       toast.error('Fehler beim Speichern');
     }
+  };
+
+  const handleSaveLanding = async () => {
+    setIsSaving(true);
+    const success = await updateBranding({ 
+      landingPage: editedLanding 
+    });
+    setIsSaving(false);
+
+    if (success) {
+      toast.success('Landing Page gespeichert');
+      setHasLandingChanges(false);
+    } else {
+      toast.error('Fehler beim Speichern');
+    }
+  };
+
+  const handleToggleLandingPage = async (checked: boolean) => {
+    setEditedLanding(prev => ({ ...prev, showLandingPage: checked }));
+    setIsSaving(true);
+    const success = await updateBranding({ 
+      landingPage: { showLandingPage: checked } 
+    });
+    setIsSaving(false);
+
+    if (!success) {
+      toast.error('Fehler beim Speichern');
+    }
+  };
+
+  const updateLandingField = (field: string, value: string) => {
+    setEditedLanding(prev => ({ ...prev, [field]: value }));
+    setHasLandingChanges(true);
   };
 
   // Predefined color palette
@@ -531,6 +603,113 @@ export default function AdminPage() {
             >
               Vorschau: So sehen Buttons aus
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Landing Page Settings */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <LayoutTemplate className="w-5 h-5" />
+              Landing Page
+            </CardTitle>
+            <CardDescription>
+              Passen Sie die Startseite an, die Kunden vor der Checkliste sehen
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between mb-4">
+              <div className="space-y-0.5">
+                <Label>Landing Page anzeigen</Label>
+                <p className="text-xs text-muted-foreground">
+                  Zeigt eine Willkommens-Seite vor der Checkliste
+                </p>
+              </div>
+              <Switch
+                checked={editedLanding.showLandingPage}
+                onCheckedChange={handleToggleLandingPage}
+                disabled={isSaving}
+              />
+            </div>
+
+            <div className="space-y-3">
+              <div className="space-y-2">
+                <Label htmlFor="headline" className="flex items-center gap-2">
+                  <Type className="w-4 h-4" />
+                  Headline
+                </Label>
+                <Input
+                  id="headline"
+                  placeholder="Vermeiden Sie die 3 teuersten Fehler..."
+                  value={editedLanding.headline}
+                  onChange={(e) => updateLandingField('headline', e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="subheadline">Subheadline</Label>
+                <Input
+                  id="subheadline"
+                  placeholder="In nur 7 Minuten perfekt vorbereitet..."
+                  value={editedLanding.subheadline}
+                  onChange={(e) => updateLandingField('subheadline', e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4" />
+                  Vorteile (3 Punkte)
+                </Label>
+                <Input
+                  placeholder="Vorteil 1"
+                  value={editedLanding.benefit1}
+                  onChange={(e) => updateLandingField('benefit1', e.target.value)}
+                  className="mb-2"
+                />
+                <Input
+                  placeholder="Vorteil 2"
+                  value={editedLanding.benefit2}
+                  onChange={(e) => updateLandingField('benefit2', e.target.value)}
+                  className="mb-2"
+                />
+                <Input
+                  placeholder="Vorteil 3"
+                  value={editedLanding.benefit3}
+                  onChange={(e) => updateLandingField('benefit3', e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="ctaText">Button-Text</Label>
+                <Input
+                  id="ctaText"
+                  placeholder="Jetzt starten"
+                  value={editedLanding.ctaText}
+                  onChange={(e) => updateLandingField('ctaText', e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="whyText">Warum-Text</Label>
+                <Textarea
+                  id="whyText"
+                  placeholder="Erklären Sie, warum Kunden diese Checkliste ausfüllen sollten..."
+                  value={editedLanding.whyText}
+                  onChange={(e) => updateLandingField('whyText', e.target.value)}
+                  rows={3}
+                />
+              </div>
+            </div>
+
+            <Button 
+              onClick={handleSaveLanding}
+              disabled={!hasLandingChanges || isSaving}
+              className="w-full"
+            >
+              {isSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+              Landing Page speichern
+            </Button>
           </CardContent>
         </Card>
 
