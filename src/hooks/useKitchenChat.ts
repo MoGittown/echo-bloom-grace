@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { toast } from 'sonner';
 
 export type ChatMessage = {
@@ -7,10 +7,47 @@ export type ChatMessage = {
 };
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/kitchen-chat`;
+const QUESTIONS_SEPARATOR = '---FRAGEN---';
+
+// Parse response to extract main content and suggested questions
+const parseResponse = (content: string): { text: string; questions: string[] } => {
+  const parts = content.split(QUESTIONS_SEPARATOR);
+  const text = parts[0].trim();
+  
+  if (parts.length > 1) {
+    const questionsText = parts[1].trim();
+    const questions = questionsText
+      .split('\n')
+      .map(q => q.trim())
+      .filter(q => q.length > 0 && q.endsWith('?'));
+    return { text, questions };
+  }
+  
+  return { text, questions: [] };
+};
 
 export const useKitchenChat = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Extract suggested questions from the last assistant message
+  const suggestedQuestions = useMemo(() => {
+    const lastAssistant = [...messages].reverse().find(m => m.role === 'assistant');
+    if (!lastAssistant) return [];
+    const { questions } = parseResponse(lastAssistant.content);
+    return questions.slice(0, 3); // Max 3 questions
+  }, [messages]);
+
+  // Get display messages (with questions stripped from content)
+  const displayMessages = useMemo(() => {
+    return messages.map(msg => {
+      if (msg.role === 'assistant') {
+        const { text } = parseResponse(msg.content);
+        return { ...msg, content: text };
+      }
+      return msg;
+    });
+  }, [messages]);
 
   const sendMessage = useCallback(async (input: string) => {
     if (!input.trim() || isLoading) return;
@@ -35,7 +72,14 @@ export const useKitchenChat = () => {
     };
 
     try {
-      const allMessages = [...messages, userMsg];
+      // Send only the text part of messages (without suggested questions)
+      const allMessages = [...messages, userMsg].map(msg => {
+        if (msg.role === 'assistant') {
+          const { text } = parseResponse(msg.content);
+          return { ...msg, content: text };
+        }
+        return msg;
+      });
       
       const resp = await fetch(CHAT_URL, {
         method: 'POST',
@@ -124,7 +168,8 @@ export const useKitchenChat = () => {
   }, []);
 
   return {
-    messages,
+    messages: displayMessages,
+    suggestedQuestions,
     isLoading,
     sendMessage,
     clearChat,
