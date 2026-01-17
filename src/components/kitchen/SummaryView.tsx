@@ -35,6 +35,11 @@ import {
   FileSpreadsheet,
   CalendarClock,
   Briefcase,
+  MapPin,
+  Phone,
+  Globe,
+  Zap,
+  Wallet,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import html2canvas from 'html2canvas';
@@ -831,16 +836,39 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
                 
                 <div className="text-sm text-muted-foreground space-y-1">
                   {branding.contact.address && (
-                    <p>📍 {branding.contact.address}</p>
+                    <p className="flex items-start gap-2">
+                      <MapPin className="w-4 h-4 mt-0.5 shrink-0" aria-hidden="true" />
+                      <span>{branding.contact.address}</span>
+                    </p>
                   )}
                   {branding.contact.phone && (
-                    <p>📞 <a href={`tel:${branding.contact.phone}`} className="text-primary hover:underline">{branding.contact.phone}</a></p>
+                    <p className="flex items-start gap-2">
+                      <Phone className="w-4 h-4 mt-0.5 shrink-0" aria-hidden="true" />
+                      <a href={`tel:${branding.contact.phone}`} className="text-primary hover:underline">
+                        {branding.contact.phone}
+                      </a>
+                    </p>
                   )}
                   {branding.contact.email && (
-                    <p>✉️ <a href={`mailto:${branding.contact.email}`} className="text-primary hover:underline">{branding.contact.email}</a></p>
+                    <p className="flex items-start gap-2">
+                      <Mail className="w-4 h-4 mt-0.5 shrink-0" aria-hidden="true" />
+                      <a href={`mailto:${branding.contact.email}`} className="text-primary hover:underline">
+                        {branding.contact.email}
+                      </a>
+                    </p>
                   )}
                   {branding.contact.website && (
-                    <p>🌐 <a href={branding.contact.website.startsWith('http') ? branding.contact.website : `https://${branding.contact.website}`} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">{branding.contact.website}</a></p>
+                    <p className="flex items-start gap-2">
+                      <Globe className="w-4 h-4 mt-0.5 shrink-0" aria-hidden="true" />
+                      <a
+                        href={branding.contact.website.startsWith('http') ? branding.contact.website : `https://${branding.contact.website}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary hover:underline"
+                      >
+                        {branding.contact.website}
+                      </a>
+                    </p>
                   )}
                 </div>
               </div>
@@ -917,12 +945,14 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
                     : timelineOption?.priority === 'medium'
                     ? 'bg-yellow-100 dark:bg-yellow-900/30'
                     : 'bg-muted';
-                  return (
-                    <div className={`font-semibold text-sm ${priorityColor} ${priorityBg} px-2 py-1 rounded inline-block`}>
-                      {timelineOption?.label || project.customer.timeline}
-                      {timelineOption?.priority === 'high' && ' ⚡'}
-                    </div>
-                  );
+                    return (
+                      <div className={`font-semibold text-sm ${priorityColor} ${priorityBg} px-2 py-1 rounded inline-flex items-center`}>
+                        <span>{timelineOption?.label || project.customer.timeline}</span>
+                        {timelineOption?.priority === 'high' && (
+                          <Zap className="w-3.5 h-3.5 ml-1" aria-hidden="true" />
+                        )}
+                      </div>
+                    );
                 })() : (
                   <span className="text-muted-foreground text-sm italic">Nicht angegeben</span>
                 )}
@@ -931,7 +961,8 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
               {/* Budget */}
               <div className="bg-background rounded-lg p-4 shadow-sm">
                 <div className="flex items-center gap-2 mb-2 text-muted-foreground text-xs font-medium uppercase tracking-wide">
-                  💰 Budget
+                  <Wallet className="w-4 h-4" aria-hidden="true" />
+                  Budget
                 </div>
                 {project.preferences.budget.min > 0 || project.preferences.budget.max > 0 ? (
                   <div className="font-semibold text-sm text-foreground">
@@ -1042,8 +1073,16 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
                         <span key={i} className="px-2 py-1 bg-primary/10 text-primary rounded text-xs">{h} cm</span>
                       ))}
                     </div>
-                    <p className="text-xs text-accent mt-2">
-                      💡 Empfohlene Arbeitshöhe: {Math.round(project.preferences.userHeights.reduce((sum, h) => sum + (h * 0.6 - 12), 0) / project.preferences.userHeights.length)} cm
+                    <p className="text-xs text-accent mt-2 flex items-center gap-1">
+                      <Lightbulb className="w-3.5 h-3.5" aria-hidden="true" />
+                      <span>
+                        Empfohlene Arbeitshöhe:{' '}
+                        {Math.round(
+                          project.preferences.userHeights.reduce((sum, h) => sum + (h * 0.6 - 12), 0) /
+                            project.preferences.userHeights.length
+                        )}{' '}
+                        cm
+                      </span>
                     </p>
                   </div>
                 )}
