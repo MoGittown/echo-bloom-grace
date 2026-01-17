@@ -121,7 +121,7 @@ const Index = () => {
         {/* Main Content */}
         <main className="container mx-auto px-4 py-8 max-w-4xl">
           {currentStep === 0 && (
-            <StyleForm data={project.preferences} onChange={updatePreferences} />
+            <StyleForm room={project.room} data={project.preferences} onChange={updatePreferences} />
           )}
           {currentStep === 1 && (
             <AppliancesForm data={project.preferences} onChange={updatePreferences} />

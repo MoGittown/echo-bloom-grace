@@ -1,12 +1,14 @@
-import { KitchenPreferences, KITCHEN_STYLES, KITCHEN_COLORS, KITCHEN_MATERIALS, KITCHEN_MANUFACTURERS, COUNTERTOP_MATERIALS, STORAGE_OPTIONS } from '@/types/kitchen';
+import { KitchenPreferences, RoomDimensions, KITCHEN_STYLES, KITCHEN_COLORS, KITCHEN_MATERIALS, KITCHEN_MANUFACTURERS, COUNTERTOP_MATERIALS, STORAGE_OPTIONS } from '@/types/kitchen';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Slider } from '@/components/ui/slider';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Palette, Heart, Star, Euro, Package, Layers } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { BudgetCalculator } from './BudgetCalculator';
 
 interface StyleFormProps {
+  room: RoomDimensions;
   data: KitchenPreferences;
   onChange: (data: Partial<KitchenPreferences>) => void;
 }
@@ -15,7 +17,7 @@ const FRONT_SURFACES = ['Matt', 'Hochglanz', 'Lack', 'Echtholz', 'Furnier', 'Fol
 const COUNTERTOP_THICKNESS = ['12mm (dünn/modern)', '20mm (Standard)', '30mm', '40mm+'];
 const BACKSPLASH_MATERIALS = ['Glas', 'Fliesen', 'Nischenpaneel', 'Naturstein', 'Arbeitsplatte fortführen', 'Edelstahl'];
 
-export function StyleForm({ data, onChange }: StyleFormProps) {
+export function StyleForm({ room, data, onChange }: StyleFormProps) {
   const toggle = (arr: string[], item: string) => arr.includes(item) ? arr.filter(i => i !== item) : [...arr, item];
 
   const toggleExtra = (item: string) => {
@@ -134,6 +136,9 @@ export function StyleForm({ data, onChange }: StyleFormProps) {
         <Slider value={[data.budget.min, data.budget.max]} min={5000} max={100000} step={1000} onValueChange={([min, max]) => onChange({ budget: { min, max } })} />
         <p className="text-center text-muted-foreground">Budget: €{data.budget.min.toLocaleString()} - €{data.budget.max.toLocaleString()}</p>
       </div>
+
+      {/* Budget-Check basierend auf Auswahl */}
+      <BudgetCalculator room={room} preferences={data} />
 
       <div className="grid md:grid-cols-2 gap-6">
         <div className="kitchen-card p-6 space-y-4">
