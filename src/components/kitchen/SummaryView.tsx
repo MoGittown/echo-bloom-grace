@@ -605,30 +605,6 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
         </p>
       </div>
 
-      {/* Action Buttons */}
-      <div className="flex flex-wrap gap-3 justify-center no-print">
-        <Button onClick={handlePrint} variant="outline" className="gap-2">
-          <Printer className="w-4 h-4" />
-          Drucken
-        </Button>
-        <Button
-          onClick={handleDownloadPDF}
-          className="gap-2"
-          disabled={isGenerating}
-        >
-          <Download className="w-4 h-4" />
-          {isGenerating ? 'Wird erstellt...' : 'Als PDF speichern'}
-        </Button>
-        <Button
-          onClick={() => setEmailDialogOpen(true)}
-          variant="secondary"
-          className="gap-2"
-        >
-          <Mail className="w-4 h-4" />
-          Per E-Mail senden
-        </Button>
-      </div>
-
       {/* Email Dialog */}
       <Dialog open={emailDialogOpen} onOpenChange={setEmailDialogOpen}>
         <DialogContent className="sm:max-w-md">
