@@ -257,7 +257,7 @@ export function useBrandingAdmin() {
     }
   }, []);
 
-  const updateBranding = useCallback(async (updates: Partial<BrandingData> & { landingPage?: Partial<LandingPageData> }): Promise<boolean> => {
+  const updateBranding = useCallback(async (updates: Partial<Omit<BrandingData, 'landingPage'>> & { landingPage?: Partial<LandingPageData> }): Promise<boolean> => {
     if (!sessionPassword) return false;
 
     try {

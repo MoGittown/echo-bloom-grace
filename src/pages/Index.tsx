@@ -96,6 +96,11 @@ const Index = () => {
     );
   }
 
+  // Show landing page if enabled and user hasn't started yet
+  if (showLanding && branding.landingPage.showLandingPage) {
+    return <LandingPage branding={branding} onStart={() => setShowLanding(false)} />;
+  }
+
   const totalSteps = STEPS.length;
   const currentBg = STEPS[currentStep]?.bg || bgStyle;
   const progressPercent = ((currentStep + 1) / totalSteps) * 100;
