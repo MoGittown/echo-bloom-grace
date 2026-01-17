@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useKitchenProject } from '@/hooks/useKitchenProject';
 import { useBranding } from '@/hooks/useBranding';
@@ -17,6 +17,7 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, RotateCcw, ChefHat, User, Ruler, LayoutGrid, Square, Palette, Camera, FileText, Plug, Droplets } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { toast } from 'sonner';
 // Background images
 import bgStyle from '@/assets/bg-style.jpg';
 import bgAppliances from '@/assets/bg-appliances.jpg';
@@ -39,6 +40,7 @@ const Index = () => {
   const navigate = useNavigate();
   const [logoClickCount, setLogoClickCount] = useState(0);
   const [showLanding, setShowLanding] = useState(true);
+  const [customerErrors, setCustomerErrors] = useState<Record<string, string>>({});
 
   const {
     project,
@@ -58,6 +60,69 @@ const Index = () => {
   } = useKitchenProject();
 
   const { branding } = useBranding();
+
+  // Validate customer form before proceeding to summary
+  const validateCustomerForm = useCallback(() => {
+    if (!project) return false;
+    
+    const errors: Record<string, string> = {};
+    const { customer } = project;
+    
+    if (!customer.firstName?.trim()) {
+      errors.firstName = 'Vorname ist erforderlich';
+    }
+    if (!customer.lastName?.trim()) {
+      errors.lastName = 'Nachname ist erforderlich';
+    }
+    if (!customer.email?.trim()) {
+      errors.email = 'E-Mail ist erforderlich';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customer.email)) {
+      errors.email = 'Bitte geben Sie eine gültige E-Mail-Adresse ein';
+    }
+    if (!customer.phone?.trim()) {
+      errors.phone = 'Telefon ist erforderlich';
+    }
+    
+    setCustomerErrors(errors);
+    return Object.keys(errors).length === 0;
+  }, [project]);
+
+  // Handle next step with validation for customer form
+  const handleNextStep = useCallback(() => {
+    // If on customer step (step 7), validate before proceeding
+    if (currentStep === 7) {
+      if (!validateCustomerForm()) {
+        toast.error('Bitte füllen Sie alle Pflichtfelder aus');
+        return;
+      }
+    }
+    setCustomerErrors({});
+    nextStep();
+  }, [currentStep, validateCustomerForm, nextStep]);
+
+  // Handle direct step navigation with validation
+  const handleGoToStep = useCallback((step: number) => {
+    // If trying to go to summary (step 8) from customer step, validate
+    if (step === 8 && currentStep === 7) {
+      if (!validateCustomerForm()) {
+        toast.error('Bitte füllen Sie alle Pflichtfelder aus');
+        return;
+      }
+    }
+    // If trying to go to summary from any step, check if customer data is filled
+    if (step === 8 && currentStep !== 7) {
+      if (!project?.customer.firstName?.trim() || 
+          !project?.customer.lastName?.trim() || 
+          !project?.customer.email?.trim() || 
+          !project?.customer.phone?.trim()) {
+        toast.error('Bitte füllen Sie zuerst die Kontaktdaten aus');
+        goToStep(7);
+        return;
+      }
+    }
+    setCustomerErrors({});
+    goToStep(step);
+  }, [currentStep, validateCustomerForm, goToStep, project]);
 
   // Hidden admin access via logo clicks (5x)
   const handleLogoClick = useCallback(() => {
@@ -168,7 +233,7 @@ const Index = () => {
         {/* Step Indicator */}
         <div className="bg-card/50 backdrop-blur-md border-b">
           <div className="container mx-auto">
-            <StepIndicator steps={STEPS} currentStep={currentStep} onStepClick={goToStep} />
+            <StepIndicator steps={STEPS} currentStep={currentStep} onStepClick={handleGoToStep} />
           </div>
         </div>
 
@@ -196,7 +261,7 @@ const Index = () => {
             <PhotoUpload photos={project.photos} onAdd={addPhoto} onRemove={removePhoto} />
           )}
           {currentStep === 7 && (
-            <CustomerForm data={project.customer} onChange={updateCustomer} />
+            <CustomerForm data={project.customer} onChange={updateCustomer} errors={customerErrors} />
           )}
           {currentStep === 8 && (
             <SummaryView project={project} onUpdateNotes={updateNotes} />
@@ -214,7 +279,7 @@ const Index = () => {
               Zurück
             </Button>
             {currentStep < totalSteps - 1 && (
-              <Button onClick={nextStep} className="gap-2 shadow-lg">
+              <Button onClick={handleNextStep} className="gap-2 shadow-lg">
                 Weiter
                 <ChevronRight className="w-4 h-4" />
               </Button>

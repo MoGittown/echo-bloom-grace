@@ -9,9 +9,10 @@ import { motion } from 'framer-motion';
 interface CustomerFormProps {
   data: CustomerData;
   onChange: (data: Partial<CustomerData>) => void;
+  errors?: Record<string, string>;
 }
 
-export function CustomerForm({ data, onChange }: CustomerFormProps) {
+export function CustomerForm({ data, onChange, errors = {} }: CustomerFormProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -25,9 +26,9 @@ export function CustomerForm({ data, onChange }: CustomerFormProps) {
         <p className="text-muted-foreground mt-2">
           Erfassen Sie die Kontaktdaten des Kunden
         </p>
-        <div className="mt-4 inline-flex items-center gap-2 bg-muted/50 text-muted-foreground text-sm px-4 py-2 rounded-full">
-          <span className="text-lg">💡</span>
-          <span>Optional – Sie können diesen Schritt auch überspringen</span>
+        <div className="mt-4 inline-flex items-center gap-2 bg-primary/10 text-primary text-sm px-4 py-2 rounded-full">
+          <AlertCircle className="w-4 h-4" />
+          <span>Pflichtfelder – bitte vollständig ausfüllen</span>
         </div>
       </div>
 
@@ -35,35 +36,39 @@ export function CustomerForm({ data, onChange }: CustomerFormProps) {
         <div className="space-y-2">
           <Label htmlFor="firstName" className="flex items-center gap-2">
             <User className="w-4 h-4" />
-            Vorname
+            Vorname <span className="text-destructive">*</span>
           </Label>
           <Input
             id="firstName"
             value={data.firstName}
             onChange={(e) => onChange({ firstName: e.target.value })}
             placeholder="Max"
-            className="kitchen-input"
+            className={`kitchen-input ${errors.firstName ? 'border-destructive' : ''}`}
+            required
           />
+          {errors.firstName && <p className="text-sm text-destructive">{errors.firstName}</p>}
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="lastName" className="flex items-center gap-2">
             <User className="w-4 h-4" />
-            Nachname
+            Nachname <span className="text-destructive">*</span>
           </Label>
           <Input
             id="lastName"
             value={data.lastName}
             onChange={(e) => onChange({ lastName: e.target.value })}
             placeholder="Mustermann"
-            className="kitchen-input"
+            className={`kitchen-input ${errors.lastName ? 'border-destructive' : ''}`}
+            required
           />
+          {errors.lastName && <p className="text-sm text-destructive">{errors.lastName}</p>}
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="email" className="flex items-center gap-2">
             <Mail className="w-4 h-4" />
-            E-Mail
+            E-Mail <span className="text-destructive">*</span>
           </Label>
           <Input
             id="email"
@@ -71,14 +76,16 @@ export function CustomerForm({ data, onChange }: CustomerFormProps) {
             value={data.email}
             onChange={(e) => onChange({ email: e.target.value })}
             placeholder="max.mustermann@email.de"
-            className="kitchen-input"
+            className={`kitchen-input ${errors.email ? 'border-destructive' : ''}`}
+            required
           />
+          {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="phone" className="flex items-center gap-2">
             <Phone className="w-4 h-4" />
-            Telefon
+            Telefon <span className="text-destructive">*</span>
           </Label>
           <Input
             id="phone"
@@ -86,8 +93,10 @@ export function CustomerForm({ data, onChange }: CustomerFormProps) {
             value={data.phone}
             onChange={(e) => onChange({ phone: e.target.value })}
             placeholder="+49 123 456789"
-            className="kitchen-input"
+            className={`kitchen-input ${errors.phone ? 'border-destructive' : ''}`}
+            required
           />
+          {errors.phone && <p className="text-sm text-destructive">{errors.phone}</p>}
         </div>
       </div>
 
