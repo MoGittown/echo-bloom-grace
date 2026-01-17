@@ -30,7 +30,23 @@ serve(async (req: Request) => {
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { action, password, newPassword, studioName, logoUrl, primaryColor, showDefaultBranding } = await req.json();
+    const { 
+      action, 
+      password, 
+      newPassword, 
+      studioName, 
+      logoUrl, 
+      primaryColor, 
+      showDefaultBranding,
+      landingHeadline,
+      landingSubheadline,
+      landingBenefit1,
+      landingBenefit2,
+      landingBenefit3,
+      landingCtaText,
+      landingWhyText,
+      showLandingPage
+    } = await req.json();
 
     // Get existing branding
     const { data: existingBranding } = await supabase
@@ -115,6 +131,14 @@ serve(async (req: Request) => {
         if (logoUrl !== undefined) updateData.logo_url = logoUrl;
         if (primaryColor !== undefined) updateData.primary_color = primaryColor;
         if (showDefaultBranding !== undefined) updateData.show_default_branding = showDefaultBranding;
+        if (landingHeadline !== undefined) updateData.landing_headline = landingHeadline;
+        if (landingSubheadline !== undefined) updateData.landing_subheadline = landingSubheadline;
+        if (landingBenefit1 !== undefined) updateData.landing_benefit_1 = landingBenefit1;
+        if (landingBenefit2 !== undefined) updateData.landing_benefit_2 = landingBenefit2;
+        if (landingBenefit3 !== undefined) updateData.landing_benefit_3 = landingBenefit3;
+        if (landingCtaText !== undefined) updateData.landing_cta_text = landingCtaText;
+        if (landingWhyText !== undefined) updateData.landing_why_text = landingWhyText;
+        if (showLandingPage !== undefined) updateData.show_landing_page = showLandingPage;
         
         // Handle password change
         if (newPassword && newPassword.length >= 6) {

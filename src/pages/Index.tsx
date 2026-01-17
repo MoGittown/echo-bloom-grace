@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useKitchenProject } from '@/hooks/useKitchenProject';
 import { useBranding } from '@/hooks/useBranding';
+import { LandingPage } from '@/components/LandingPage';
 import { StepIndicator } from '@/components/kitchen/StepIndicator';
 import { CustomerForm } from '@/components/kitchen/CustomerForm';
 import { RoomForm } from '@/components/kitchen/RoomForm';
@@ -37,7 +38,8 @@ const STEPS = [
 const Index = () => {
   const navigate = useNavigate();
   const [logoClickCount, setLogoClickCount] = useState(0);
-  
+  const [showLanding, setShowLanding] = useState(true);
+
   const {
     project,
     currentStep,
