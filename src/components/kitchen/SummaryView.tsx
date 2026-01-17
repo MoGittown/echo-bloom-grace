@@ -1,5 +1,5 @@
 import { useRef, useCallback, useState, useEffect } from 'react';
-import { KitchenProject } from '@/types/kitchen';
+import { KitchenProject, TIMELINE_OPTIONS } from '@/types/kitchen';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -545,6 +545,25 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
                       {project.customer.address}{project.customer.address && project.customer.postalCode ? ', ' : ''}
                       {project.customer.postalCode} {project.customer.city}
                     </span>
+                  </div>
+                )}
+                {project.customer.timeline && (
+                  <div className="md:col-span-2">
+                    <span className="text-muted-foreground">Gewünschter Montagezeitraum:</span>
+                    {(() => {
+                      const timelineOption = TIMELINE_OPTIONS.find(t => t.value === project.customer.timeline);
+                      const priorityColor = timelineOption?.priority === 'high' 
+                        ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' 
+                        : timelineOption?.priority === 'medium'
+                        ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400'
+                        : 'bg-muted text-muted-foreground';
+                      return (
+                        <span className={`ml-2 px-2 py-1 rounded text-sm font-medium ${priorityColor}`}>
+                          {timelineOption?.label || project.customer.timeline}
+                          {timelineOption?.priority === 'high' && ' ⚡'}
+                        </span>
+                      );
+                    })()}
                   </div>
                 )}
               </div>

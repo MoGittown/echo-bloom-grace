@@ -9,7 +9,17 @@ export interface CustomerData {
   postalCode: string;
   city: string;
   notes: string;
+  timeline: string;
 }
+
+export const TIMELINE_OPTIONS = [
+  { value: 'sofort', label: 'Sofort / So schnell wie möglich', priority: 'high' },
+  { value: '1-3-monate', label: 'In 1–3 Monaten', priority: 'high' },
+  { value: '3-6-monate', label: 'In 3–6 Monaten', priority: 'medium' },
+  { value: '6-12-monate', label: 'In 6–12 Monaten', priority: 'medium' },
+  { value: 'ueber-12-monate', label: 'Über 12 Monate (z.B. Neubau)', priority: 'low' },
+  { value: 'unbekannt', label: 'Noch nicht festgelegt', priority: 'low' },
+] as const;
 
 export interface RoomDimensions {
   length: number;
@@ -106,6 +116,7 @@ export const createDefaultProject = (): KitchenProject => ({
     postalCode: '',
     city: '',
     notes: '',
+    timeline: '',
   },
   room: {
     length: 400,
