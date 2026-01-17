@@ -354,6 +354,7 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
   const floorPlanCanvasRef = useRef<HTMLCanvasElement>(null);
   const wallViewCanvasRefs = useRef<Record<string, HTMLCanvasElement | null>>({});
   const [emailDialogOpen, setEmailDialogOpen] = useState(false);
+  const [confirmationDialogOpen, setConfirmationDialogOpen] = useState(false);
   const [recipientEmail, setRecipientEmail] = useState('');
   const [isSendingEmail, setIsSendingEmail] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -531,9 +532,9 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
 
       if (error) throw error;
 
-      toast.success('E-Mail wurde erfolgreich versendet!');
       setEmailDialogOpen(false);
       setRecipientEmail('');
+      setConfirmationDialogOpen(true);
     } catch (error: any) {
       console.error('Email sending failed:', error);
       toast.error(`E-Mail konnte nicht gesendet werden: ${error.message || 'Unbekannter Fehler'}`);
@@ -758,6 +759,64 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
                   Senden
                 </>
               )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Confirmation Dialog after successful email send */}
+      <Dialog open={confirmationDialogOpen} onOpenChange={setConfirmationDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-green-600">
+              <CheckCircle className="w-6 h-6" />
+              Erfolgreich gesendet!
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+            <p className="text-muted-foreground">
+              Ihre Küchenplanung wurde erfolgreich an das Küchenstudio übermittelt. 
+              Sie werden in Kürze kontaktiert.
+            </p>
+            
+            {/* Studio Contact Info */}
+            {(branding.studioName || branding.contact.phone || branding.contact.email) && (
+              <div className="bg-muted/50 rounded-lg p-4 space-y-3">
+                <h4 className="font-semibold text-sm text-foreground">Ihr Küchenstudio:</h4>
+                
+                {branding.logoUrl && (
+                  <img 
+                    src={branding.logoUrl} 
+                    alt={branding.studioName || 'Studio Logo'} 
+                    className="h-10 object-contain"
+                  />
+                )}
+                
+                {branding.studioName && (
+                  <p className="font-medium text-foreground">{branding.studioName}</p>
+                )}
+                
+                <div className="text-sm text-muted-foreground space-y-1">
+                  {branding.contact.address && (
+                    <p>📍 {branding.contact.address}</p>
+                  )}
+                  {branding.contact.phone && (
+                    <p>📞 <a href={`tel:${branding.contact.phone}`} className="text-primary hover:underline">{branding.contact.phone}</a></p>
+                  )}
+                  {branding.contact.email && (
+                    <p>✉️ <a href={`mailto:${branding.contact.email}`} className="text-primary hover:underline">{branding.contact.email}</a></p>
+                  )}
+                  {branding.contact.website && (
+                    <p>🌐 <a href={branding.contact.website.startsWith('http') ? branding.contact.website : `https://${branding.contact.website}`} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">{branding.contact.website}</a></p>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setConfirmationDialogOpen(false)} className="w-full gap-2">
+              <CheckCircle className="w-4 h-4" />
+              Verstanden
             </Button>
           </DialogFooter>
         </DialogContent>
