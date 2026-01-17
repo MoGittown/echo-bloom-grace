@@ -553,7 +553,7 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
     const csvRows: string[][] = [
       ['Kategorie', 'Feld', 'Wert'],
       [''],
-      ['=== LEAD-DATEN (BANT) ===', '', ''],
+      ['=== KUNDENDATEN ===', '', ''],
       ['Kunde', 'Vorname', project.customer.firstName || ''],
       ['Kunde', 'Nachname', project.customer.lastName || ''],
       ['Kunde', 'E-Mail', project.customer.email || ''],
