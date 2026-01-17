@@ -77,6 +77,10 @@ export interface KitchenPreferences {
   countertop: string[];
   sink: string;
   lighting: string[];
+  // Ergonomie & Nutzung
+  userHeights: number[]; // Körpergrößen der Hauptnutzer in cm
+  cookingFrequency: string; // Kochverhalten
+  gripType: string; // Griff-Präferenz
 }
 
 export interface UploadedPhoto {
@@ -151,6 +155,9 @@ export const createDefaultProject = (): KitchenProject => ({
     countertop: [],
     sink: '',
     lighting: [],
+    userHeights: [],
+    cookingFrequency: '',
+    gripType: '',
   },
   photos: [],
   additionalNotes: '',

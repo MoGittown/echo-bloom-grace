@@ -1,10 +1,14 @@
+import { useState } from 'react';
 import { KitchenPreferences, KITCHEN_STYLES, KITCHEN_COLORS, KITCHEN_MATERIALS, KITCHEN_MANUFACTURERS, COUNTERTOP_MATERIALS, STORAGE_OPTIONS } from '@/types/kitchen';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Slider } from '@/components/ui/slider';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Palette, Heart, Star, Euro, Package, Layers } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Palette, Heart, Star, Euro, Package, Layers, User, ChefHat, Hand, Plus, X } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { InfoTooltip } from './InfoTooltip';
 
 interface StyleFormProps {
   data: KitchenPreferences;
@@ -15,7 +19,40 @@ const FRONT_SURFACES = ['Matt', 'Hochglanz', 'Lack', 'Echtholz', 'Furnier', 'Fol
 const COUNTERTOP_THICKNESS = ['12mm (dünn/modern)', '20mm (Standard)', '30mm', '40mm+'];
 const BACKSPLASH_MATERIALS = ['Glas', 'Fliesen', 'Nischenpaneel', 'Naturstein', 'Arbeitsplatte fortführen', 'Edelstahl'];
 
+const GRIP_TYPES = [
+  { value: 'grifflos', label: 'Grifflos', description: 'Öffnung durch Push-to-Open oder Griffmulde an der Oberkante. Sehr modern und puristisch.' },
+  { value: 'griffmulde', label: 'Griffmulde', description: 'Eingefräste Mulde an der Oberkante der Front. Dezent und praktisch.' },
+  { value: 'buegelgriff', label: 'Bügelgriff', description: 'Klassischer gebogener Griff. Ergonomisch und zeitlos.' },
+  { value: 'stangengriff', label: 'Stangengriff', description: 'Lange, durchgehende Stange. Modern und gut greifbar.' },
+];
+
+const COOKING_FREQUENCY = [
+  { value: 'daily', label: 'Täglich', description: 'Sie kochen jeden Tag frisch und brauchen hochwertige Geräte und viel Stauraum.' },
+  { value: 'mehrmals', label: 'Mehrmals pro Woche', description: 'Regelmäßiges Kochen mit gelegentlichem Bestellen oder Fertiggerichten.' },
+  { value: 'gelegentlich', label: 'Gelegentlich', description: 'Sie kochen am Wochenende oder bei besonderen Anlässen.' },
+  { value: 'selten', label: 'Selten', description: 'Die Küche wird hauptsächlich für einfache Mahlzeiten genutzt.' },
+];
+
+const STYLE_TOOLTIPS: Record<string, { description: string; recommendation?: string }> = {
+  'Modern': { description: 'Klare Linien, grifflose Fronten, oft in Weiß, Grau oder Schwarz. Hochglanz oder samtmatt.', recommendation: 'Ideal mit Induktionskochfeld und integriertem Dunstabzug.' },
+  'Klassisch': { description: 'Zeitlose Eleganz mit profilierten Fronten, warmen Farben und hochwertigen Materialien.' },
+  'Landhausstil': { description: 'Gemütlich mit Holzfronten, Kassettentüren, warmen Farben. Oft mit offenen Regalen.', recommendation: 'Passt gut zu Keramikspülen und Messing-Armaturen.' },
+  'Skandinavisch': { description: 'Hell, freundlich, funktional. Helles Holz, Weiß, natürliche Materialien.' },
+  'Industrial': { description: 'Rau und urban mit Beton, Metall, dunklen Farben und offenen Regalen.' },
+  'Minimalistisch': { description: 'Reduktion aufs Wesentliche. Grifflos, versteckter Stauraum, ruhige Farbpalette.' },
+  'Mediterran': { description: 'Warme Erdtöne, Terrakotta, rustikales Holz. Südländisches Flair.' },
+};
+
+// Berechne optimale Arbeitshöhe nach der Ellbogen-Methode
+const calculateWorkHeight = (bodyHeight: number): number => {
+  // Ellbogenhöhe ist ca. 60% der Körpergröße, Arbeitshöhe 10-15 cm darunter
+  const elbowHeight = bodyHeight * 0.6;
+  return Math.round(elbowHeight - 12);
+};
+
 export function StyleForm({ data, onChange }: StyleFormProps) {
+  const [newHeight, setNewHeight] = useState('');
+  
   const toggle = (arr: string[], item: string) => arr.includes(item) ? arr.filter(i => i !== item) : [...arr, item];
 
   const toggleExtra = (item: string) => {
@@ -24,14 +61,47 @@ export function StyleForm({ data, onChange }: StyleFormProps) {
     onChange({ mustHaves: updated });
   };
 
+  const addUserHeight = () => {
+    const height = parseInt(newHeight);
+    if (height >= 140 && height <= 220) {
+      const updated = [...(data.userHeights || []), height];
+      onChange({ userHeights: updated });
+      setNewHeight('');
+    }
+  };
+
+  const removeUserHeight = (index: number) => {
+    const updated = (data.userHeights || []).filter((_, i) => i !== index);
+    onChange({ userHeights: updated });
+  };
+
+  // Berechne empfohlene Arbeitshöhe basierend auf den Nutzergrößen
+  const recommendedWorkHeight = data.userHeights && data.userHeights.length > 0
+    ? Math.round(data.userHeights.reduce((sum, h) => sum + calculateWorkHeight(h), 0) / data.userHeights.length)
+    : null;
+
   const Chip = ({ items, field, accent }: { items: string[]; field: keyof KitchenPreferences; accent?: boolean }) => (
     <div className="flex flex-wrap gap-2">
-      {items.map(item => (
-        <button key={item} onClick={() => onChange({ [field]: toggle((data[field] as string[]), item) })}
-          className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${(data[field] as string[]).includes(item) ? accent ? 'bg-accent text-accent-foreground' : 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:bg-muted/80'}`}>
-          {item}
-        </button>
-      ))}
+      {items.map(item => {
+        const tooltip = STYLE_TOOLTIPS[item];
+        return (
+          <div key={item} className="flex items-center gap-1">
+            <button 
+              onClick={() => onChange({ [field]: toggle((data[field] as string[]), item) })}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${(data[field] as string[]).includes(item) ? accent ? 'bg-accent text-accent-foreground' : 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:bg-muted/80'}`}
+            >
+              {item}
+            </button>
+            {tooltip && (
+              <InfoTooltip 
+                title={item} 
+                description={tooltip.description} 
+                recommendation={tooltip.recommendation} 
+              />
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 
@@ -42,8 +112,128 @@ export function StyleForm({ data, onChange }: StyleFormProps) {
         <p className="text-muted-foreground mt-2">Welchen Look soll Ihre Traumküche haben?</p>
       </div>
 
+      {/* NEU: Ergonomie - Körpergröße */}
       <div className="kitchen-card p-6 space-y-4">
-        <h3 className="font-semibold flex items-center gap-2"><Palette className="w-5 h-5 text-primary" />Küchenstil</h3>
+        <h3 className="font-semibold flex items-center gap-2">
+          <User className="w-5 h-5 text-primary" />
+          Körpergröße der Hauptnutzer
+          <InfoTooltip 
+            description="Die Körpergröße bestimmt die optimale Arbeitshöhe Ihrer Küche. Die ideale Höhe liegt etwa 10-15 cm unter der Ellbogenhöhe."
+            recommendation="Bei unterschiedlich großen Nutzern empfehlen wir einen Kompromiss oder höhenverstellbare Elemente."
+          />
+        </h3>
+        <p className="text-sm text-muted-foreground">Für die Berechnung der optimalen Arbeitshöhe</p>
+        
+        <div className="flex flex-wrap gap-2 items-center">
+          {(data.userHeights || []).map((height, index) => (
+            <div key={index} className="flex items-center gap-1 px-3 py-1.5 bg-primary text-primary-foreground rounded-full text-sm">
+              <span>{height} cm</span>
+              <button onClick={() => removeUserHeight(index)} className="ml-1 hover:bg-primary-foreground/20 rounded-full p-0.5">
+                <X className="w-3 h-3" />
+              </button>
+            </div>
+          ))}
+          <div className="flex items-center gap-2">
+            <Input
+              type="number"
+              value={newHeight}
+              onChange={(e) => setNewHeight(e.target.value)}
+              placeholder="z.B. 175"
+              className="kitchen-input w-24"
+              min={140}
+              max={220}
+              onKeyDown={(e) => e.key === 'Enter' && addUserHeight()}
+            />
+            <span className="text-sm text-muted-foreground">cm</span>
+            <Button onClick={addUserHeight} size="sm" variant="outline" className="gap-1">
+              <Plus className="w-4 h-4" /> Hinzufügen
+            </Button>
+          </div>
+        </div>
+
+        {recommendedWorkHeight && (
+          <div className="mt-4 p-3 bg-accent/10 rounded-lg border border-accent/20">
+            <p className="text-sm font-medium text-accent">
+              💡 Empfohlene Arbeitshöhe: <span className="text-lg">{recommendedWorkHeight} cm</span>
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              (Standard ist 92 cm. Ihre individuelle Höhe basiert auf der Ellbogen-Methode.)
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* NEU: Kochverhalten */}
+      <div className="kitchen-card p-6 space-y-4">
+        <h3 className="font-semibold flex items-center gap-2">
+          <ChefHat className="w-5 h-5 text-primary" />
+          Wie oft kochen Sie?
+          <InfoTooltip 
+            description="Ihr Kochverhalten beeinflusst die Empfehlungen für Gerätequalität, Stauraum und Arbeitsflächengröße."
+          />
+        </h3>
+        <p className="text-sm text-muted-foreground">Dies beeinflusst die Empfehlung für Geräte und Stauraum</p>
+        
+        <RadioGroup 
+          value={data.cookingFrequency || ''} 
+          onValueChange={(v) => onChange({ cookingFrequency: v })}
+        >
+          <div className="grid sm:grid-cols-2 gap-3">
+            {COOKING_FREQUENCY.map((option) => (
+              <div key={option.value} className="flex items-start gap-3 p-3 rounded-lg border border-border hover:border-primary/50 transition-colors">
+                <RadioGroupItem value={option.value} id={`cook-${option.value}`} className="mt-0.5" />
+                <div className="flex-1">
+                  <Label htmlFor={`cook-${option.value}`} className="font-medium cursor-pointer">
+                    {option.label}
+                  </Label>
+                  <p className="text-xs text-muted-foreground mt-0.5">{option.description}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </RadioGroup>
+      </div>
+
+      {/* NEU: Griff-Präferenz */}
+      <div className="kitchen-card p-6 space-y-4">
+        <h3 className="font-semibold flex items-center gap-2">
+          <Hand className="w-5 h-5 text-primary" />
+          Griff-Präferenz
+          <InfoTooltip 
+            description="Der Grifftyp prägt das Erscheinungsbild Ihrer Küche maßgeblich und beeinflusst die Handhabung im Alltag."
+            recommendation="Grifflose Küchen wirken modern, erfordern aber saubere Fronten. Bügelgriffe sind zeitlos und praktisch."
+          />
+        </h3>
+        <p className="text-sm text-muted-foreground">Wie möchten Sie Ihre Schränke öffnen?</p>
+        
+        <RadioGroup 
+          value={data.gripType || ''} 
+          onValueChange={(v) => onChange({ gripType: v })}
+        >
+          <div className="grid sm:grid-cols-2 gap-3">
+            {GRIP_TYPES.map((option) => (
+              <div key={option.value} className="flex items-start gap-3 p-3 rounded-lg border border-border hover:border-primary/50 transition-colors">
+                <RadioGroupItem value={option.value} id={`grip-${option.value}`} className="mt-0.5" />
+                <div className="flex-1">
+                  <Label htmlFor={`grip-${option.value}`} className="font-medium cursor-pointer">
+                    {option.label}
+                  </Label>
+                  <p className="text-xs text-muted-foreground mt-0.5">{option.description}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </RadioGroup>
+      </div>
+
+      <div className="kitchen-card p-6 space-y-4">
+        <h3 className="font-semibold flex items-center gap-2">
+          <Palette className="w-5 h-5 text-primary" />
+          Küchenstil
+          <InfoTooltip 
+            description="Der Küchenstil bestimmt das Gesamtbild. Unterschiedliche Stile haben verschiedene Materialien, Farben und Formen."
+          />
+        </h3>
         <p className="text-sm text-muted-foreground">Welcher Stil entspricht Ihrem Geschmack? Mehrfachauswahl möglich.</p>
         <Chip items={KITCHEN_STYLES} field="style" />
       </div>
@@ -60,9 +250,16 @@ export function StyleForm({ data, onChange }: StyleFormProps) {
         <Chip items={KITCHEN_MATERIALS} field="materials" />
       </div>
 
-      {/* NEU: Frontenoberfläche */}
+      {/* Frontenoberfläche */}
       <div className="kitchen-card p-6 space-y-4">
-        <h3 className="font-semibold flex items-center gap-2"><Layers className="w-5 h-5 text-primary" />Oberfläche der Fronten</h3>
+        <h3 className="font-semibold flex items-center gap-2">
+          <Layers className="w-5 h-5 text-primary" />
+          Oberfläche der Fronten
+          <InfoTooltip 
+            description="Die Oberfläche beeinflusst Optik, Haptik und Pflegeaufwand."
+            recommendation="Anti-Fingerprint ist ideal für dunkle, matte Fronten."
+          />
+        </h3>
         <p className="text-sm text-muted-foreground">Matt, hochglänzend oder mit besonderer Beschichtung?</p>
         <div className="flex flex-wrap gap-2">
           {FRONT_SURFACES.map(surface => (
@@ -80,9 +277,15 @@ export function StyleForm({ data, onChange }: StyleFormProps) {
         <Chip items={COUNTERTOP_MATERIALS} field="countertop" accent />
       </div>
 
-      {/* NEU: Arbeitsplattenstärke */}
+      {/* Arbeitsplattenstärke */}
       <div className="kitchen-card p-6 space-y-4">
-        <h3 className="font-semibold">Arbeitsplatte - Stärke</h3>
+        <h3 className="font-semibold flex items-center gap-2">
+          Arbeitsplatte - Stärke
+          <InfoTooltip 
+            description="Dünnere Platten (12mm) wirken modern und leicht. Dickere Platten (40mm+) wirken massiv und hochwertig."
+            recommendation="12mm für modernen Look, 20mm als solider Standard."
+          />
+        </h3>
         <p className="text-sm text-muted-foreground">Wie dick soll die Arbeitsplatte sein?</p>
         <RadioGroup 
           value={data.mustHaves?.find(m => m.startsWith('APStärke:'))?.replace('APStärke:', '') || ''} 
@@ -101,7 +304,7 @@ export function StyleForm({ data, onChange }: StyleFormProps) {
         </RadioGroup>
       </div>
 
-      {/* NEU: Nischenrückwand */}
+      {/* Nischenrückwand */}
       <div className="kitchen-card p-6 space-y-4">
         <h3 className="font-semibold">Nischenrückwand / Spritzschutz</h3>
         <p className="text-sm text-muted-foreground">Welches Material soll die Rückwand zwischen Arbeitsplatte und Oberschränken haben?</p>

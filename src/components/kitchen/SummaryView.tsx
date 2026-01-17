@@ -772,6 +772,53 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
             )}
           </div>
 
+          {/* ERGONOMIE & NUTZUNG */}
+          {(project.preferences.userHeights?.length > 0 || project.preferences.cookingFrequency || project.preferences.gripType) && (
+            <div className="kitchen-card p-6 mt-6">
+              <h3 className="font-semibold flex items-center gap-2 mb-4">
+                <User className="w-5 h-5 text-primary" />
+                Ergonomie & Nutzung
+              </h3>
+              <div className="grid md:grid-cols-2 gap-6 text-sm">
+                {project.preferences.userHeights && project.preferences.userHeights.length > 0 && (
+                  <div>
+                    <span className="text-muted-foreground">Körpergröße(n):</span>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {project.preferences.userHeights.map((h, i) => (
+                        <span key={i} className="px-2 py-1 bg-primary/10 text-primary rounded text-xs">{h} cm</span>
+                      ))}
+                    </div>
+                    <p className="text-xs text-accent mt-2">
+                      💡 Empfohlene Arbeitshöhe: {Math.round(project.preferences.userHeights.reduce((sum, h) => sum + (h * 0.6 - 12), 0) / project.preferences.userHeights.length)} cm
+                    </p>
+                  </div>
+                )}
+                {project.preferences.cookingFrequency && (
+                  <div>
+                    <span className="text-muted-foreground">Kochverhalten:</span>
+                    <span className="ml-2 font-medium">
+                      {project.preferences.cookingFrequency === 'daily' && 'Täglich'}
+                      {project.preferences.cookingFrequency === 'mehrmals' && 'Mehrmals pro Woche'}
+                      {project.preferences.cookingFrequency === 'gelegentlich' && 'Gelegentlich'}
+                      {project.preferences.cookingFrequency === 'selten' && 'Selten'}
+                    </span>
+                  </div>
+                )}
+                {project.preferences.gripType && (
+                  <div>
+                    <span className="text-muted-foreground">Griff-Präferenz:</span>
+                    <span className="ml-2 font-medium capitalize">
+                      {project.preferences.gripType === 'grifflos' && 'Grifflos'}
+                      {project.preferences.gripType === 'griffmulde' && 'Griffmulde'}
+                      {project.preferences.gripType === 'buegelgriff' && 'Bügelgriff'}
+                      {project.preferences.gripType === 'stangengriff' && 'Stangengriff'}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* STIL & DESIGN */}
           <div className="kitchen-card p-6 mt-6">
             <h3 className="font-semibold flex items-center gap-2 mb-4">
