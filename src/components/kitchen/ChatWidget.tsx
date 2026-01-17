@@ -141,24 +141,25 @@ export const ChatWidget = () => {
             <ScrollArea className="flex-1 p-4">
               {messages.length === 0 ? (
                 <div className="space-y-4">
-                  <div className="text-center py-4">
-                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
-                      <Sparkles className="w-6 h-6 text-primary" />
+                  <div className="flex gap-2">
+                    <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <Bot className="w-3.5 h-3.5 text-primary" />
                     </div>
-                    <h4 className="font-medium mb-1">Hallo! 👋</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Ich bin dein KI-Assistent für alle Fragen rund um die Küchenplanung.
-                    </p>
+                    <div className="bg-muted rounded-2xl rounded-bl-md px-3.5 py-2 max-w-[85%] text-sm">
+                      <p className="whitespace-pre-wrap">
+                        Guten Tag! Ich bin Ihr digitaler Küchenberater und unterstütze Sie gerne bei allen Fragen rund um Ihre Küchenplanung – von Materialien und Geräten bis hin zu Stil und Budget. Wie kann ich Ihnen helfen?
+                      </p>
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <p className="text-xs text-muted-foreground text-center">Schnellfragen:</p>
-                    <div className="flex flex-wrap gap-2 justify-center">
+                  <div className="ml-8 space-y-2">
+                    <p className="text-xs text-muted-foreground">Häufige Fragen:</p>
+                    <div className="flex flex-wrap gap-1.5">
                       {QUICK_QUESTIONS.map((q, i) => (
                         <Button
                           key={i}
                           variant="outline"
                           size="sm"
-                          className="text-xs h-auto py-1.5 px-2.5"
+                          className="text-xs h-auto py-1 px-2 bg-background/80 hover:bg-primary/10 border-primary/20"
                           onClick={() => handleQuickQuestion(q)}
                         >
                           {q}
