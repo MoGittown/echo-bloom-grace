@@ -460,7 +460,11 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
       pdf.save(fileName);
     } catch (error) {
       console.error('PDF generation failed:', error);
-      toast.error('PDF-Generierung fehlgeschlagen. Bitte versuchen Sie die Druckfunktion.');
+      // Fallback: Open print dialog instead
+      toast.info('PDF-Export wird über Druckdialog geöffnet...');
+      setTimeout(() => {
+        window.print();
+      }, 300);
     } finally {
       setIsGenerating(false);
     }
