@@ -169,39 +169,67 @@ export const ChatWidget = () => {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {messages.map((msg, i) => (
-                    <motion.div
-                      key={i}
-                      ref={i === messages.length - 1 && msg.role === 'assistant' ? assistantStartRef : undefined}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className={cn(
-                        'flex gap-2',
-                        msg.role === 'user' ? 'justify-end' : 'justify-start'
-                      )}
-                    >
-                      {msg.role === 'assistant' && (
-                        <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                          <Bot className="w-3.5 h-3.5 text-primary" />
-                        </div>
-                      )}
-                      <div
-                        className={cn(
-                          'rounded-2xl px-3.5 py-2 max-w-[85%] text-sm',
-                          msg.role === 'user'
-                            ? 'bg-primary text-primary-foreground rounded-br-md'
-                            : 'bg-muted rounded-bl-md'
+                  {messages.map((msg, i) => {
+                    const isLastAssistant = msg.role === 'assistant' && i === messages.length - 1;
+                    const showSuggestions = isLastAssistant && suggestedQuestions.length > 0 && !isLoading;
+                    
+                    return (
+                      <div key={i} className="space-y-2">
+                        <motion.div
+                          ref={isLastAssistant ? assistantStartRef : undefined}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className={cn(
+                            'flex gap-2',
+                            msg.role === 'user' ? 'justify-end' : 'justify-start'
+                          )}
+                        >
+                          {msg.role === 'assistant' && (
+                            <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                              <Bot className="w-3.5 h-3.5 text-primary" />
+                            </div>
+                          )}
+                          <div
+                            className={cn(
+                              'rounded-2xl px-3.5 py-2 max-w-[85%] text-sm',
+                              msg.role === 'user'
+                                ? 'bg-primary text-primary-foreground rounded-br-md'
+                                : 'bg-muted rounded-bl-md'
+                            )}
+                          >
+                            <p className="whitespace-pre-wrap">{msg.content}</p>
+                          </div>
+                          {msg.role === 'user' && (
+                            <div className="w-6 h-6 rounded-full bg-secondary flex items-center justify-center flex-shrink-0 mt-0.5">
+                              <User className="w-3.5 h-3.5 text-secondary-foreground" />
+                            </div>
+                          )}
+                        </motion.div>
+                        
+                        {/* Suggested questions under the last assistant message */}
+                        {showSuggestions && (
+                          <motion.div
+                            initial={{ opacity: 0, y: 5 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.2 }}
+                            className="ml-8 flex flex-wrap gap-1.5"
+                          >
+                            {suggestedQuestions.map((q, qi) => (
+                              <Button
+                                key={qi}
+                                variant="outline"
+                                size="sm"
+                                className="text-xs h-auto py-1 px-2 bg-background/80 hover:bg-primary/10 border-primary/20"
+                                onClick={() => sendMessage(q)}
+                              >
+                                {q}
+                              </Button>
+                            ))}
+                          </motion.div>
                         )}
-                      >
-                        <p className="whitespace-pre-wrap">{msg.content}</p>
                       </div>
-                      {msg.role === 'user' && (
-                        <div className="w-6 h-6 rounded-full bg-secondary flex items-center justify-center flex-shrink-0 mt-0.5">
-                          <User className="w-3.5 h-3.5 text-secondary-foreground" />
-                        </div>
-                      )}
-                    </motion.div>
-                  ))}
+                    );
+                  })}
                   {isLoading && messages[messages.length - 1]?.role === 'user' && (
                     <motion.div
                       initial={{ opacity: 0 }}
@@ -224,28 +252,6 @@ export const ChatWidget = () => {
                 </div>
               )}
             </ScrollArea>
-
-            {/* Suggested Questions */}
-            {suggestedQuestions.length > 0 && !isLoading && (
-              <div className="px-3 py-2 border-t bg-muted/30">
-                <p className="text-[10px] text-muted-foreground mb-1.5">Weitere Fragen:</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {suggestedQuestions.map((q, i) => (
-                    <Button
-                      key={i}
-                      variant="outline"
-                      size="sm"
-                      className="text-xs h-auto py-1 px-2 bg-background hover:bg-primary/5"
-                      onClick={() => sendMessage(q)}
-                    >
-                      {q}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Input */}
             <form onSubmit={handleSubmit} className="p-3 border-t bg-background/50">
               <div className="flex gap-2">
                 <Input
