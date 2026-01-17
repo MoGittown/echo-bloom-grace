@@ -14,6 +14,7 @@ import { SinkForm } from '@/components/kitchen/SinkForm';
 import { PhotoUpload } from '@/components/kitchen/PhotoUpload';
 import { SummaryView } from '@/components/kitchen/SummaryView';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { ChatWidget } from '@/components/kitchen/ChatWidget';
 import { Button } from '@/components/ui/button';
 import {
   AlertDialog,
@@ -363,10 +364,13 @@ const Index = () => {
               <Button onClick={handleNextStep} className="gap-2 shadow-lg">
                 Weiter
                 <ChevronRight className="w-4 h-4" />
-              </Button>
+          </Button>
             )}
           </div>
         </main>
+
+        {/* AI Chat Widget */}
+        <ChatWidget />
       </div>
     </div>
   );
