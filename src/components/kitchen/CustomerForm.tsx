@@ -1,8 +1,9 @@
-import { CustomerData } from '@/types/kitchen';
+import { CustomerData, TIMELINE_OPTIONS } from '@/types/kitchen';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { User, Mail, Phone, MapPin } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { User, Mail, Phone, MapPin, Calendar, AlertCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface CustomerFormProps {
@@ -126,6 +127,49 @@ export function CustomerForm({ data, onChange }: CustomerFormProps) {
             className="kitchen-input"
           />
         </div>
+      </div>
+
+      {/* Timeline Selection - Important for Lead Qualification */}
+      <div className="space-y-3 p-4 bg-primary/5 border border-primary/20 rounded-lg">
+        <Label htmlFor="timeline" className="flex items-center gap-2 text-base font-medium">
+          <Calendar className="w-5 h-5 text-primary" />
+          Wann soll die Küche montiert werden?
+        </Label>
+        <p className="text-sm text-muted-foreground">
+          Diese Information hilft uns, Ihre Anfrage optimal zu priorisieren.
+        </p>
+        <Select
+          value={data.timeline}
+          onValueChange={(value) => onChange({ timeline: value })}
+        >
+          <SelectTrigger className="kitchen-input">
+            <SelectValue placeholder="Bitte Zeitraum auswählen" />
+          </SelectTrigger>
+          <SelectContent>
+            {TIMELINE_OPTIONS.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                <div className="flex items-center gap-2">
+                  {option.priority === 'high' && (
+                    <span className="w-2 h-2 bg-green-500 rounded-full" />
+                  )}
+                  {option.priority === 'medium' && (
+                    <span className="w-2 h-2 bg-yellow-500 rounded-full" />
+                  )}
+                  {option.priority === 'low' && (
+                    <span className="w-2 h-2 bg-muted-foreground/50 rounded-full" />
+                  )}
+                  {option.label}
+                </div>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {data.timeline && ['sofort', '1-3-monate'].includes(data.timeline) && (
+          <div className="flex items-center gap-2 text-sm text-green-600 dark:text-green-400">
+            <AlertCircle className="w-4 h-4" />
+            <span>Hohe Priorität – baldiger Montagetermin gewünscht</span>
+          </div>
+        )}
       </div>
 
       <div className="space-y-2">
