@@ -458,34 +458,67 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
             foreignObjectRendering: false,
             imageTimeout: 15000,
             onclone: (doc) => {
+              // Inject aggressive CSS to prevent letter-spacing / kerning bugs in html2canvas
+              const fixStyle = doc.createElement('style');
+              fixStyle.textContent = `
+                * {
+                  letter-spacing: 0 !important;
+                  word-spacing: 0 !important;
+                  font-kerning: none !important;
+                  font-variant-ligatures: none !important;
+                  text-rendering: geometricPrecision !important;
+                  -webkit-font-smoothing: antialiased !important;
+                }
+              `;
+              doc.head.appendChild(fixStyle);
+
               doc.body.classList.add('pdf-export');
               doc.body.style.background = '#ffffff';
               doc.body.style.margin = '0';
               doc.body.style.width = `${A4_PX_W}px`;
-              // keep height available for debugging consistency
               doc.body.style.minHeight = `${A4_PX_H}px`;
 
-              // Keep SVG icons visible (some setups hide them)
+              // Keep SVG icons visible
               const svgs = doc.querySelectorAll('svg');
               svgs.forEach((svg) => {
                 svg.style.display = 'inline-block';
               });
 
-              // Normalize tricky unicode chars in text nodes (helps prevent IndexSizeError)
-              const normalize = (s: string) => s.replace(/[\u200B-\u200D\u2060\uFE0E\uFE0F\u202A-\u202E]/g, '');
+              // Aggressively normalize text nodes to prevent IndexSizeError
+              const normalizeText = (s: string): string => {
+                return s
+                  // Remove zero-width and invisible formatting characters
+                  .replace(/[\u200B-\u200D\u2060\uFE0E\uFE0F\u202A-\u202E\u00AD\uFEFF]/g, '')
+                  // Remove variation selectors
+                  .replace(/[\uFE00-\uFE0F]/g, '')
+                  // Replace smart quotes with ASCII equivalents
+                  .replace(/[\u2018\u2019\u201A]/g, "'")
+                  .replace(/[\u201C\u201D\u201E]/g, '"')
+                  // Replace dashes
+                  .replace(/[\u2013\u2014\u2015]/g, '-')
+                  // Replace ellipsis
+                  .replace(/\u2026/g, '...')
+                  // Remove any remaining surrogate pairs (emoji) that might cause issues
+                  .replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, '');
+              };
+
               let changed = 0;
               const walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT);
               let node: Node | null = walker.nextNode();
               while (node) {
                 const textNode = node as Text;
                 const original = textNode.nodeValue ?? '';
-                const cleaned = normalize(original);
+                const cleaned = normalizeText(original);
                 if (cleaned !== original) {
                   textNode.nodeValue = cleaned;
                   changed++;
                 }
                 node = walker.nextNode();
               }
+
+              // Force layout recalculation before html2canvas measures
+              void doc.body.offsetHeight;
+
               if (changed > 0) {
                 addPdfDebugEvent('info', `Text normalisiert (${pageLabel})`, `${changed} Textknoten bereinigt`);
               }
