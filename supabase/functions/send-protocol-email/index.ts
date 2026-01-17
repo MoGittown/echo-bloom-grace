@@ -9,11 +9,46 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
+interface CustomerData {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  address: string;
+  postalCode: string;
+  city: string;
+  notes: string;
+  timeline: string;
+}
+
 interface ProtocolEmailRequest {
   recipientEmail: string;
   customerName: string;
   projectDate: string;
   summaryHtml: string;
+  customerData?: CustomerData;
+}
+
+// Generate CSV content with customer contact data only
+function generateContactCSV(customer: CustomerData, projectDate: string): string {
+  const rows = [
+    ['Feld', 'Wert'],
+    ['Vorname', customer.firstName || ''],
+    ['Nachname', customer.lastName || ''],
+    ['E-Mail', customer.email || ''],
+    ['Telefon', customer.phone || ''],
+    ['Straße', customer.address || ''],
+    ['PLZ', customer.postalCode || ''],
+    ['Ort', customer.city || ''],
+    ['Zeitrahmen', customer.timeline || ''],
+    ['Anmerkungen', (customer.notes || '').replace(/\n/g, ' ')],
+    ['Protokoll-Datum', projectDate],
+  ];
+
+  // Convert to CSV with semicolon separator (German Excel compatible)
+  return rows.map(row => 
+    row.map(cell => `"${(cell || '').replace(/"/g, '""')}"`).join(';')
+  ).join('\n');
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -23,11 +58,12 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { recipientEmail, customerName, projectDate, summaryHtml }: ProtocolEmailRequest = await req.json();
+    const { recipientEmail, customerName, projectDate, summaryHtml, customerData }: ProtocolEmailRequest = await req.json();
 
     console.log(`Sending protocol email for ${customerName} to ${recipientEmail}`);
 
-    const emailResponse = await resend.emails.send({
+    // Build email options
+    const emailOptions: any = {
       from: "Küchenberatung <onboarding@resend.dev>",
       to: [recipientEmail],
       subject: `Beratungsprotokoll: ${customerName} - ${projectDate}`,
@@ -67,6 +103,35 @@ const handler = async (req: Request): Promise<Response> => {
             .meta {
               color: #666;
               font-size: 14px;
+            }
+            .highlight-box {
+              background: linear-gradient(135deg, #f0ebe3 0%, #e5e0d8 100%);
+              border-left: 4px solid #8b7355;
+              padding: 15px 20px;
+              margin: 20px 0;
+              border-radius: 0 8px 8px 0;
+            }
+            .highlight-box h2 {
+              font-size: 16px;
+              color: #5a4a3a;
+              margin: 0 0 10px 0;
+            }
+            .highlight-grid {
+              display: grid;
+              grid-template-columns: repeat(2, 1fr);
+              gap: 10px;
+            }
+            .highlight-item {
+              font-size: 13px;
+            }
+            .highlight-label {
+              color: #666;
+              font-size: 11px;
+              text-transform: uppercase;
+            }
+            .highlight-value {
+              font-weight: 600;
+              color: #2d2a26;
             }
             .section {
               margin-bottom: 25px;
@@ -108,6 +173,15 @@ const handler = async (req: Request): Promise<Response> => {
               font-size: 12px;
               text-align: center;
             }
+            .csv-note {
+              background: #e8f4e8;
+              border: 1px solid #4caf50;
+              border-radius: 6px;
+              padding: 12px 15px;
+              margin: 20px 0;
+              font-size: 13px;
+              color: #2e7d32;
+            }
           </style>
         </head>
         <body>
@@ -119,6 +193,26 @@ const handler = async (req: Request): Promise<Response> => {
                 <strong>Datum:</strong> ${projectDate}
               </div>
             </div>
+
+            ${customerData ? `
+            <div class="highlight-box">
+              <h2>📋 Auf einen Blick</h2>
+              <div class="highlight-grid">
+                <div class="highlight-item">
+                  <div class="highlight-label">Kontakt</div>
+                  <div class="highlight-value">${customerData.phone || customerData.email || 'Nicht angegeben'}</div>
+                </div>
+                <div class="highlight-item">
+                  <div class="highlight-label">Zeitrahmen</div>
+                  <div class="highlight-value">${customerData.timeline || 'Nicht angegeben'}</div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="csv-note">
+              📎 <strong>CSV-Datei im Anhang:</strong> Die Kundenkontaktdaten können direkt in Ihre Planungssoftware importiert werden.
+            </div>
+            ` : ''}
             
             ${summaryHtml}
             
@@ -130,7 +224,28 @@ const handler = async (req: Request): Promise<Response> => {
         </body>
         </html>
       `,
-    });
+    };
+
+    // Add CSV attachment if customer data is provided
+    if (customerData) {
+      const csvContent = generateContactCSV(customerData, projectDate);
+      const lastName = customerData.lastName || 'Kunde';
+      const dateStr = new Date().toISOString().split('T')[0];
+      
+      // Encode CSV content as base64 using TextEncoder
+      const encoder = new TextEncoder();
+      const csvBytes = encoder.encode('\ufeff' + csvContent);
+      const base64Content = btoa(String.fromCharCode(...csvBytes));
+      
+      emailOptions.attachments = [
+        {
+          filename: `Kontaktdaten_${lastName}_${dateStr}.csv`,
+          content: base64Content,
+        }
+      ];
+    }
+
+    const emailResponse = await resend.emails.send(emailOptions);
 
     console.log("Email sent successfully:", emailResponse);
 

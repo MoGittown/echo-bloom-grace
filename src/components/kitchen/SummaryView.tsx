@@ -513,12 +513,19 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
       const projectDate = formatDate(project.createdAt);
       const summaryHtml = generateSummaryHtml();
 
+      // Get timeline label for the CSV
+      const timelineLabel = TIMELINE_OPTIONS.find(t => t.value === project.customer.timeline)?.label || project.customer.timeline || '';
+
       const { data, error } = await supabase.functions.invoke('send-protocol-email', {
         body: {
           recipientEmail,
           customerName,
           projectDate,
           summaryHtml,
+          customerData: {
+            ...project.customer,
+            timeline: timelineLabel, // Use the human-readable label
+          },
         },
       });
 
@@ -1578,14 +1585,6 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
           >
             <Download className="w-4 h-4" />
             {isGenerating ? 'Wird erstellt...' : 'Als PDF speichern'}
-          </Button>
-          <Button
-            onClick={handleDownloadCSV}
-            variant="outline"
-            className="gap-2"
-          >
-            <FileSpreadsheet className="w-4 h-4" />
-            CSV-Export
           </Button>
           <Button
             onClick={() => setEmailDialogOpen(true)}
