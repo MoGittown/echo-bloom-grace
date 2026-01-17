@@ -390,7 +390,13 @@ export function FloorPlanEditor({ floorPlan, room, onChange }: FloorPlanEditorPr
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label>Elementtyp</Label>
+              <Label className="flex items-center gap-1">
+                Elementtyp
+                <InfoTooltip 
+                  description="Wählen Sie die Art des Elements, das Sie im Grundriss platzieren möchten."
+                  recommendation="Fenster: Lichtquelle und Belüftung • Tür: Zugang zum Raum • Steckdose: Stromversorgung für Geräte • Wasseranschluss: Für Spüle/Geschirrspüler • Gasanschluss: Für Gaskochfeld • Abfluss: Wasserablauf • Lüftung: Dunstabzug nach außen"
+                />
+              </Label>
               <Select
                 value={newElement.type}
                 onValueChange={(value) =>
@@ -417,7 +423,13 @@ export function FloorPlanEditor({ floorPlan, room, onChange }: FloorPlanEditorPr
             </div>
 
             <div className="space-y-2">
-              <Label>Wand</Label>
+              <Label className="flex items-center gap-1">
+                Wand
+                <InfoTooltip 
+                  description="Wählen Sie die Wand, an der sich das Element befindet."
+                  recommendation="Orientieren Sie sich am Kompass im Grundriss: N=Norden (oben), O=Osten (rechts), S=Süden (unten), W=Westen (links)"
+                />
+              </Label>
               <Select
                 value={newElement.wall}
                 onValueChange={(value) =>
@@ -439,7 +451,13 @@ export function FloorPlanEditor({ floorPlan, room, onChange }: FloorPlanEditorPr
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Breite (cm)</Label>
+                <Label className="flex items-center gap-1">
+                  Breite (cm)
+                  <InfoTooltip 
+                    description="Die Breite des Elements in Zentimetern."
+                    recommendation="Fenster: typisch 60-200 cm • Türen: 70-100 cm • Anschlüsse: 10-20 cm"
+                  />
+                </Label>
                 <Input
                   type="number"
                   value={newElement.width}
@@ -449,7 +467,13 @@ export function FloorPlanEditor({ floorPlan, room, onChange }: FloorPlanEditorPr
                 />
               </div>
               <div className="space-y-2">
-                <Label>Höhe (cm)</Label>
+                <Label className="flex items-center gap-1">
+                  Höhe (cm)
+                  <InfoTooltip 
+                    description="Die Höhe des Elements in Zentimetern."
+                    recommendation="Fenster: typisch 100-150 cm • Türen: 200-220 cm • Anschlüsse: 5-15 cm"
+                  />
+                </Label>
                 <Input
                   type="number"
                   value={newElement.height}
@@ -462,7 +486,13 @@ export function FloorPlanEditor({ floorPlan, room, onChange }: FloorPlanEditorPr
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Abstand von links (cm)</Label>
+                <Label className="flex items-center gap-1">
+                  Abstand von links (cm)
+                  <InfoTooltip 
+                    description="Der horizontale Abstand von der linken Ecke der gewählten Wand bis zur linken Kante des Elements."
+                    recommendation="Messen Sie von der linken Wandecke (wenn Sie vor der Wand stehen) bis zum Beginn des Elements."
+                  />
+                </Label>
                 <Input
                   type="number"
                   value={newElement.distanceFromLeft}
@@ -475,7 +505,13 @@ export function FloorPlanEditor({ floorPlan, room, onChange }: FloorPlanEditorPr
                 />
               </div>
               <div className="space-y-2">
-                <Label>Höhe über Boden (cm)</Label>
+                <Label className="flex items-center gap-1">
+                  Höhe über Boden (cm)
+                  <InfoTooltip 
+                    description="Der vertikale Abstand vom Fußboden bis zur Unterkante des Elements."
+                    recommendation="Fenster: typisch 80-100 cm (Brüstungshöhe) • Steckdosen: 30 cm oder 110 cm • Wasseranschluss: 50-60 cm"
+                  />
+                </Label>
                 <Input
                   type="number"
                   value={newElement.distanceFromFloor}
