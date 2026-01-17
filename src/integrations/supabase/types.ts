@@ -14,7 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      studio_branding: {
+        Row: {
+          admin_password_hash: string
+          created_at: string
+          id: string
+          logo_url: string | null
+          primary_color: string | null
+          show_default_branding: boolean | null
+          studio_name: string
+          updated_at: string
+        }
+        Insert: {
+          admin_password_hash: string
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          primary_color?: string | null
+          show_default_branding?: boolean | null
+          studio_name?: string
+          updated_at?: string
+        }
+        Update: {
+          admin_password_hash?: string
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          primary_color?: string | null
+          show_default_branding?: boolean | null
+          studio_name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
