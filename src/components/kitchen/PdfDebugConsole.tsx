@@ -106,7 +106,3 @@ export function PdfDebugConsole({
     </Dialog>
   );
 }
-      </DialogContent>
-    </Dialog>
-  );
-}
