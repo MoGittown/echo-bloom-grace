@@ -272,7 +272,7 @@ export const ChatWidget = () => {
                 </Button>
               </div>
               <p className="text-[10px] text-muted-foreground text-center mt-2">
-                Lisa • Deine KI-Küchenberaterin
+                Ihr Küchenberater
               </p>
             </form>
           </motion.div>
