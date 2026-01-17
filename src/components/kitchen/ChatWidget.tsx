@@ -19,13 +19,11 @@ export const ChatWidget = () => {
   const [input, setInput] = useState('');
   const { messages, isLoading, sendMessage, clearChat } = useKitchenChat();
   const inputRef = useRef<HTMLInputElement>(null);
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
   // Focus input when opening
@@ -124,7 +122,7 @@ export const ChatWidget = () => {
             </div>
 
             {/* Messages */}
-            <ScrollArea className="flex-1 p-4" ref={scrollRef}>
+            <ScrollArea className="flex-1 p-4">
               {messages.length === 0 ? (
                 <div className="space-y-4">
                   <div className="text-center py-4">
@@ -205,6 +203,7 @@ export const ChatWidget = () => {
                       </div>
                     </motion.div>
                   )}
+                  <div ref={messagesEndRef} />
                 </div>
               )}
             </ScrollArea>
