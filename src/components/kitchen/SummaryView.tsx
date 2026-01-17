@@ -38,7 +38,6 @@ import jsPDF from 'jspdf';
 import { RoomDimensions, WallElement } from '@/types/kitchen';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { BudgetCalculator } from './BudgetCalculator';
 
 interface SummaryViewProps {
   project: KitchenProject;
@@ -476,27 +475,10 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
     }
 
     if (project.preferences.budget.min > 0 || project.preferences.budget.max > 0) {
-      // Calculate estimated market price for email
-      const linearMeters = Math.max(project.room.length, project.room.width) / 100 * 
-        (project.room.shape === 'l-shaped' ? 1.5 : project.room.shape === 'u-shaped' ? 2.0 : project.room.shape === 'galley' ? 1.8 : 1.0);
-      const hasPremium = project.preferences.materials.some(m => ['Echtholz', 'Glas', 'Edelstahl'].includes(m)) ||
-        project.preferences.manufacturers.some(m => ['Bulthaup', 'SieMatic', 'Leicht', 'Poggenpohl', 'Next125'].includes(m));
-      const estimateMin = Math.round(linearMeters * (hasPremium ? 2500 : 1000) * 1.54 / 1000) * 1000;
-      const estimateMax = Math.round(linearMeters * (hasPremium ? 5000 : 2500) * 1.54 / 1000) * 1000;
-      
-      const budgetStatus = project.preferences.budget.max < estimateMin * 0.7 ? 'unrealistisch' :
-        project.preferences.budget.max < estimateMin ? 'knapp' :
-        project.preferences.budget.max > estimateMax * 1.3 ? 'premium' : 'passend';
-      
-      const statusEmoji = budgetStatus === 'premium' ? '⭐' : budgetStatus === 'passend' ? '✓' : budgetStatus === 'knapp' ? '⚠' : '✗';
-      const statusLabel = budgetStatus === 'premium' ? 'Premium-Lead' : budgetStatus === 'passend' ? 'Qualifiziert' : budgetStatus === 'knapp' ? 'Prüfen' : 'Unrealistisch';
-      
       html += `
         <div class="section">
-          <div class="section-title">💰 Budget & Lead-Qualität</div>
-          <div class="info-row"><span class="info-label">Kundenbudget:</span><span class="info-value">${project.preferences.budget.min.toLocaleString('de-DE')} € - ${project.preferences.budget.max.toLocaleString('de-DE')} €</span></div>
-          <div class="info-row"><span class="info-label">Marktpreis-Schätzung:</span><span class="info-value">ca. ${estimateMin.toLocaleString('de-DE')} € - ${estimateMax.toLocaleString('de-DE')} €</span></div>
-          <div class="info-row"><span class="info-label">Lead-Qualität:</span><span class="info-value" style="font-weight: bold;">${statusEmoji} ${statusLabel}</span></div>
+          <div class="section-title">💰 Budget</div>
+          <div class="info-row"><span class="info-label">Budget:</span><span class="info-value">${project.preferences.budget.min.toLocaleString('de-DE')} € - ${project.preferences.budget.max.toLocaleString('de-DE')} €</span></div>
         </div>
       `;
     }
@@ -863,11 +845,6 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
                   €{project.preferences.budget.min.toLocaleString()} - €{project.preferences.budget.max.toLocaleString()}
                 </span>
               </div>
-            </div>
-            
-            {/* Budget-Check eingebettet */}
-            <div className="mt-6 pt-6 border-t">
-              <BudgetCalculator room={project.room} preferences={project.preferences} />
             </div>
           </div>
 
