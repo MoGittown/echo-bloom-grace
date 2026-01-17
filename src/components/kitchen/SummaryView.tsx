@@ -395,7 +395,9 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
           useCORS: true,
           logging: false,
           backgroundColor: '#ffffff',
-          // Workaround for html2canvas text range error
+          // Prefer foreignObject rendering to avoid Range-based text measuring
+          foreignObjectRendering: true,
+          // Workaround for html2canvas text range error (emoji/special unicode)
           ignoreElements: (element) => {
             return element.tagName === 'NOSCRIPT';
           },
@@ -406,20 +408,30 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
             doc.body.style.margin = '0';
             // Approx. A4 width at 96 DPI, improves consistency across screens
             doc.body.style.width = '794px';
-            
-            // Fix text nodes that might cause range errors
-            const allTextNodes: Text[] = [];
+
+            const cleanText = (value: string) => {
+              let text = value;
+              // Remove characters that frequently break html2canvas Range measurements
+              // - ZWJ + emoji variation selectors
+              text = text.replace(/[\u200D\uFE0F]/g, '');
+              // - Emoji / pictographs (property escapes are supported in modern browsers)
+              try {
+                const emojiRe = new RegExp('\\p{Extended_Pictographic}', 'gu');
+                text = text.replace(emojiRe, '');
+              } catch {
+                // Fallback: broad ranges for common emoji blocks
+                text = text.replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}]/gu, '');
+              }
+              // Normalize whitespace
+              text = text.replace(/\s+/g, ' ');
+              return text;
+            };
+
             const walker = doc.createTreeWalker(element, NodeFilter.SHOW_TEXT, null);
             let node: Text | null;
             while ((node = walker.nextNode() as Text)) {
-              allTextNodes.push(node);
+              if (node.textContent) node.textContent = cleanText(node.textContent);
             }
-            // Normalize text content to prevent offset issues
-            allTextNodes.forEach(textNode => {
-              if (textNode.textContent) {
-                textNode.textContent = textNode.textContent.replace(/\s+/g, ' ');
-              }
-            });
           },
         });
 
