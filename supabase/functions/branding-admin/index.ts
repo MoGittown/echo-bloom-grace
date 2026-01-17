@@ -38,6 +38,7 @@ serve(async (req: Request) => {
       logoUrl, 
       primaryColor, 
       showDefaultBranding,
+      showAppointmentBooking,
       landingHeadline,
       landingSubheadline,
       landingBenefit1,
@@ -135,6 +136,7 @@ serve(async (req: Request) => {
         if (logoUrl !== undefined) updateData.logo_url = logoUrl;
         if (primaryColor !== undefined) updateData.primary_color = primaryColor;
         if (showDefaultBranding !== undefined) updateData.show_default_branding = showDefaultBranding;
+        if (showAppointmentBooking !== undefined) updateData.show_appointment_booking = showAppointmentBooking;
         if (landingHeadline !== undefined) updateData.landing_headline = landingHeadline;
         if (landingSubheadline !== undefined) updateData.landing_subheadline = landingSubheadline;
         if (landingBenefit1 !== undefined) updateData.landing_benefit_1 = landingBenefit1;

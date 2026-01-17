@@ -24,7 +24,8 @@ import {
   MapPin,
   Phone,
   AtSign,
-  Globe
+  Globe,
+  CalendarDays
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
@@ -840,7 +841,7 @@ export default function AdminPage() {
           <CardHeader>
             <CardTitle>Einstellungen</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-6">
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
                 <Label>Standard-Branding anzeigen</Label>
@@ -853,6 +854,32 @@ export default function AdminPage() {
                 onCheckedChange={handleToggleDefaultBranding}
                 disabled={isSaving}
               />
+            </div>
+
+            <div className="border-t pt-4">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label className="flex items-center gap-2">
+                    <CalendarDays className="w-4 h-4" />
+                    Terminanfragen aktivieren
+                  </Label>
+                  <p className="text-xs text-muted-foreground">
+                    Kunden können Wunschtermine anfragen. Sie erhalten eine E-Mail zur manuellen Bestätigung.
+                  </p>
+                </div>
+                <Switch
+                  checked={branding.showAppointmentBooking}
+                  onCheckedChange={async (checked) => {
+                    setIsSaving(true);
+                    const success = await updateBranding({ showAppointmentBooking: checked });
+                    setIsSaving(false);
+                    if (success) {
+                      toast.success(checked ? 'Terminanfragen aktiviert' : 'Terminanfragen deaktiviert');
+                    }
+                  }}
+                  disabled={isSaving}
+                />
+              </div>
             </div>
           </CardContent>
         </Card>

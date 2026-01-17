@@ -42,6 +42,7 @@ import jsPDF from 'jspdf';
 import { RoomDimensions, WallElement } from '@/types/kitchen';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { AppointmentRequest } from './AppointmentRequest';
 
 interface SummaryViewProps {
   project: KitchenProject;
@@ -1653,6 +1654,11 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
             <Mail className="w-4 h-4" />
             Per E-Mail senden
           </Button>
+          <AppointmentRequest
+            customerName={`${project.customer.firstName} ${project.customer.lastName}`.trim()}
+            customerEmail={project.customer.email}
+            customerPhone={project.customer.phone}
+          />
         </div>
       </div>
     </motion.div>

@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      appointment_requests: {
+        Row: {
+          created_at: string
+          customer_email: string | null
+          customer_name: string
+          customer_phone: string | null
+          id: string
+          notes: string | null
+          requested_date: string
+          requested_time: string
+          status: string | null
+        }
+        Insert: {
+          created_at?: string
+          customer_email?: string | null
+          customer_name: string
+          customer_phone?: string | null
+          id?: string
+          notes?: string | null
+          requested_date: string
+          requested_time: string
+          status?: string | null
+        }
+        Update: {
+          created_at?: string
+          customer_email?: string | null
+          customer_name?: string
+          customer_phone?: string | null
+          id?: string
+          notes?: string | null
+          requested_date?: string
+          requested_time?: string
+          status?: string | null
+        }
+        Relationships: []
+      }
       studio_branding: {
         Row: {
           admin_password_hash: string
@@ -32,6 +68,7 @@ export type Database = {
           landing_why_text: string | null
           logo_url: string | null
           primary_color: string | null
+          show_appointment_booking: boolean | null
           show_default_branding: boolean | null
           show_landing_page: boolean | null
           studio_name: string
@@ -54,6 +91,7 @@ export type Database = {
           landing_why_text?: string | null
           logo_url?: string | null
           primary_color?: string | null
+          show_appointment_booking?: boolean | null
           show_default_branding?: boolean | null
           show_landing_page?: boolean | null
           studio_name?: string
@@ -76,6 +114,7 @@ export type Database = {
           landing_why_text?: string | null
           logo_url?: string | null
           primary_color?: string | null
+          show_appointment_booking?: boolean | null
           show_default_branding?: boolean | null
           show_landing_page?: boolean | null
           studio_name?: string
