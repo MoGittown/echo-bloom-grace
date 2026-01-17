@@ -1012,16 +1012,16 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
           <div className="flex-1">
 
           {/* ===== BANT SECTION - PROMINENTLY AT TOP ===== */}
-          <div className="mt-6 p-5 rounded-xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border-2 border-primary/20">
-            <h3 className="font-bold text-lg flex items-center gap-2 mb-4 text-primary">
-              <Briefcase className="w-5 h-5" />
+          <div className="mt-4 p-4 rounded-lg bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20">
+            <h3 className="font-bold text-[11pt] flex items-center gap-2 mb-3 text-primary">
+              <Briefcase className="w-4 h-4" />
               Auf einen Blick
             </h3>
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-3">
               {/* Timeline/Need */}
-              <div className="bg-background rounded-lg p-4 shadow-sm">
-                <div className="flex items-center gap-2 mb-2 text-muted-foreground text-xs font-medium uppercase tracking-wide">
-                  <CalendarClock className="w-4 h-4" />
+              <div className="bg-background rounded-lg p-3 shadow-sm">
+                <div className="flex items-center gap-1.5 mb-1.5 text-muted-foreground text-[9pt] font-medium uppercase tracking-wide">
+                  <CalendarClock className="w-3.5 h-3.5" />
                   Zeitrahmen
                 </div>
                 {project.customer.timeline ? (() => {
@@ -1037,40 +1037,40 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
                     ? 'bg-yellow-100 dark:bg-yellow-900/30'
                     : 'bg-muted';
                     return (
-                      <div className={`font-semibold text-sm ${priorityColor} ${priorityBg} px-2 py-1 rounded inline-flex items-center`}>
+                      <div className={`font-semibold text-[10pt] ${priorityColor} ${priorityBg} px-2 py-0.5 rounded inline-flex items-center`}>
                         <span>{timelineOption?.label || project.customer.timeline}</span>
                         {timelineOption?.priority === 'high' && (
-                          <Zap className="w-3.5 h-3.5 ml-1" aria-hidden="true" />
+                          <Zap className="w-3 h-3 ml-1" aria-hidden="true" />
                         )}
                       </div>
                     );
                 })() : (
-                  <span className="text-muted-foreground text-sm italic">Nicht angegeben</span>
+                  <span className="text-muted-foreground text-[10pt] italic">Nicht angegeben</span>
                 )}
               </div>
 
               {/* Budget */}
-              <div className="bg-background rounded-lg p-4 shadow-sm">
-                <div className="flex items-center gap-2 mb-2 text-muted-foreground text-xs font-medium uppercase tracking-wide">
-                  <Wallet className="w-4 h-4" aria-hidden="true" />
+              <div className="bg-background rounded-lg p-3 shadow-sm">
+                <div className="flex items-center gap-1.5 mb-1.5 text-muted-foreground text-[9pt] font-medium uppercase tracking-wide">
+                  <Wallet className="w-3.5 h-3.5" aria-hidden="true" />
                   Budget
                 </div>
                 {project.preferences.budget.min > 0 || project.preferences.budget.max > 0 ? (
-                  <div className="font-semibold text-sm text-foreground">
+                  <div className="font-semibold text-[10pt] text-foreground">
                     €{project.preferences.budget.min.toLocaleString('de-DE')} – €{project.preferences.budget.max.toLocaleString('de-DE')}
                   </div>
                 ) : (
-                  <span className="text-muted-foreground text-sm italic">Nicht angegeben</span>
+                  <span className="text-muted-foreground text-[10pt] italic">Nicht angegeben</span>
                 )}
               </div>
 
               {/* Contact */}
-              <div className="bg-background rounded-lg p-4 shadow-sm">
-                <div className="flex items-center gap-2 mb-2 text-muted-foreground text-xs font-medium uppercase tracking-wide">
-                  <User className="w-4 h-4" />
+              <div className="bg-background rounded-lg p-3 shadow-sm">
+                <div className="flex items-center gap-1.5 mb-1.5 text-muted-foreground text-[9pt] font-medium uppercase tracking-wide">
+                  <User className="w-3.5 h-3.5" />
                   Kontakt
                 </div>
-                <div className="text-sm">
+                <div className="text-[10pt]">
                   <div className="font-semibold text-foreground">
                     {project.customer.firstName || project.customer.lastName 
                       ? `${project.customer.firstName} ${project.customer.lastName}`.trim()
@@ -1084,15 +1084,15 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
               </div>
 
               {/* Room Size Quick Info */}
-              <div className="bg-background rounded-lg p-4 shadow-sm">
-                <div className="flex items-center gap-2 mb-2 text-muted-foreground text-xs font-medium uppercase tracking-wide">
-                  <Ruler className="w-4 h-4" />
+              <div className="bg-background rounded-lg p-3 shadow-sm">
+                <div className="flex items-center gap-1.5 mb-1.5 text-muted-foreground text-[9pt] font-medium uppercase tracking-wide">
+                  <Ruler className="w-3.5 h-3.5" />
                   Raumgröße
                 </div>
-                <div className="font-semibold text-sm text-foreground">
+                <div className="font-semibold text-[10pt] text-foreground">
                   {((project.room.length * project.room.width) / 10000).toFixed(1)} m²
                 </div>
-                <div className="text-xs text-muted-foreground">
+                <div className="text-[9pt] text-muted-foreground">
                   {project.room.length} × {project.room.width} cm
                 </div>
               </div>
@@ -1100,13 +1100,13 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
           </div>
 
           {/* Customer Details */}
-          <div className="kitchen-card p-6 mt-6">
-            <h3 className="font-semibold flex items-center gap-2 mb-4">
-              <User className="w-5 h-5 text-primary" />
+          <div className="pdf-section-card mt-4">
+            <h3>
+              <User className="w-4 h-4 text-primary" />
               Kundendaten
             </h3>
             {project.customer.firstName || project.customer.lastName || project.customer.email ? (
-              <div className="grid md:grid-cols-2 gap-4 text-sm">
+              <div className="grid md:grid-cols-2 gap-3 text-sm">
                 {(project.customer.firstName || project.customer.lastName) && (
                   <div>
                     <span className="text-muted-foreground">Name:</span>
@@ -1141,7 +1141,7 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
               <p className="text-sm text-muted-foreground italic">Keine Kontaktdaten angegeben</p>
             )}
             {project.customer.notes && (
-              <div className="mt-4 pt-4 border-t">
+              <div className="mt-3 pt-3 border-t border-border/40">
                 <span className="text-muted-foreground text-sm">Anmerkungen:</span>
                 <p className="mt-1">{project.customer.notes}</p>
               </div>
@@ -1150,22 +1150,22 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
 
           {/* ERGONOMIE & NUTZUNG */}
           {(project.preferences.userHeights?.length > 0 || project.preferences.cookingFrequency || project.preferences.householdSize || project.preferences.gripType) && (
-            <div className="kitchen-card p-6 mt-6">
-              <h3 className="font-semibold flex items-center gap-2 mb-4">
-                <User className="w-5 h-5 text-primary" />
+            <div className="pdf-section-card">
+              <h3>
+                <User className="w-4 h-4 text-primary" />
                 Ergonomie & Nutzung
               </h3>
-              <div className="grid md:grid-cols-2 gap-6 text-sm">
+              <div className="grid md:grid-cols-2 gap-4 text-sm">
                 {project.preferences.userHeights && project.preferences.userHeights.length > 0 && (
                   <div>
                     <span className="text-muted-foreground">Körpergröße(n):</span>
                     <div className="flex flex-wrap gap-1 mt-1">
                       {project.preferences.userHeights.map((h, i) => (
-                        <span key={i} className="px-2 py-1 bg-primary/10 text-primary rounded text-xs">{h} cm</span>
+                        <span key={i} className="px-2 py-0.5 bg-primary/10 text-primary rounded text-xs">{h} cm</span>
                       ))}
                     </div>
-                    <p className="text-xs text-accent mt-2 flex items-center gap-1">
-                      <Lightbulb className="w-3.5 h-3.5" aria-hidden="true" />
+                    <p className="text-xs text-accent mt-1 flex items-center gap-1">
+                      <Lightbulb className="w-3 h-3" aria-hidden="true" />
                       <span>
                         Empfohlene Arbeitshöhe:{' '}
                         {Math.round(
@@ -1215,18 +1215,18 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
           )}
 
           {/* STIL & DESIGN */}
-          <div className="kitchen-card p-6 mt-6">
-            <h3 className="font-semibold flex items-center gap-2 mb-4">
-              <Palette className="w-5 h-5 text-primary" />
+          <div className="pdf-section-card">
+            <h3>
+              <Palette className="w-4 h-4 text-primary" />
               Stil & Design
             </h3>
-            <div className="grid md:grid-cols-2 gap-6 text-sm">
+            <div className="grid md:grid-cols-2 gap-3 text-sm">
               {project.preferences.style.length > 0 && (
                 <div>
                   <span className="text-muted-foreground">Küchenstil:</span>
                   <div className="flex flex-wrap gap-1 mt-1">
                     {project.preferences.style.map((s) => (
-                      <span key={s} className="px-2 py-1 bg-primary/10 text-primary rounded text-xs">{s}</span>
+                      <span key={s} className="px-2 py-0.5 bg-primary/10 text-primary rounded text-xs">{s}</span>
                     ))}
                   </div>
                 </div>
@@ -1236,7 +1236,7 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
                   <span className="text-muted-foreground">Frontenfarben:</span>
                   <div className="flex flex-wrap gap-1 mt-1">
                     {project.preferences.colors.map((c) => (
-                      <span key={c} className="px-2 py-1 bg-accent/10 text-accent rounded text-xs">{c}</span>
+                      <span key={c} className="px-2 py-0.5 bg-accent/10 text-accent rounded text-xs">{c}</span>
                     ))}
                   </div>
                 </div>
@@ -1246,7 +1246,7 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
                   <span className="text-muted-foreground">Frontmaterial:</span>
                   <div className="flex flex-wrap gap-1 mt-1">
                     {project.preferences.materials.map((m) => (
-                      <span key={m} className="px-2 py-1 bg-muted text-foreground rounded text-xs">{m}</span>
+                      <span key={m} className="px-2 py-0.5 bg-muted text-foreground rounded text-xs">{m}</span>
                     ))}
                   </div>
                 </div>
@@ -1256,7 +1256,7 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
                   <span className="text-muted-foreground">Frontenoberfläche:</span>
                   <div className="flex flex-wrap gap-1 mt-1">
                     {frontSurfaces.map((s) => (
-                      <span key={s} className="px-2 py-1 bg-muted text-foreground rounded text-xs">{s}</span>
+                      <span key={s} className="px-2 py-0.5 bg-muted text-foreground rounded text-xs">{s}</span>
                     ))}
                   </div>
                 </div>
@@ -1266,7 +1266,7 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
                   <span className="text-muted-foreground">Arbeitsplatte Material:</span>
                   <div className="flex flex-wrap gap-1 mt-1">
                     {project.preferences.countertop.map((c) => (
-                      <span key={c} className="px-2 py-1 bg-muted text-foreground rounded text-xs">{c}</span>
+                      <span key={c} className="px-2 py-0.5 bg-muted text-foreground rounded text-xs">{c}</span>
                     ))}
                   </div>
                 </div>
@@ -1282,7 +1282,7 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
                   <span className="text-muted-foreground">Nischenrückwand:</span>
                   <div className="flex flex-wrap gap-1 mt-1">
                     {backsplash.map((b) => (
-                      <span key={b} className="px-2 py-1 bg-muted text-foreground rounded text-xs">{b}</span>
+                      <span key={b} className="px-2 py-0.5 bg-muted text-foreground rounded text-xs">{b}</span>
                     ))}
                   </div>
                 </div>
@@ -1292,7 +1292,7 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
                   <span className="text-muted-foreground">Küchenhersteller:</span>
                   <div className="flex flex-wrap gap-1 mt-1">
                     {project.preferences.manufacturers.map((m) => (
-                      <span key={m} className="px-2 py-1 bg-muted text-foreground rounded text-xs">{m}</span>
+                      <span key={m} className="px-2 py-0.5 bg-muted text-foreground rounded text-xs">{m}</span>
                     ))}
                   </div>
                 </div>
@@ -1302,7 +1302,7 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
                   <span className="text-muted-foreground">Stauraum:</span>
                   <div className="flex flex-wrap gap-1 mt-1">
                     {project.preferences.storage.map((s) => (
-                      <span key={s} className="px-2 py-1 bg-muted text-foreground rounded text-xs">{s}</span>
+                      <span key={s} className="px-2 py-0.5 bg-muted text-foreground rounded text-xs">{s}</span>
                     ))}
                   </div>
                 </div>
@@ -1317,15 +1317,15 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
           </div>
 
           {/* ELEKTROGERÄTE */}
-          <div className="kitchen-card p-6 mt-6">
-            <h3 className="font-semibold flex items-center gap-2 mb-4">
-              <Plug className="w-5 h-5 text-primary" />
+          <div className="pdf-section-card">
+            <h3>
+              <Plug className="w-4 h-4 text-primary" />
               Elektrogeräte
             </h3>
-            <div className="grid md:grid-cols-2 gap-4 text-sm">
+            <div className="grid md:grid-cols-2 gap-3 text-sm">
               {project.preferences.appliances.cooktop && (
                 <div className="flex items-start gap-2">
-                  <CheckCircle className="w-4 h-4 text-accent mt-0.5 flex-shrink-0" />
+                  <CheckCircle className="w-3.5 h-3.5 text-accent mt-0.5 flex-shrink-0" />
                   <div>
                     <span className="font-medium">Kochfeld:</span> {project.preferences.appliances.cooktop}
                     {cooktopSize && <span className="text-muted-foreground"> ({cooktopSize})</span>}
@@ -1339,7 +1339,7 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
               )}
               {project.preferences.appliances.hood && (
                 <div className="flex items-start gap-2">
-                  <CheckCircle className="w-4 h-4 text-accent mt-0.5 flex-shrink-0" />
+                  <CheckCircle className="w-3.5 h-3.5 text-accent mt-0.5 flex-shrink-0" />
                   <div>
                     <span className="font-medium">Dunstabzug:</span> {project.preferences.appliances.hood}
                     {hoodVentilation && <span className="text-muted-foreground"> ({hoodVentilation})</span>}
@@ -1348,7 +1348,7 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
               )}
               {project.preferences.appliances.oven && (
                 <div className="flex items-start gap-2">
-                  <CheckCircle className="w-4 h-4 text-accent mt-0.5 flex-shrink-0" />
+                  <CheckCircle className="w-3.5 h-3.5 text-accent mt-0.5 flex-shrink-0" />
                   <div>
                     <span className="font-medium">Backofen:</span> {project.preferences.appliances.oven}
                     {ovenHeight && <span className="text-muted-foreground"> ({ovenHeight})</span>}
@@ -1362,7 +1362,7 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
               )}
               {project.preferences.appliances.fridge && (
                 <div className="flex items-start gap-2">
-                  <CheckCircle className="w-4 h-4 text-accent mt-0.5 flex-shrink-0" />
+                  <CheckCircle className="w-3.5 h-3.5 text-accent mt-0.5 flex-shrink-0" />
                   <div>
                     <span className="font-medium">Kühlschrank:</span> {project.preferences.appliances.fridge}
                     {fridgeExtras.length > 0 && (
@@ -1375,7 +1375,7 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
               )}
               {project.preferences.appliances.dishwasher && (
                 <div className="flex items-start gap-2">
-                  <CheckCircle className="w-4 h-4 text-accent mt-0.5 flex-shrink-0" />
+                  <CheckCircle className="w-3.5 h-3.5 text-accent mt-0.5 flex-shrink-0" />
                   <div>
                     <span className="font-medium">Geschirrspüler:</span>
                     <span> {dishwasherWidth || '60 cm'}</span>
@@ -1391,25 +1391,25 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
               )}
               {project.preferences.appliances.microwave && (
                 <div className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-accent" />
+                  <CheckCircle className="w-3.5 h-3.5 text-accent" />
                   <span>Mikrowelle (Einbau)</span>
                 </div>
               )}
             </div>
             
             {applianceBrands.length > 0 && (
-              <div className="mt-4 pt-4 border-t">
+              <div className="mt-3 pt-3 border-t border-border/40">
                 <span className="text-muted-foreground text-sm">Bevorzugte Gerätemarken:</span>
-                <div className="flex flex-wrap gap-1 mt-2">
+                <div className="flex flex-wrap gap-1 mt-1">
                   {applianceBrands.map((brand) => (
-                    <span key={brand} className="px-2 py-1 bg-primary/10 text-primary rounded text-xs">{brand}</span>
+                    <span key={brand} className="px-2 py-0.5 bg-primary/10 text-primary rounded text-xs">{brand}</span>
                   ))}
                 </div>
               </div>
             )}
             
             {applianceNotes.length > 0 && (
-              <div className="mt-4 pt-4 border-t">
+              <div className="mt-3 pt-3 border-t border-border/40">
                 <span className="text-muted-foreground text-sm">Sonstige Wünsche:</span>
                 <p className="mt-1 text-sm">{applianceNotes.join(', ')}</p>
               </div>
@@ -1437,12 +1437,12 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
           
           <div className="flex-1">
           {/* SPÜLE & ARMATUR */}
-          <div className="kitchen-card p-6">
-            <h3 className="font-semibold flex items-center gap-2 mb-4">
-              <Droplets className="w-5 h-5 text-primary" />
+          <div className="pdf-section-card">
+            <h3>
+              <Droplets className="w-4 h-4 text-primary" />
               Spüle & Armatur
             </h3>
-            <div className="grid md:grid-cols-2 gap-4 text-sm">
+            <div className="grid md:grid-cols-2 gap-3 text-sm">
               {project.preferences.sink && (
                 <div>
                   <span className="text-muted-foreground">Material:</span>
@@ -1487,7 +1487,7 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
                   <span className="text-muted-foreground">Hersteller:</span>
                   <div className="flex flex-wrap gap-1 mt-1">
                     {sinkBrands.map((b) => (
-                      <span key={b} className="px-2 py-1 bg-muted text-foreground rounded text-xs">{b}</span>
+                      <span key={b} className="px-2 py-0.5 bg-muted text-foreground rounded text-xs">{b}</span>
                     ))}
                   </div>
                 </div>
@@ -1495,11 +1495,11 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
             </div>
             
             {faucetExtras.length > 0 && (
-              <div className="mt-4 pt-4 border-t">
+              <div className="mt-3 pt-3 border-t border-border/40">
                 <span className="text-muted-foreground text-sm">Zusatzfunktionen:</span>
-                <div className="flex flex-wrap gap-1 mt-2">
+                <div className="flex flex-wrap gap-1 mt-1">
                   {faucetExtras.map((extra) => (
-                    <span key={extra} className="px-2 py-1 bg-accent/10 text-accent rounded text-xs">{extra}</span>
+                    <span key={extra} className="px-2 py-0.5 bg-accent/10 text-accent rounded text-xs">{extra}</span>
                   ))}
                 </div>
               </div>
@@ -1507,31 +1507,31 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
           </div>
 
           {/* MÜLL & BELEUCHTUNG */}
-          <div className="grid md:grid-cols-2 gap-6 mt-6">
-            <div className="kitchen-card p-6">
-              <h3 className="font-semibold flex items-center gap-2 mb-3">
-                <Trash2 className="w-5 h-5 text-primary" />
+          <div className="grid md:grid-cols-2 gap-3 mt-3">
+            <div className="pdf-section-card !mb-0">
+              <h3>
+                <Trash2 className="w-4 h-4 text-primary" />
                 Müllsystem
               </h3>
               {wasteSystem.length > 0 ? (
                 <div className="flex flex-wrap gap-1">
                   {wasteSystem.map((w) => (
-                    <span key={w} className="px-2 py-1 bg-muted text-foreground rounded text-xs">{w}</span>
+                    <span key={w} className="px-2 py-0.5 bg-muted text-foreground rounded text-xs">{w}</span>
                   ))}
                 </div>
               ) : (
                 <p className="text-sm text-muted-foreground italic">Nicht angegeben</p>
               )}
             </div>
-            <div className="kitchen-card p-6">
-              <h3 className="font-semibold flex items-center gap-2 mb-3">
-                <Lightbulb className="w-5 h-5 text-primary" />
+            <div className="pdf-section-card !mb-0">
+              <h3>
+                <Lightbulb className="w-4 h-4 text-primary" />
                 Beleuchtung
               </h3>
               {lightingOptions.length > 0 ? (
                 <div className="flex flex-wrap gap-1">
                   {lightingOptions.map((l) => (
-                    <span key={l} className="px-2 py-1 bg-muted text-foreground rounded text-xs">{l}</span>
+                    <span key={l} className="px-2 py-0.5 bg-muted text-foreground rounded text-xs">{l}</span>
                   ))}
                 </div>
               ) : (
@@ -1541,32 +1541,32 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
           </div>
 
           {/* Room Dimensions */}
-          <div className="kitchen-card p-6 mt-6">
-            <h3 className="font-semibold flex items-center gap-2 mb-4">
-              <Ruler className="w-5 h-5 text-primary" />
+          <div className="pdf-section-card mt-3">
+            <h3>
+              <Ruler className="w-4 h-4 text-primary" />
               Raummaße
             </h3>
-            <div className="grid md:grid-cols-4 gap-4 text-sm">
-              <div className="text-center p-4 bg-muted rounded-lg">
-                <div className="text-2xl font-bold text-primary">{project.room.length}</div>
-                <div className="text-muted-foreground">Länge (cm)</div>
+            <div className="grid md:grid-cols-4 gap-3 text-sm">
+              <div className="text-center p-3 bg-muted/50 rounded-lg">
+                <div className="text-xl font-bold text-primary">{project.room.length}</div>
+                <div className="text-muted-foreground text-xs">Länge (cm)</div>
               </div>
-              <div className="text-center p-4 bg-muted rounded-lg">
-                <div className="text-2xl font-bold text-primary">{project.room.width}</div>
-                <div className="text-muted-foreground">Breite (cm)</div>
+              <div className="text-center p-3 bg-muted/50 rounded-lg">
+                <div className="text-xl font-bold text-primary">{project.room.width}</div>
+                <div className="text-muted-foreground text-xs">Breite (cm)</div>
               </div>
-              <div className="text-center p-4 bg-muted rounded-lg">
-                <div className="text-2xl font-bold text-primary">{project.room.height}</div>
-                <div className="text-muted-foreground">Höhe (cm)</div>
+              <div className="text-center p-3 bg-muted/50 rounded-lg">
+                <div className="text-xl font-bold text-primary">{project.room.height}</div>
+                <div className="text-muted-foreground text-xs">Höhe (cm)</div>
               </div>
-              <div className="text-center p-4 bg-muted rounded-lg">
-                <div className="text-2xl font-bold text-accent">
+              <div className="text-center p-3 bg-muted/50 rounded-lg">
+                <div className="text-xl font-bold text-accent">
                   {((project.room.length * project.room.width) / 10000).toFixed(1)}
                 </div>
-                <div className="text-muted-foreground">Fläche (m²)</div>
+                <div className="text-muted-foreground text-xs">Fläche (m²)</div>
               </div>
             </div>
-            <div className="mt-4">
+            <div className="mt-3">
               <span className="text-muted-foreground text-sm">Raumform:</span>
               <span className="ml-2 font-medium capitalize">
                 {project.room.shape === 'rectangular' && 'Rechteckig'}
@@ -1578,9 +1578,9 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
           </div>
 
           {/* Floor Plan Visual */}
-          <div className="kitchen-card p-6 mt-6">
-            <h3 className="font-semibold flex items-center gap-2 mb-2">
-              <LayoutGrid className="w-5 h-5 text-primary" />
+          <div className="pdf-section-card">
+            <h3>
+              <LayoutGrid className="w-4 h-4 text-primary" />
               Grundriss
             </h3>
             <div className="flex justify-center print-canvas-container">
