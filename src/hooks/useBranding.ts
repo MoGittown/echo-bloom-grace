@@ -16,6 +16,68 @@ const DEFAULT_BRANDING: BrandingData = {
   showDefaultBranding: true,
 };
 
+// Helper to convert hex to HSL
+function hexToHSL(hex: string): { h: number; s: number; l: number } | null {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  if (!result) return null;
+
+  let r = parseInt(result[1], 16) / 255;
+  let g = parseInt(result[2], 16) / 255;
+  let b = parseInt(result[3], 16) / 255;
+
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  let h = 0;
+  let s = 0;
+  const l = (max + min) / 2;
+
+  if (max !== min) {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    switch (max) {
+      case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+      case g: h = ((b - r) / d + 2) / 6; break;
+      case b: h = ((r - g) / d + 4) / 6; break;
+    }
+  }
+
+  return { h: Math.round(h * 360), s: Math.round(s * 100), l: Math.round(l * 100) };
+}
+
+// Apply primary color to CSS variables
+function applyPrimaryColor(hexColor: string) {
+  const hsl = hexToHSL(hexColor);
+  if (!hsl) return;
+
+  const root = document.documentElement;
+  const hslValue = `${hsl.h} ${hsl.s}% ${hsl.l}%`;
+  
+  // Light mode primary
+  root.style.setProperty('--primary', hslValue);
+  root.style.setProperty('--ring', hslValue);
+  root.style.setProperty('--sidebar-primary', hslValue);
+  root.style.setProperty('--sidebar-ring', hslValue);
+  
+  // Create a slightly lighter version for dark mode
+  const darkHsl = `${hsl.h} ${hsl.s}% ${Math.min(hsl.l + 10, 65)}%`;
+  
+  // Apply to dark mode using a style element
+  let darkStyleEl = document.getElementById('branding-dark-styles');
+  if (!darkStyleEl) {
+    darkStyleEl = document.createElement('style');
+    darkStyleEl.id = 'branding-dark-styles';
+    document.head.appendChild(darkStyleEl);
+  }
+  darkStyleEl.textContent = `
+    .dark {
+      --primary: ${darkHsl};
+      --ring: ${darkHsl};
+      --sidebar-primary: ${darkHsl};
+      --sidebar-ring: ${darkHsl};
+    }
+  `;
+}
+
 export function useBranding() {
   const [branding, setBranding] = useState<BrandingData>(DEFAULT_BRANDING);
   const [isLoading, setIsLoading] = useState(true);
@@ -31,13 +93,19 @@ export function useBranding() {
           .single();
 
         if (data && !error) {
-          setBranding({
+          const brandingData = {
             id: data.id,
             studioName: data.studio_name || '',
             logoUrl: data.logo_url,
             primaryColor: data.primary_color || '#8B7355',
             showDefaultBranding: data.show_default_branding ?? true,
-          });
+          };
+          setBranding(brandingData);
+          
+          // Apply the primary color to CSS
+          if (data.primary_color) {
+            applyPrimaryColor(data.primary_color);
+          }
         }
       } catch (error) {
         console.error('Failed to load branding:', error);
@@ -184,13 +252,19 @@ export function useBrandingAdmin() {
       if (error) throw error;
 
       if (data.success && data.branding) {
-        setBranding({
+        const newBranding = {
           id: data.branding.id,
           studioName: data.branding.studio_name || '',
           logoUrl: data.branding.logo_url,
           primaryColor: data.branding.primary_color || '#8B7355',
           showDefaultBranding: data.branding.show_default_branding ?? true,
-        });
+        };
+        setBranding(newBranding);
+        
+        // Apply the primary color immediately
+        if (data.branding.primary_color) {
+          applyPrimaryColor(data.branding.primary_color);
+        }
         return true;
       }
       return false;
