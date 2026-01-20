@@ -6,7 +6,8 @@ interface PdfPageFooterProps {
 }
 
 /**
- * Minimal footer for each PDF page with page numbers and optional contact.
+ * Professional footer for each PDF page with page numbers and contact info.
+ * Optimized for print quality with proper spacing.
  */
 export function PdfPageFooter({
   pageNumber,
@@ -16,11 +17,11 @@ export function PdfPageFooter({
 }: PdfPageFooterProps) {
   return (
     <footer className="pdf-footer">
-      <div className="truncate max-w-[70%]">
+      <div className="truncate max-w-[65%]">
         {contactLine || studioName || ''}
       </div>
       <div className="page-number">
-        Seite {pageNumber} / {totalPages}
+        Seite {pageNumber} von {totalPages}
       </div>
     </footer>
   );
