@@ -1349,6 +1349,16 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
                       </div>
                     </div>
                   )}
+                  {branding.showManufacturerField && project.preferences.manufacturers.length > 0 && (
+                    <div className="pdf-data-item">
+                      <span className="pdf-data-label">Kuechenhersteller</span>
+                      <div className="pdf-tag-list">
+                        {project.preferences.manufacturers.map((m) => (
+                          <span key={m} className="pdf-tag muted">{m}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                   {frontSurfaces.length > 0 && (
                     <div className="pdf-data-item">
                       <span className="pdf-data-label">Frontenoberflaeche</span>
@@ -1381,16 +1391,6 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
                       <div className="pdf-tag-list">
                         {backsplash.map((b) => (
                           <span key={b} className="pdf-tag muted">{b}</span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  {branding.showManufacturerField && project.preferences.manufacturers.length > 0 && (
-                    <div className="pdf-data-item">
-                      <span className="pdf-data-label">Kuechenhersteller</span>
-                      <div className="pdf-tag-list">
-                        {project.preferences.manufacturers.map((m) => (
-                          <span key={m} className="pdf-tag muted">{m}</span>
                         ))}
                       </div>
                     </div>
