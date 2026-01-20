@@ -478,6 +478,9 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
             foreignObjectRendering: false,
             imageTimeout: 15000,
             onclone: (doc) => {
+              // Add pdf-export class to trigger consolidated CSS styles
+              doc.body.classList.add('pdf-export');
+
               // Inject aggressive CSS to prevent letter-spacing / kerning bugs in html2canvas
               const fixStyle = doc.createElement('style');
               fixStyle.textContent = `
