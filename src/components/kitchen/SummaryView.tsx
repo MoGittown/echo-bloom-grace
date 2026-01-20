@@ -45,8 +45,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
+import { exportKitchenPdf } from '@/lib/pdf/exportKitchenPdf';
 import { RoomDimensions, WallElement } from '@/types/kitchen';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -423,171 +422,20 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
   }, []);
 
   const handleDownloadPDF = useCallback(async () => {
-    if (!summaryRef.current) return;
+    const root = document.getElementById('pdf-root');
+    if (!root) {
+      toast.error('PDF-Bereich nicht gefunden.');
+      return;
+    }
 
     setIsGenerating(true);
     clearPdfDebug();
+    addPdfDebugEvent('info', 'PDF-Export gestartet');
 
     try {
-      const root = summaryRef.current;
-      const pages = Array.from(root.querySelectorAll<HTMLElement>('[data-pdf-page]'));
-
-      // Fallback (shouldn't happen): export the whole summary as a long image
-      const exportTargets = pages.length > 0 ? pages : [root as unknown as HTMLElement];
-
-      const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4',
-      });
-
-      const pageW = pdf.internal.pageSize.getWidth();
-      const pageH = pdf.internal.pageSize.getHeight();
-
-      // A4 at ~96 DPI (used for stable html2canvas sizing)
-      const A4_PX_W = 794;
-      const A4_PX_H = Math.round((A4_PX_W * 297) / 210);
-
-      console.log(`[PDF Debug] Starting export of ${exportTargets.length} pages`);
-      addPdfDebugEvent('info', `PDF-Export gestartet (${exportTargets.length} Seiten)`);
-
-      for (let i = 0; i < exportTargets.length; i++) {
-        const target = exportTargets[i];
-        const pageLabel = target.getAttribute('data-pdf-page') || `page-${i + 1}`;
-
-        const dimLine = `DOM: ${target.offsetWidth}x${target.offsetHeight}px`;
-        const textLen = target.textContent?.length || 0;
-
-        console.log(`[PDF Debug] Processing page ${i + 1}/${exportTargets.length}: "${pageLabel}"`);
-        console.log(`[PDF Debug] Page dimensions: ${target.offsetWidth}x${target.offsetHeight}px`);
-        console.log(`[PDF Debug] Page text content length: ${textLen} chars`);
-
-        addPdfDebugEvent(
-          'info',
-          `Seite ${i + 1}/${exportTargets.length}: ${pageLabel}`,
-          `${dimLine}\nText: ${textLen} Zeichen`,
-        );
-
-        try {
-          const canvas = await html2canvas(target, {
-            scale: 1.5,
-            useCORS: true,
-            logging: false,
-            backgroundColor: '#ffffff',
-            allowTaint: true,
-            foreignObjectRendering: false,
-            imageTimeout: 15000,
-            onclone: (doc) => {
-              // Add pdf-export class to trigger consolidated CSS styles
-              doc.body.classList.add('pdf-export');
-
-              // Inject aggressive CSS to prevent letter-spacing / kerning bugs in html2canvas
-              const fixStyle = doc.createElement('style');
-              fixStyle.textContent = `
-                * {
-                  letter-spacing: 0 !important;
-                  word-spacing: 0 !important;
-                  text-transform: none !important;
-                  font-kerning: none !important;
-                  font-variant-ligatures: none !important;
-                  text-rendering: geometricPrecision !important;
-                  -webkit-font-smoothing: antialiased !important;
-                }
-              `;
-              doc.head.appendChild(fixStyle);
-
-              doc.body.style.background = '#ffffff';
-              doc.body.style.margin = '0';
-              doc.body.style.width = `${A4_PX_W}px`;
-              doc.body.style.minHeight = `${A4_PX_H}px`;
-
-              // Keep SVG icons visible
-              const svgs = doc.querySelectorAll('svg');
-              svgs.forEach((svg) => {
-                svg.style.display = 'inline-block';
-              });
-
-              // Aggressively normalize text nodes to prevent IndexSizeError
-              const normalizeText = (s: string): string => {
-                return s
-                  // Remove zero-width and invisible formatting characters
-                  .replace(/[\u200B-\u200D\u2060\uFE0E\uFE0F\u202A-\u202E\u00AD\uFEFF]/g, '')
-                  // Remove variation selectors
-                  .replace(/[\uFE00-\uFE0F]/g, '')
-                  // Replace smart quotes with ASCII equivalents
-                  .replace(/[\u2018\u2019\u201A]/g, "'")
-                  .replace(/[\u201C\u201D\u201E]/g, '"')
-                  // Replace dashes
-                  .replace(/[\u2013\u2014\u2015]/g, '-')
-                  // Replace ellipsis
-                  .replace(/\u2026/g, '...')
-                  // Remove any remaining surrogate pairs (emoji) that might cause issues
-                  .replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, '');
-              };
-
-              let changed = 0;
-              const walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT);
-              let node: Node | null = walker.nextNode();
-              while (node) {
-                const textNode = node as Text;
-                const original = textNode.nodeValue ?? '';
-                const cleaned = normalizeText(original);
-                if (cleaned !== original) {
-                  textNode.nodeValue = cleaned;
-                  changed++;
-                }
-                node = walker.nextNode();
-              }
-
-              // Force layout recalculation before html2canvas measures
-              void doc.body.offsetHeight;
-
-              if (changed > 0) {
-                addPdfDebugEvent('info', `Text normalisiert (${pageLabel})`, `${changed} Textknoten bereinigt`);
-              }
-            },
-          });
-
-          console.log(`[PDF Debug] ✓ Page ${i + 1} canvas created: ${canvas.width}x${canvas.height}px`);
-          addPdfDebugEvent('success', `Seite ${i + 1} gerendert`, `Canvas: ${canvas.width}x${canvas.height}px`);
-
-          const imgData = canvas.toDataURL('image/png');
-
-          if (i > 0) pdf.addPage();
-
-          // Druckrand wie bei echten Studio Dokumenten
-          const marginMm = 10; // 8–12mm passt meistens gut
-          const contentW = pageW - marginMm * 2;
-          const contentH = pageH - marginMm * 2;
-
-          // Fit in Content-Box (nicht in die ganze Seite)
-          let renderW = contentW;
-          let renderH = (canvas.height * renderW) / canvas.width;
-          if (renderH > contentH) {
-            renderH = contentH;
-            renderW = (canvas.width * renderH) / canvas.height;
-          }
-
-          // Zentriert innerhalb des Content-Bereichs
-          const x = marginMm + (contentW - renderW) / 2;
-          const y = marginMm + (contentH - renderH) / 2;
-          pdf.addImage(imgData, 'PNG', x, y, renderW, renderH);
-        } catch (pageError) {
-          console.error(`[PDF Debug] ✗ Page ${i + 1} ("${pageLabel}") FAILED:`, pageError);
-          addPdfDebugEvent('error', `Seite ${i + 1} fehlgeschlagen (${pageLabel})`, formatUnknownError(pageError));
-          setPdfDebugOpen(true);
-          throw pageError; // Re-throw to trigger outer catch
-        }
-      }
-
-      console.log(`[PDF Debug] ✓ All pages processed successfully`);
-      addPdfDebugEvent('success', 'Alle Seiten erfolgreich verarbeitet');
-
-      const fileName = `Kuechen-Beratung_${project.customer.lastName || 'Kunde'}_${new Date().toISOString().split('T')[0]}.pdf`;
-      pdf.save(fileName);
-
-      console.log(`[PDF Debug] ✓ PDF saved as: ${fileName}`);
-      addPdfDebugEvent('success', `PDF gespeichert: ${fileName}`);
+      const filename = `Kuechen-Beratung_${project.customer.lastName || 'Kunde'}_${new Date().toISOString().split('T')[0]}.pdf`;
+      await exportKitchenPdf({ filename, root });
+      addPdfDebugEvent('success', `PDF gespeichert: ${filename}`);
     } catch (error) {
       console.error('PDF generation failed:', error);
       addPdfDebugEvent('error', 'PDF-Generierung fehlgeschlagen', formatUnknownError(error));
@@ -596,7 +444,7 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
     } finally {
       setIsGenerating(false);
     }
-  }, [project, addPdfDebugEvent, clearPdfDebug, formatUnknownError]);
+  }, [project.customer.lastName, addPdfDebugEvent, clearPdfDebug, formatUnknownError]);
 
   const generateSummaryHtml = useCallback(() => {
     const customerName = `${project.customer.firstName} ${project.customer.lastName}`.trim() || 'Unbekannt';
@@ -1113,7 +961,7 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
       </Dialog>
 
       {/* Summary Content */}
-      <div ref={summaryRef} className="space-y-6 bg-background p-6 rounded-xl">
+      <div id="pdf-root" ref={summaryRef} className="space-y-6 bg-background p-6 rounded-xl">
         {/* ===== PAGE 1: Overview & Customer Data ===== */}
         <div data-pdf-page="1" className="pdf-page">
           <PdfPageHeader
