@@ -434,21 +434,6 @@ export function StyleForm({ data, onChange }: StyleFormProps) {
             
             return null;
           })()}
-          
-          {/* Custom manufacturer input */}
-          <div className="flex items-center gap-2 pt-2 border-t border-border mt-4">
-            <Input
-              type="text"
-              value={customManufacturer}
-              onChange={(e) => setCustomManufacturer(e.target.value)}
-              placeholder="Anderen Hersteller eingeben..."
-              className="kitchen-input flex-1"
-              onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addCustomManufacturer())}
-            />
-            <Button onClick={addCustomManufacturer} size="sm" variant="outline" className="gap-1" disabled={!customManufacturer.trim()}>
-              <Plus className="w-4 h-4" /> Hinzufügen
-            </Button>
-          </div>
         </div>
       )}
 
