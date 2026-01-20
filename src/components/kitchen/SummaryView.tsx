@@ -1349,7 +1349,7 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
                       </div>
                     </div>
                   )}
-                  {branding.showManufacturerField && project.preferences.manufacturers.length > 0 && (
+                  {branding.showManufacturerField && project.preferences.manufacturers && project.preferences.manufacturers.length > 0 && (
                     <div className="pdf-data-item">
                       <span className="pdf-data-label">Kuechenhersteller</span>
                       <div className="pdf-tag-list">
