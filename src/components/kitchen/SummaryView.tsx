@@ -407,13 +407,7 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
   const { branding } = useBranding();
 
   // PDF metadata for professional header/footer
-  const validPhotos = project.photos.filter(p => p.preview);
-  const photosPerPage = 6;
-  const photoPages: typeof validPhotos[] = [];
-  for (let i = 0; i < validPhotos.length; i += photosPerPage) {
-    photoPages.push(validPhotos.slice(i, i + photosPerPage));
-  }
-  const totalPdfPages = 5 + photoPages.length; // Seite 5 bleibt Must und Notes, danach Foto Seiten
+  const totalPdfPages = 5;
   const createdIso = project.createdAt instanceof Date ? project.createdAt.toISOString() : String(project.createdAt);
   const protocolId = `KP-${createdIso.slice(2, 10).replace(/-/g, '')}`;
   const customerFullName = [project.customer.firstName, project.customer.lastName].filter(Boolean).join(' ') || 'Unbekannt';
@@ -1744,54 +1738,6 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
           />
         </div>
 
-        {/* ===== PHOTO PAGES: Separate PDF pages for photos ===== */}
-        {photoPages.map((pagePhotos, idx) => {
-          const pageNumber = 6 + idx;
-          return (
-            <div key={idx} data-pdf-page={String(pageNumber)} className="pdf-page">
-              <PdfPageHeader
-                protocolId={protocolId}
-                createdDate={formatDate(project.createdAt)}
-                customerName={customerFullName}
-                studioName={branding.studioName}
-                logoUrl={branding.logoUrl}
-              />
-              <div className="flex-1">
-                <div className="pdf-section">
-                  <div className="pdf-section-header">
-                    <Camera />
-                    Fotos ({idx + 1}/{photoPages.length})
-                  </div>
-                  <div className="pdf-section-body">
-                    <div className="grid grid-cols-2 gap-4">
-                      {pagePhotos.map((photo) => (
-                        <div key={photo.id} className="overflow-hidden rounded-lg border border-border">
-                          <img
-                            src={photo.preview}
-                            alt={photo.type === "room" ? "Raumfoto" : "Inspiration"}
-                            className="w-full h-48 object-cover"
-                          />
-                          <div className="p-2 bg-muted/50">
-                            <p className="text-xs text-muted-foreground">
-                              {photo.type === "room" ? "Raumfoto" : "Inspiration"}
-                              {photo.description ? `, ${photo.description}` : ""}
-                            </p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <PdfPageFooter
-                pageNumber={pageNumber}
-                totalPages={totalPdfPages}
-                contactLine={contactLine}
-                studioName={branding.studioName}
-              />
-            </div>
-          );
-        })}
 
         {/* Additional Notes - Interactive (no-print) */}
         <div className="kitchen-card p-6 no-print">
