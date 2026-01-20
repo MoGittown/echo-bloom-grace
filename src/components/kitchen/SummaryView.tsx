@@ -555,15 +555,23 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
 
           if (i > 0) pdf.addPage();
 
-          // Fit image into A4 while preserving aspect ratio
-          let renderW = pageW;
+          // Druckrand wie bei echten Studio Dokumenten
+          const marginMm = 10; // 8–12mm passt meistens gut
+          const contentW = pageW - marginMm * 2;
+          const contentH = pageH - marginMm * 2;
+
+          // Fit in Content-Box (nicht in die ganze Seite)
+          let renderW = contentW;
           let renderH = (canvas.height * renderW) / canvas.width;
-          if (renderH > pageH) {
-            renderH = pageH;
+          if (renderH > contentH) {
+            renderH = contentH;
             renderW = (canvas.width * renderH) / canvas.height;
           }
-          const x = (pageW - renderW) / 2;
-          pdf.addImage(imgData, 'PNG', x, 0, renderW, renderH);
+
+          // Zentriert innerhalb des Content-Bereichs
+          const x = marginMm + (contentW - renderW) / 2;
+          const y = marginMm + (contentH - renderH) / 2;
+          pdf.addImage(imgData, 'PNG', x, y, renderW, renderH);
         } catch (pageError) {
           console.error(`[PDF Debug] ✗ Page ${i + 1} ("${pageLabel}") FAILED:`, pageError);
           addPdfDebugEvent('error', `Seite ${i + 1} fehlgeschlagen (${pageLabel})`, formatUnknownError(pageError));
