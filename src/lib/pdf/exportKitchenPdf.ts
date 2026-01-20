@@ -57,14 +57,17 @@ export async function exportKitchenPdf({ filename, root }: ExportOptions) {
     // A4 Box erzwingen
     clone.style.width = `${A4_PX_W}px`;
     clone.style.height = `${A4_PX_H}px`;
+    clone.style.minHeight = `${A4_PX_H}px`;
+    clone.style.maxHeight = `${A4_PX_H}px`;
     clone.style.maxWidth = "none";
     clone.style.margin = "0";
+    clone.style.padding = "0";
     clone.style.background = "#ffffff";
     clone.style.overflow = "hidden";
 
     stage.appendChild(clone);
 
-    // typische Tailwind Limits killen, aber nur innerhalb des Stages
+    // typische Layout Limits killen, aber nur im Stage
     const all = Array.from(stage.querySelectorAll<HTMLElement>("*"));
     for (const el of all) {
       const cs = window.getComputedStyle(el);
@@ -102,7 +105,6 @@ export async function exportKitchenPdf({ filename, root }: ExportOptions) {
 
     if (i > 0) pdf.addPage();
 
-    // Bild passt immer in Content Box
     let renderW = contentW;
     let renderH = (canvas.height * renderW) / canvas.width;
 
