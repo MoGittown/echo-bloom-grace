@@ -1,10 +1,11 @@
 import { useRef, useCallback, useState, useEffect } from 'react';
-import { KitchenProject, TIMELINE_OPTIONS } from '@/types/kitchen';
+import { KitchenProject, TIMELINE_OPTIONS, CustomerData } from '@/types/kitchen';
 import { useBranding } from '@/hooks/useBranding';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog,
   DialogContent,
@@ -40,6 +41,8 @@ import {
   Globe,
   Zap,
   Wallet,
+  Send,
+  AlertCircle,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import html2canvas from 'html2canvas';
@@ -55,6 +58,7 @@ import { PdfPageFooter } from './PdfPageFooter';
 interface SummaryViewProps {
   project: KitchenProject;
   onUpdateNotes: (notes: string) => void;
+  onUpdateCustomer?: (data: Partial<import('@/types/kitchen').CustomerData>) => void;
 }
 
 const ELEMENT_TYPE_LABELS: Record<string, string> = {
@@ -358,7 +362,7 @@ function WallViewCanvas({ room, elements, wall }: { room: RoomDimensions; elemen
   );
 }
 
-export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
+export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: SummaryViewProps) {
   const summaryRef = useRef<HTMLDivElement>(null);
   const floorPlanCanvasRef = useRef<HTMLCanvasElement>(null);
   const wallViewCanvasRefs = useRef<Record<string, HTMLCanvasElement | null>>({});
@@ -367,6 +371,9 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
   const [recipientEmail, setRecipientEmail] = useState('');
   const [isSendingEmail, setIsSendingEmail] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [showSendForm, setShowSendForm] = useState(false);
+  const [consentGiven, setConsentGiven] = useState(false);
+  const [sendFormErrors, setSendFormErrors] = useState<Record<string, string>>({});
 
   const [pdfDebugOpen, setPdfDebugOpen] = useState(false);
   const [pdfDebugEvents, setPdfDebugEvents] = useState<PdfDebugEvent[]>([]);
@@ -704,6 +711,94 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
       minute: '2-digit',
     });
   };
+
+  // Check if customer data is complete for sending
+  const isCustomerDataComplete = useCallback(() => {
+    const { customer } = project;
+    return (
+      customer.firstName?.trim() &&
+      customer.lastName?.trim() &&
+      customer.email?.trim() &&
+      /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customer.email) &&
+      customer.phone?.trim()
+    );
+  }, [project]);
+
+  // Validate send form fields
+  const validateSendForm = useCallback(() => {
+    const errors: Record<string, string> = {};
+    const { customer } = project;
+    
+    if (!customer.firstName?.trim()) {
+      errors.firstName = 'Vorname ist erforderlich';
+    }
+    if (!customer.lastName?.trim()) {
+      errors.lastName = 'Nachname ist erforderlich';
+    }
+    if (!customer.email?.trim()) {
+      errors.email = 'E-Mail ist erforderlich';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customer.email)) {
+      errors.email = 'Bitte geben Sie eine gültige E-Mail-Adresse ein';
+    }
+    if (!customer.phone?.trim()) {
+      errors.phone = 'Telefon ist erforderlich';
+    }
+    if (!consentGiven) {
+      errors.consent = 'Bitte stimmen Sie der Datenübermittlung zu';
+    }
+    
+    setSendFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  }, [project, consentGiven]);
+
+  // Handle sending from inline form
+  const handleSendFromInlineForm = useCallback(async () => {
+    if (!validateSendForm()) {
+      toast.error('Bitte füllen Sie alle Pflichtfelder aus und stimmen der Datenübermittlung zu');
+      return;
+    }
+
+    // Get studio email from branding
+    const studioEmail = branding.contact.email;
+    if (!studioEmail) {
+      toast.error('Keine Studio-E-Mail konfiguriert. Bitte kontaktieren Sie das Studio direkt.');
+      return;
+    }
+
+    setIsSendingEmail(true);
+    try {
+      const customerName = `${project.customer.firstName} ${project.customer.lastName}`.trim();
+      const projectDate = formatDate(project.createdAt);
+      const summaryHtml = generateSummaryHtml();
+
+      const timelineLabel = TIMELINE_OPTIONS.find(t => t.value === project.customer.timeline)?.label || project.customer.timeline || '';
+
+      const { data, error } = await supabase.functions.invoke('send-protocol-email', {
+        body: {
+          recipientEmail: studioEmail,
+          customerName,
+          projectDate,
+          summaryHtml,
+          customerData: {
+            ...project.customer,
+            timeline: timelineLabel,
+          },
+        },
+      });
+
+      if (error) throw error;
+
+      setShowSendForm(false);
+      setConsentGiven(false);
+      setSendFormErrors({});
+      setConfirmationDialogOpen(true);
+    } catch (error: any) {
+      console.error('Email sending failed:', error);
+      toast.error(`E-Mail konnte nicht gesendet werden: ${error.message || 'Unbekannter Fehler'}`);
+    } finally {
+      setIsSendingEmail(false);
+    }
+  }, [validateSendForm, branding.contact.email, project, generateSummaryHtml]);
 
   // CSV Export function
   const handleDownloadCSV = useCallback(() => {
@@ -1844,7 +1939,7 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
           </div>
         )}
 
-        {/* Bottom Action Buttons */}
+        {/* Action Buttons - Print & PDF */}
         <div className="flex flex-wrap gap-3 justify-center no-print pt-4">
           <Button onClick={handlePrint} variant="outline" className="gap-2">
             <Printer className="w-4 h-4" />
@@ -1854,20 +1949,179 @@ export function SummaryView({ project, onUpdateNotes }: SummaryViewProps) {
             <Download className="w-4 h-4" />
             {isGenerating ? 'Wird erstellt...' : 'Als PDF speichern'}
           </Button>
-          <Button onClick={() => setPdfDebugOpen(true)} variant="outline" className="gap-2">
+          <Button onClick={() => setPdfDebugOpen(true)} variant="outline" className="gap-2 hidden">
             <FileText className="w-4 h-4" />
             PDF-Debug{pdfDebugEvents.length ? ` (${pdfDebugEvents.length})` : ''}
           </Button>
-          <Button onClick={() => setEmailDialogOpen(true)} variant="secondary" className="gap-2">
-            <Mail className="w-4 h-4" />
-            Per E-Mail senden
-          </Button>
-          <AppointmentRequest
-            customerName={`${project.customer.firstName} ${project.customer.lastName}`.trim()}
-            customerEmail={project.customer.email}
-            customerPhone={project.customer.phone}
-          />
         </div>
+
+        {/* Send to Studio Section */}
+        <div className="kitchen-card p-6 no-print mt-6">
+          <div className="text-center mb-4">
+            <h3 className="text-lg font-semibold flex items-center justify-center gap-2">
+              <Send className="w-5 h-5 text-primary" />
+              Protokoll ans Studio senden
+            </h3>
+            <p className="text-sm text-muted-foreground mt-1">
+              Senden Sie Ihre Küchenplanung direkt an {branding.studioName || 'das Küchenstudio'}
+            </p>
+          </div>
+
+          {!showSendForm ? (
+            <div className="text-center">
+              <Button 
+                onClick={() => setShowSendForm(true)} 
+                size="lg" 
+                className="gap-2"
+              >
+                <Mail className="w-5 h-5" />
+                Jetzt absenden
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-4 max-w-md mx-auto">
+              {/* Contact Form Fields */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="send-firstName" className="flex items-center gap-1">
+                    Vorname <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    id="send-firstName"
+                    value={project.customer.firstName}
+                    onChange={(e) => onUpdateCustomer?.({ firstName: e.target.value })}
+                    placeholder="Max"
+                    className={sendFormErrors.firstName ? 'border-destructive' : ''}
+                  />
+                  {sendFormErrors.firstName && (
+                    <p className="text-xs text-destructive">{sendFormErrors.firstName}</p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="send-lastName" className="flex items-center gap-1">
+                    Nachname <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    id="send-lastName"
+                    value={project.customer.lastName}
+                    onChange={(e) => onUpdateCustomer?.({ lastName: e.target.value })}
+                    placeholder="Mustermann"
+                    className={sendFormErrors.lastName ? 'border-destructive' : ''}
+                  />
+                  {sendFormErrors.lastName && (
+                    <p className="text-xs text-destructive">{sendFormErrors.lastName}</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="send-email" className="flex items-center gap-1">
+                  E-Mail <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  id="send-email"
+                  type="email"
+                  value={project.customer.email}
+                  onChange={(e) => onUpdateCustomer?.({ email: e.target.value })}
+                  placeholder="max.mustermann@email.de"
+                  className={sendFormErrors.email ? 'border-destructive' : ''}
+                />
+                {sendFormErrors.email && (
+                  <p className="text-xs text-destructive">{sendFormErrors.email}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="send-phone" className="flex items-center gap-1">
+                  Telefon <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  id="send-phone"
+                  type="tel"
+                  value={project.customer.phone}
+                  onChange={(e) => onUpdateCustomer?.({ phone: e.target.value })}
+                  placeholder="+49 123 456789"
+                  className={sendFormErrors.phone ? 'border-destructive' : ''}
+                />
+                {sendFormErrors.phone && (
+                  <p className="text-xs text-destructive">{sendFormErrors.phone}</p>
+                )}
+              </div>
+
+              {/* Consent Checkbox */}
+              <div className="flex items-start space-x-3 pt-2">
+                <Checkbox
+                  id="consent"
+                  checked={consentGiven}
+                  onCheckedChange={(checked) => setConsentGiven(checked === true)}
+                  className={sendFormErrors.consent ? 'border-destructive' : ''}
+                />
+                <div className="space-y-1">
+                  <Label 
+                    htmlFor="consent" 
+                    className="text-sm font-normal leading-relaxed cursor-pointer"
+                  >
+                    Ich stimme zu, dass meine Daten an {branding.studioName || 'das Küchenstudio'} übermittelt werden, 
+                    um meine Anfrage zu bearbeiten. <span className="text-destructive">*</span>
+                  </Label>
+                  {sendFormErrors.consent && (
+                    <p className="text-xs text-destructive">{sendFormErrors.consent}</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3 pt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShowSendForm(false);
+                    setSendFormErrors({});
+                  }}
+                  disabled={isSendingEmail}
+                  className="flex-1"
+                >
+                  Abbrechen
+                </Button>
+                <Button
+                  onClick={handleSendFromInlineForm}
+                  disabled={isSendingEmail}
+                  className="flex-1 gap-2"
+                >
+                  {isSendingEmail ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Wird gesendet...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-4 h-4" />
+                      Absenden
+                    </>
+                  )}
+                </Button>
+              </div>
+
+              {!branding.contact.email && (
+                <div className="flex items-center gap-2 text-sm text-amber-600 bg-amber-50 dark:bg-amber-950/30 p-3 rounded-lg">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>Keine Studio-E-Mail konfiguriert. Bitte kontaktieren Sie das Studio direkt.</span>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Appointment Request - only show if configured */}
+        {branding.showAppointmentBooking && (
+          <div className="no-print mt-4">
+            <AppointmentRequest
+              customerName={`${project.customer.firstName} ${project.customer.lastName}`.trim()}
+              customerEmail={project.customer.email}
+              customerPhone={project.customer.phone}
+            />
+          </div>
+        )}
 
         <PdfDebugConsole
           open={pdfDebugOpen}

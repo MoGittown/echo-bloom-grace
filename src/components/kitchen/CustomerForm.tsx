@@ -26,9 +26,9 @@ export function CustomerForm({ data, onChange, errors = {} }: CustomerFormProps)
         <p className="text-muted-foreground mt-2">
           Erfassen Sie die Kontaktdaten des Kunden
         </p>
-        <div className="mt-4 inline-flex items-center gap-2 bg-primary/10 text-primary text-sm px-4 py-2 rounded-full">
+        <div className="mt-4 inline-flex items-center gap-2 bg-muted text-muted-foreground text-sm px-4 py-2 rounded-full">
           <AlertCircle className="w-4 h-4" />
-          <span>Pflichtfelder – bitte vollständig ausfüllen</span>
+          <span>Optional – nur für Protokollversand erforderlich</span>
         </div>
       </div>
 

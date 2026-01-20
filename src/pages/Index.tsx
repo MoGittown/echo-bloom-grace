@@ -102,7 +102,7 @@ const Index = () => {
 
   const { branding } = useBranding();
 
-  // Validate customer form before proceeding to summary
+  // Validate customer form - now only used for inline validation display
   const validateCustomerForm = useCallback(() => {
     if (!project) return false;
     
@@ -128,42 +128,17 @@ const Index = () => {
     return Object.keys(errors).length === 0;
   }, [project]);
 
-  // Handle next step with validation for customer form
+  // Handle next step - no mandatory validation for summary anymore
   const handleNextStep = useCallback(() => {
-    // If on customer step (step 7), validate before proceeding
-    if (currentStep === 7) {
-      if (!validateCustomerForm()) {
-        toast.error('Bitte füllen Sie alle Pflichtfelder aus');
-        return;
-      }
-    }
     setCustomerErrors({});
     nextStep();
-  }, [currentStep, validateCustomerForm, nextStep]);
+  }, [nextStep]);
 
-  // Handle direct step navigation with validation
+  // Handle direct step navigation - no mandatory contact validation for summary
   const handleGoToStep = useCallback((step: number) => {
-    // If trying to go to summary (step 8) from customer step, validate
-    if (step === 8 && currentStep === 7) {
-      if (!validateCustomerForm()) {
-        toast.error('Bitte füllen Sie alle Pflichtfelder aus');
-        return;
-      }
-    }
-    // If trying to go to summary from any step, check if customer data is filled
-    if (step === 8 && currentStep !== 7) {
-      if (!project?.customer.firstName?.trim() || 
-          !project?.customer.lastName?.trim() || 
-          !project?.customer.email?.trim() || 
-          !project?.customer.phone?.trim()) {
-        toast.error('Bitte füllen Sie zuerst die Kontaktdaten aus');
-        goToStep(7);
-        return;
-      }
-    }
     setCustomerErrors({});
     goToStep(step);
-  }, [currentStep, validateCustomerForm, goToStep, project]);
+  }, [goToStep]);
 
   // Hidden admin access via logo clicks (5x)
   const handleLogoClick = useCallback(() => {
@@ -346,7 +321,7 @@ const Index = () => {
             <CustomerForm data={project.customer} onChange={updateCustomer} errors={customerErrors} />
           )}
           {currentStep === 8 && (
-            <SummaryView project={project} onUpdateNotes={updateNotes} />
+            <SummaryView project={project} onUpdateNotes={updateNotes} onUpdateCustomer={updateCustomer} />
           )}
 
           {/* Navigation */}
