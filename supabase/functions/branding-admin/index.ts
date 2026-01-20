@@ -39,6 +39,7 @@ serve(async (req: Request) => {
       primaryColor, 
       showDefaultBranding,
       showAppointmentBooking,
+      showManufacturerField,
       landingHeadline,
       landingSubheadline,
       landingBenefit1,
@@ -137,6 +138,7 @@ serve(async (req: Request) => {
         if (primaryColor !== undefined) updateData.primary_color = primaryColor;
         if (showDefaultBranding !== undefined) updateData.show_default_branding = showDefaultBranding;
         if (showAppointmentBooking !== undefined) updateData.show_appointment_booking = showAppointmentBooking;
+        if (showManufacturerField !== undefined) updateData.show_manufacturer_field = showManufacturerField;
         if (landingHeadline !== undefined) updateData.landing_headline = landingHeadline;
         if (landingSubheadline !== undefined) updateData.landing_subheadline = landingSubheadline;
         if (landingBenefit1 !== undefined) updateData.landing_benefit_1 = landingBenefit1;

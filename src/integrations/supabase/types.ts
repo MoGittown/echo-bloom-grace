@@ -71,6 +71,7 @@ export type Database = {
           show_appointment_booking: boolean | null
           show_default_branding: boolean | null
           show_landing_page: boolean | null
+          show_manufacturer_field: boolean | null
           studio_name: string
           updated_at: string
         }
@@ -94,6 +95,7 @@ export type Database = {
           show_appointment_booking?: boolean | null
           show_default_branding?: boolean | null
           show_landing_page?: boolean | null
+          show_manufacturer_field?: boolean | null
           studio_name?: string
           updated_at?: string
         }
@@ -117,6 +119,7 @@ export type Database = {
           show_appointment_booking?: boolean | null
           show_default_branding?: boolean | null
           show_landing_page?: boolean | null
+          show_manufacturer_field?: boolean | null
           studio_name?: string
           updated_at?: string
         }
