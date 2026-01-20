@@ -79,6 +79,8 @@ export interface KitchenPreferences {
   lighting: string[];
   // Ergonomie & Nutzung
   userHeights: number[]; // Körpergrößen der Hauptnutzer in cm
+  currentCountertopHeight: number | null; // Aktuelle Arbeitsplattenhöhe in cm
+  currentCountertopSatisfaction: string; // Zufriedenheit mit aktueller Höhe
   cookingFrequency: string; // Kochverhalten
   householdSize: string; // Für wieviele Personen wird gekocht
   gripType: string; // Griff-Präferenz
@@ -157,6 +159,8 @@ export const createDefaultProject = (): KitchenProject => ({
     sink: '',
     lighting: [],
     userHeights: [],
+    currentCountertopHeight: null,
+    currentCountertopSatisfaction: '',
     cookingFrequency: '',
     householdSize: '',
     gripType: '',

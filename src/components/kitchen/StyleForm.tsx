@@ -41,6 +41,14 @@ const HOUSEHOLD_SIZE = [
   { value: '5+', label: '5+ Personen', description: 'Großfamilie – großzügige Küche mit viel Kapazität nötig.' },
 ];
 
+const COUNTERTOP_SATISFACTION = [
+  { value: 'sehr-zufrieden', label: 'Sehr zufrieden', description: 'Die Höhe passt perfekt – dieselbe Höhe beibehalten.' },
+  { value: 'zufrieden', label: 'Zufrieden', description: 'Funktioniert gut, kleine Anpassung wäre aber willkommen.' },
+  { value: 'etwas-zu-niedrig', label: 'Etwas zu niedrig', description: 'Ich muss mich leicht bücken – höher wäre besser.' },
+  { value: 'etwas-zu-hoch', label: 'Etwas zu hoch', description: 'Meine Schultern sind angespannt – niedriger wäre besser.' },
+  { value: 'keine-meinung', label: 'Keine Meinung / Weiß nicht', description: 'Keine bestimmte Präferenz oder erstmalige Küche.' },
+];
+
 const STYLE_TOOLTIPS: Record<string, { description: string; recommendation?: string }> = {
   'Modern': { description: 'Klare Linien, grifflose Fronten, oft in Weiß, Grau oder Schwarz. Hochglanz oder samtmatt.', recommendation: 'Ideal mit Induktionskochfeld und integriertem Dunstabzug.' },
   'Klassisch': { description: 'Zeitlose Eleganz mit profilierten Fronten, warmen Farben und hochwertigen Materialien.' },
@@ -183,6 +191,53 @@ export function StyleForm({ data, onChange }: StyleFormProps) {
             </p>
           </div>
         )}
+
+        {/* Aktuelle Arbeitsplattenhöhe */}
+        <div className="mt-6 pt-4 border-t border-border space-y-4">
+          <h4 className="font-medium flex items-center gap-2">
+            Aktuelle Arbeitsplattenhöhe (falls vorhanden)
+            <InfoTooltip 
+              description="Die Höhe Ihrer jetzigen Arbeitsplatte hilft uns, Ihre Erfahrungen zu verstehen und die neue Küche optimal anzupassen."
+              recommendation="Messen Sie von der Oberkante der Arbeitsplatte bis zum Boden. Standard ist meist 86-92 cm."
+            />
+          </h4>
+          
+          <div className="flex items-center gap-3">
+            <Input
+              type="number"
+              value={data.currentCountertopHeight ?? ''}
+              onChange={(e) => onChange({ currentCountertopHeight: e.target.value ? parseInt(e.target.value) : null })}
+              placeholder="z.B. 90"
+              className="kitchen-input w-24"
+              min={70}
+              max={120}
+            />
+            <span className="text-sm text-muted-foreground">cm</span>
+          </div>
+
+          {/* Zufriedenheit mit aktueller Höhe */}
+          <div className="space-y-3">
+            <h4 className="font-medium">Sind Sie mit dieser Höhe zufrieden?</h4>
+            <RadioGroup 
+              value={data.currentCountertopSatisfaction || ''} 
+              onValueChange={(v) => onChange({ currentCountertopSatisfaction: v })}
+            >
+              <div className="grid sm:grid-cols-2 gap-2">
+                {COUNTERTOP_SATISFACTION.map((option) => (
+                  <div key={option.value} className="flex items-start gap-3 p-3 rounded-lg border border-border hover:border-primary/50 transition-colors">
+                    <RadioGroupItem value={option.value} id={`satisfaction-${option.value}`} className="mt-0.5" />
+                    <div className="flex-1">
+                      <Label htmlFor={`satisfaction-${option.value}`} className="font-medium cursor-pointer text-sm">
+                        {option.label}
+                      </Label>
+                      <p className="text-xs text-muted-foreground mt-0.5">{option.description}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </RadioGroup>
+          </div>
+        </div>
       </div>
 
       {/* NEU: Kochverhalten */}
