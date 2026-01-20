@@ -843,7 +843,14 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
       ['Stil', 'Frontenfarben', project.preferences.colors.join(', ')],
       ['Stil', 'Frontmaterial', project.preferences.materials.join(', ')],
       ['Stil', 'Arbeitsplatte', Array.isArray(project.preferences.countertop) ? project.preferences.countertop.join(', ') : (project.preferences.countertop || '')],
-      ['Stil', 'Hersteller', project.preferences.manufacturers.join(', ')],
+    ];
+    
+    // Add manufacturer only if enabled in branding
+    if (branding.showManufacturerField) {
+      csvRows.push(['Stil', 'Hersteller', project.preferences.manufacturers.join(', ')]);
+    }
+    
+    csvRows.push(
       [''],
       ['=== ELEKTROGERÄTE ===', '', ''],
       ['Geräte', 'Kochfeld', project.preferences.appliances.cooktop || ''],
@@ -857,7 +864,7 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
       ['Spüle', 'Material', project.preferences.sink || ''],
       [''],
       ['=== ANSCHLÜSSE ===', '', ''],
-    ];
+    );
 
     // Add floor plan elements
     project.floorPlan.elements.forEach((element, idx) => {
@@ -889,7 +896,7 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
     URL.revokeObjectURL(url);
     
     toast.success('CSV-Export erfolgreich heruntergeladen');
-  }, [project]);
+  }, [project, branding.showManufacturerField]);
 
   // Extract style details from mustHaves
   const frontSurfaces = getTaggedItems(project.preferences.mustHaves, 'Oberfläche:');
@@ -1378,7 +1385,7 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
                       </div>
                     </div>
                   )}
-                  {project.preferences.manufacturers.length > 0 && (
+                  {branding.showManufacturerField && project.preferences.manufacturers.length > 0 && (
                     <div className="pdf-data-item">
                       <span className="pdf-data-label">Kuechenhersteller</span>
                       <div className="pdf-tag-list">
