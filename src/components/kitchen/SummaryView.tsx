@@ -829,6 +829,8 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
       [''],
       ['=== ERGONOMIE ===', '', ''],
       ['Ergonomie', 'Körpergröße(n) (cm)', (project.preferences.userHeights || []).join(', ')],
+      ['Ergonomie', 'Aktuelle Arbeitsplattenhöhe (cm)', project.preferences.currentCountertopHeight?.toString() || ''],
+      ['Ergonomie', 'Zufriedenheit mit aktueller Höhe', project.preferences.currentCountertopSatisfaction || ''],
       ['Ergonomie', 'Kochverhalten', project.preferences.cookingFrequency || ''],
       ['Ergonomie', 'Haushaltsgröße', project.preferences.householdSize || ''],
       ['Ergonomie', 'Griff-Präferenz', project.preferences.gripType || ''],
@@ -1242,6 +1244,23 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
                               project.preferences.userHeights.length
                           )} cm
                         </p>
+                      </div>
+                    )}
+                    {(project.preferences.currentCountertopHeight || project.preferences.currentCountertopSatisfaction) && (
+                      <div className="pdf-data-item">
+                        <span className="pdf-data-label">Aktuelle Arbeitsplattenhoehe</span>
+                        <span className="pdf-data-value">
+                          {project.preferences.currentCountertopHeight ? `${project.preferences.currentCountertopHeight} cm` : '–'}
+                          {project.preferences.currentCountertopSatisfaction && (
+                            <span className="ml-2 text-muted-foreground">
+                              ({project.preferences.currentCountertopSatisfaction === 'sehr-zufrieden' ? 'Sehr zufrieden' :
+                                project.preferences.currentCountertopSatisfaction === 'zufrieden' ? 'Zufrieden' :
+                                project.preferences.currentCountertopSatisfaction === 'etwas-zu-niedrig' ? 'Etwas zu niedrig' :
+                                project.preferences.currentCountertopSatisfaction === 'etwas-zu-hoch' ? 'Etwas zu hoch' :
+                                'Keine Meinung'})
+                            </span>
+                          )}
+                        </span>
                       </div>
                     )}
                     {project.preferences.cookingFrequency && (
