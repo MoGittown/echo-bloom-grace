@@ -495,16 +495,25 @@
   /* All workarounds consolidated here for maintainability */
   .pdf-export * {
     /* Critical: Workaround for html2canvas Range/letter-spacing bugs */
-    letter-spacing: 0 !important;
-    word-spacing: 0 !important;
-    font-variant-ligatures: none !important;
-    font-kerning: none !important;
+    letter-spacing: normal !important;
+    word-spacing: normal !important;
+    font-kerning: normal !important;
     text-rendering: geometricPrecision !important;
     -webkit-font-smoothing: antialiased !important;
   }
 
   .pdf-export {
     background: #ffffff !important;
+  }
+
+  /* Muted text readable in PDF */
+  .pdf-export .text-muted-foreground {
+    color: #444 !important;
+  }
+
+  /* Remove max-width constraints that break A4 layout */
+  .pdf-export [class*="max-w-"] {
+    max-width: none !important;
   }
 
   .pdf-export .kitchen-card {
