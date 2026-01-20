@@ -407,7 +407,13 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
   const { branding } = useBranding();
 
   // PDF metadata for professional header/footer
-  const totalPdfPages = 5;
+  const validPhotos = project.photos.filter(p => p.preview);
+  const photosPerPage = 6;
+  const photoPages: typeof validPhotos[] = [];
+  for (let i = 0; i < validPhotos.length; i += photosPerPage) {
+    photoPages.push(validPhotos.slice(i, i + photosPerPage));
+  }
+  const totalPdfPages = 5 + photoPages.length; // Seite 5 bleibt Must und Notes, danach Foto Seiten
   const createdIso = project.createdAt instanceof Date ? project.createdAt.toISOString() : String(project.createdAt);
   const protocolId = `KP-${createdIso.slice(2, 10).replace(/-/g, '')}`;
   const customerFullName = [project.customer.firstName, project.customer.lastName].filter(Boolean).join(' ') || 'Unbekannt';
@@ -1728,56 +1734,6 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
             </div>
           )}
 
-          {/* ALL Photos - Split into pages of 6 for print */}
-          {project.photos.length > 0 && (() => {
-            const validPhotos = project.photos.filter(p => p.preview);
-            const photosPerPage = 6;
-            const photoPages: typeof validPhotos[] = [];
-            for (let i = 0; i < validPhotos.length; i += photosPerPage) {
-              photoPages.push(validPhotos.slice(i, i + photosPerPage));
-            }
-            
-            return (
-              <>
-                {project.photos.some(p => !p.preview) && (
-                  <div className="kitchen-card p-4 mb-4">
-                    <p className="text-xs text-amber-600">
-                      ⚠ Einige Fotos haben keine Bilddaten. Bitte im Schritt "Fotos" löschen und erneut hochladen.
-                    </p>
-                  </div>
-                )}
-                {photoPages.map((pagePhotos, pageIndex) => (
-                  <div 
-                    key={pageIndex} 
-                    className={`kitchen-card p-4 ${pageIndex > 0 ? 'print:break-before-page mt-4' : ''}`}
-                  >
-                    <h3 className="font-semibold flex items-center gap-2 mb-3">
-                      <Camera className="w-5 h-5 text-primary" />
-                      Fotos {photoPages.length > 1 ? `(Seite ${pageIndex + 1}/${photoPages.length})` : `(${validPhotos.length})`}
-                    </h3>
-                    <div className="grid grid-cols-2 gap-4 print:gap-3">
-                      {pagePhotos.map((photo) => (
-                        <div key={photo.id} className="overflow-hidden rounded-lg border border-border print:break-inside-avoid">
-                          <img
-                            src={photo.preview}
-                            alt={photo.type === 'room' ? 'Raumfoto' : 'Inspiration'}
-                            className="w-full h-48 object-cover print:h-40"
-                          />
-                          <div className="p-2 bg-muted/50 print:p-1">
-                            <p className="text-xs text-muted-foreground">
-                              {photo.type === 'room' ? 'Raumfoto' : 'Inspiration'}
-                              {photo.description && `: ${photo.description}`}
-                            </p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </>
-            );
-          })()}
-
           </div>
           
           <PdfPageFooter
@@ -1787,6 +1743,64 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
             studioName={branding.studioName}
           />
         </div>
+
+        {/* ===== PHOTO PAGES: Separate PDF pages for photos ===== */}
+        {photoPages.map((pagePhotos, pageIndex) => (
+          <div key={`photo-page-${pageIndex}`} data-pdf-page={6 + pageIndex} className="pdf-page">
+            <PdfPageHeader
+              protocolId={protocolId}
+              createdDate={formatDate(project.createdAt)}
+              customerName={customerFullName}
+              studioName={branding.studioName}
+              logoUrl={branding.logoUrl}
+            />
+            
+            <div className="flex-1">
+              {pageIndex === 0 && project.photos.some(p => !p.preview) && (
+                <div className="pdf-section mb-4">
+                  <div className="pdf-section-body">
+                    <p className="text-xs text-amber-600">
+                      ⚠ Einige Fotos haben keine Bilddaten. Bitte im Schritt "Fotos" löschen und erneut hochladen.
+                    </p>
+                  </div>
+                </div>
+              )}
+              
+              <div className="pdf-section">
+                <div className="pdf-section-header">
+                  <Camera className="w-5 h-5" />
+                  Fotos {photoPages.length > 1 ? `(${pageIndex + 1}/${photoPages.length})` : `(${validPhotos.length})`}
+                </div>
+                <div className="pdf-section-body">
+                  <div className="grid grid-cols-2 gap-4">
+                    {pagePhotos.map((photo) => (
+                      <div key={photo.id} className="overflow-hidden rounded-lg border border-border">
+                        <img
+                          src={photo.preview}
+                          alt={photo.type === 'room' ? 'Raumfoto' : 'Inspiration'}
+                          className="w-full h-48 object-cover"
+                        />
+                        <div className="p-2 bg-muted/50">
+                          <p className="text-xs text-muted-foreground">
+                            {photo.type === 'room' ? 'Raumfoto' : 'Inspiration'}
+                            {photo.description && `: ${photo.description}`}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <PdfPageFooter
+              pageNumber={6 + pageIndex}
+              totalPages={totalPdfPages}
+              contactLine={contactLine}
+              studioName={branding.studioName}
+            />
+          </div>
+        ))}
 
         {/* Additional Notes - Interactive (no-print) */}
         <div className="kitchen-card p-6 no-print">
