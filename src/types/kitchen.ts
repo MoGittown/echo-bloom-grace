@@ -179,7 +179,7 @@ export const KITCHEN_MANUFACTURERS = [
   // Österreich/Schweiz
   'Dan Küchen', 'Ewe', 'Intuo', 'Piatti', 'Forster',
   // Sonstige
-  'IKEA', 'Andere'
+  'IKEA'
 ];
 export const COUNTERTOP_MATERIALS = ['Granit', 'Quarzkomposit', 'Keramik', 'Naturstein', 'Edelstahl', 'Holz/Massivholz', 'Beton', 'HPL/Schichtstoff'];
 export const STORAGE_OPTIONS = ['Apothekerschrank', 'Eckschrank-Lösung', 'Schubladensystem', 'Gewürzauszug', 'Abfallsystem', 'Vorratsschrank', 'Ordnungssystem'];
