@@ -169,7 +169,18 @@ export const createDefaultProject = (): KitchenProject => ({
 export const KITCHEN_STYLES = ['Modern', 'Klassisch', 'Landhausstil', 'Skandinavisch', 'Industrial', 'Minimalistisch', 'Mediterran'];
 export const KITCHEN_COLORS = ['Weiß', 'Schwarz', 'Grau', 'Holzoptik', 'Beige/Creme', 'Blau', 'Grün', 'Terrakotta'];
 export const KITCHEN_MATERIALS = ['Hochglanz Lack', 'Matt Lack', 'Echtholz', 'Holzdekor', 'Beton-Optik', 'Stein-Optik', 'Glas', 'Edelstahl'];
-export const KITCHEN_MANUFACTURERS = ['Bulthaup', 'SieMatic', 'Nolte', 'Nobilia', 'Leicht', 'Poggenpohl', 'Schüller', 'Häcker', 'Next125', 'Andere'];
+export const KITCHEN_MANUFACTURERS = [
+  // Premium / Luxus
+  'Bulthaup', 'SieMatic', 'Poggenpohl', 'Leicht', 'Next125', 'Eggersmann', 'Warendorf', 'Allmilmö',
+  // Gehobene Mittelklasse
+  'Nolte', 'Schüller', 'Häcker', 'Ballerina', 'Bauformat', 'Brigitte', 'Rotpunkt', 'Sachsenküchen',
+  // Volumenhersteller
+  'Nobilia', 'Pino', 'Express Küchen', 'Burger Küchen', 'Wellmann', 'Alno', 'Impuls',
+  // Österreich/Schweiz
+  'Dan Küchen', 'Ewe', 'Intuo', 'Piatti', 'Forster',
+  // Sonstige
+  'IKEA', 'Andere'
+];
 export const COUNTERTOP_MATERIALS = ['Granit', 'Quarzkomposit', 'Keramik', 'Naturstein', 'Edelstahl', 'Holz/Massivholz', 'Beton', 'HPL/Schichtstoff'];
 export const STORAGE_OPTIONS = ['Apothekerschrank', 'Eckschrank-Lösung', 'Schubladensystem', 'Gewürzauszug', 'Abfallsystem', 'Vorratsschrank', 'Ordnungssystem'];
 export const APPLIANCE_TYPES = {

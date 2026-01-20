@@ -881,6 +881,29 @@ export default function AdminPage() {
                 />
               </div>
             </div>
+
+            <div className="border-t pt-4">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label>Hersteller-Auswahl anzeigen</Label>
+                  <p className="text-xs text-muted-foreground">
+                    Zeigt die Küchenhersteller-Auswahl im Stil-Schritt. Deaktivieren, wenn Sie herstellerunabhängig beraten.
+                  </p>
+                </div>
+                <Switch
+                  checked={branding.showManufacturerField ?? true}
+                  onCheckedChange={async (checked) => {
+                    setIsSaving(true);
+                    const success = await updateBranding({ showManufacturerField: checked });
+                    setIsSaving(false);
+                    if (success) {
+                      toast.success(checked ? 'Hersteller-Feld aktiviert' : 'Hersteller-Feld deaktiviert');
+                    }
+                  }}
+                  disabled={isSaving}
+                />
+              </div>
+            </div>
           </CardContent>
         </Card>
 

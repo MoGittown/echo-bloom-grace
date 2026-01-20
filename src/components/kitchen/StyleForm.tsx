@@ -6,9 +6,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { Slider } from '@/components/ui/slider';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Button } from '@/components/ui/button';
-import { Palette, Heart, Star, Euro, Package, Layers, User, ChefHat, Hand, Plus, X, Users } from 'lucide-react';
+import { Palette, Heart, Star, Euro, Package, Layers, User, ChefHat, Hand, Plus, X, Users, Factory } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { InfoTooltip } from './InfoTooltip';
+import { useBranding } from '@/hooks/useBranding';
 
 interface StyleFormProps {
   data: KitchenPreferences;
@@ -59,6 +60,8 @@ const calculateWorkHeight = (bodyHeight: number): number => {
 
 export function StyleForm({ data, onChange }: StyleFormProps) {
   const [newHeight, setNewHeight] = useState('');
+  const [customManufacturer, setCustomManufacturer] = useState('');
+  const { branding } = useBranding();
   
   const toggle = (arr: string[], item: string) => arr.includes(item) ? arr.filter(i => i !== item) : [...arr, item];
 
@@ -80,6 +83,18 @@ export function StyleForm({ data, onChange }: StyleFormProps) {
   const removeUserHeight = (index: number) => {
     const updated = (data.userHeights || []).filter((_, i) => i !== index);
     onChange({ userHeights: updated });
+  };
+
+  const addCustomManufacturer = () => {
+    const trimmed = customManufacturer.trim();
+    if (trimmed && !data.manufacturers.includes(trimmed)) {
+      onChange({ manufacturers: [...data.manufacturers, trimmed] });
+      setCustomManufacturer('');
+    }
+  };
+
+  const removeManufacturer = (manufacturer: string) => {
+    onChange({ manufacturers: data.manufacturers.filter(m => m !== manufacturer) });
   };
 
   // Berechne empfohlene Arbeitshöhe basierend auf den Nutzergrößen
@@ -357,11 +372,61 @@ export function StyleForm({ data, onChange }: StyleFormProps) {
         </div>
       </div>
 
-      <div className="kitchen-card p-6 space-y-4">
-        <h3 className="font-semibold">Bevorzugte Küchenhersteller</h3>
-        <p className="text-sm text-muted-foreground">Haben Sie Präferenzen bei Küchenmarken?</p>
-        <Chip items={KITCHEN_MANUFACTURERS} field="manufacturers" />
-      </div>
+      {branding.showManufacturerField && (
+        <div className="kitchen-card p-6 space-y-4">
+          <h3 className="font-semibold flex items-center gap-2">
+            <Factory className="w-5 h-5 text-primary" />
+            Bevorzugte Küchenhersteller
+            <InfoTooltip 
+              description="Falls Sie bereits bestimmte Küchenmarken bevorzugen, können wir das bei der Planung berücksichtigen."
+              recommendation="Dies ist optional – viele Kunden entscheiden sich erst nach der Beratung für einen Hersteller."
+            />
+          </h3>
+          <p className="text-sm text-muted-foreground">Haben Sie Präferenzen bei Küchenmarken? (optional)</p>
+          
+          {/* Selected manufacturers */}
+          {data.manufacturers.length > 0 && (
+            <div className="flex flex-wrap gap-2 mb-3">
+              {data.manufacturers.map((manufacturer) => (
+                <div key={manufacturer} className="flex items-center gap-1 px-3 py-1.5 bg-primary text-primary-foreground rounded-full text-sm">
+                  <span>{manufacturer}</span>
+                  <button onClick={() => removeManufacturer(manufacturer)} className="ml-1 hover:bg-primary-foreground/20 rounded-full p-0.5">
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+          
+          {/* Manufacturer chips */}
+          <div className="flex flex-wrap gap-2">
+            {KITCHEN_MANUFACTURERS.filter(m => m !== 'Andere' && !data.manufacturers.includes(m)).map(manufacturer => (
+              <button 
+                key={manufacturer}
+                onClick={() => onChange({ manufacturers: [...data.manufacturers, manufacturer] })}
+                className="px-4 py-2 rounded-full text-sm font-medium transition-all bg-muted text-muted-foreground hover:bg-muted/80"
+              >
+                {manufacturer}
+              </button>
+            ))}
+          </div>
+          
+          {/* Custom manufacturer input */}
+          <div className="flex items-center gap-2 pt-2 border-t border-border mt-4">
+            <Input
+              type="text"
+              value={customManufacturer}
+              onChange={(e) => setCustomManufacturer(e.target.value)}
+              placeholder="Anderen Hersteller eingeben..."
+              className="kitchen-input flex-1"
+              onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addCustomManufacturer())}
+            />
+            <Button onClick={addCustomManufacturer} size="sm" variant="outline" className="gap-1" disabled={!customManufacturer.trim()}>
+              <Plus className="w-4 h-4" /> Hinzufügen
+            </Button>
+          </div>
+        </div>
+      )}
 
       <div className="kitchen-card p-6 space-y-4">
         <h3 className="font-semibold flex items-center gap-2"><Package className="w-5 h-5 text-primary" />Stauraum-Lösungen</h3>

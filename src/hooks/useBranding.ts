@@ -26,6 +26,7 @@ export interface BrandingData {
   primaryColor: string;
   showDefaultBranding: boolean;
   showAppointmentBooking: boolean;
+  showManufacturerField: boolean;
   landingPage: LandingPageData;
   contact: ContactData;
 }
@@ -54,6 +55,7 @@ const DEFAULT_BRANDING: BrandingData = {
   primaryColor: '#8B7355',
   showDefaultBranding: true,
   showAppointmentBooking: false,
+  showManufacturerField: true,
   landingPage: DEFAULT_LANDING,
   contact: DEFAULT_CONTACT,
 };
@@ -129,6 +131,7 @@ function parseBrandingData(data: any): BrandingData {
     primaryColor: data.primary_color || '#C2410C',
     showDefaultBranding: data.show_default_branding ?? true,
     showAppointmentBooking: data.show_appointment_booking ?? false,
+    showManufacturerField: data.show_manufacturer_field ?? true,
     landingPage: {
       headline: data.landing_headline || DEFAULT_LANDING.headline,
       subheadline: data.landing_subheadline || DEFAULT_LANDING.subheadline,
@@ -295,6 +298,7 @@ export function useBrandingAdmin() {
           primaryColor: updates.primaryColor,
           showDefaultBranding: updates.showDefaultBranding,
           showAppointmentBooking: updates.showAppointmentBooking,
+          showManufacturerField: updates.showManufacturerField,
           landingHeadline: updates.landingPage?.headline,
           landingSubheadline: updates.landingPage?.subheadline,
           landingBenefit1: updates.landingPage?.benefit1,
