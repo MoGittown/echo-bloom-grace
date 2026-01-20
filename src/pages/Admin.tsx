@@ -25,7 +25,10 @@ import {
   Phone,
   AtSign,
   Globe,
-  CalendarDays
+  CalendarDays,
+  Factory,
+  Plus,
+  X
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
@@ -79,6 +82,11 @@ export default function AdminPage() {
     website: '',
   });
 
+  // Custom manufacturers editing
+  const [editedManufacturers, setEditedManufacturers] = useState<string[]>([]);
+  const [newManufacturer, setNewManufacturer] = useState('');
+  const [hasManufacturerChanges, setHasManufacturerChanges] = useState(false);
+
   // Initialize edit state when branding loads
   useEffect(() => {
     if (branding.studioName) {
@@ -106,6 +114,9 @@ export default function AdminPage() {
         email: branding.contact.email || '',
         website: branding.contact.website || '',
       });
+    }
+    if (branding.customManufacturers) {
+      setEditedManufacturers(branding.customManufacturers);
     }
   }, [branding]);
 
@@ -294,6 +305,34 @@ export default function AdminPage() {
     if (success) {
       toast.success('Kontaktdaten gespeichert');
       setHasContactChanges(false);
+    } else {
+      toast.error('Fehler beim Speichern');
+    }
+  };
+
+  // Custom manufacturers handlers
+  const addCustomManufacturer = () => {
+    const trimmed = newManufacturer.trim();
+    if (trimmed && !editedManufacturers.includes(trimmed)) {
+      setEditedManufacturers(prev => [...prev, trimmed]);
+      setNewManufacturer('');
+      setHasManufacturerChanges(true);
+    }
+  };
+
+  const removeCustomManufacturer = (manufacturer: string) => {
+    setEditedManufacturers(prev => prev.filter(m => m !== manufacturer));
+    setHasManufacturerChanges(true);
+  };
+
+  const handleSaveManufacturers = async () => {
+    setIsSaving(true);
+    const success = await updateBranding({ customManufacturers: editedManufacturers });
+    setIsSaving(false);
+
+    if (success) {
+      toast.success('Hersteller gespeichert');
+      setHasManufacturerChanges(false);
     } else {
       toast.error('Fehler beim Speichern');
     }
@@ -906,6 +945,75 @@ export default function AdminPage() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Custom Manufacturers */}
+        {(branding.showManufacturerField ?? true) && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Factory className="w-5 h-5" />
+                Eigene Küchenhersteller
+              </CardTitle>
+              <CardDescription>
+                Fügen Sie hier Ihre Eigenmarken oder Hersteller hinzu, die dann allen Kunden zur Auswahl stehen
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Current custom manufacturers */}
+              {editedManufacturers.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {editedManufacturers.map((manufacturer) => (
+                    <div key={manufacturer} className="flex items-center gap-1 px-3 py-1.5 bg-primary text-primary-foreground rounded-full text-sm">
+                      <span>{manufacturer}</span>
+                      <button 
+                        onClick={() => removeCustomManufacturer(manufacturer)} 
+                        className="ml-1 hover:bg-primary-foreground/20 rounded-full p-0.5"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {editedManufacturers.length === 0 && (
+                <p className="text-sm text-muted-foreground italic">
+                  Noch keine eigenen Hersteller hinzugefügt. Diese erscheinen zusätzlich zu den Standard-Herstellern.
+                </p>
+              )}
+
+              {/* Add new manufacturer */}
+              <div className="flex items-center gap-2">
+                <Input
+                  type="text"
+                  value={newManufacturer}
+                  onChange={(e) => setNewManufacturer(e.target.value)}
+                  placeholder="Neuen Hersteller eingeben..."
+                  className="flex-1"
+                  onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addCustomManufacturer())}
+                />
+                <Button 
+                  onClick={addCustomManufacturer} 
+                  size="sm" 
+                  variant="outline" 
+                  className="gap-1" 
+                  disabled={!newManufacturer.trim()}
+                >
+                  <Plus className="w-4 h-4" /> Hinzufügen
+                </Button>
+              </div>
+
+              <Button 
+                onClick={handleSaveManufacturers}
+                disabled={!hasManufacturerChanges || isSaving}
+                className="w-full"
+              >
+                {isSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                Hersteller speichern
+              </Button>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Preview */}
         <Card>

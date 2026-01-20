@@ -58,6 +58,7 @@ export type Database = {
           contact_phone: string | null
           contact_website: string | null
           created_at: string
+          custom_manufacturers: string[] | null
           id: string
           landing_benefit_1: string | null
           landing_benefit_2: string | null
@@ -82,6 +83,7 @@ export type Database = {
           contact_phone?: string | null
           contact_website?: string | null
           created_at?: string
+          custom_manufacturers?: string[] | null
           id?: string
           landing_benefit_1?: string | null
           landing_benefit_2?: string | null
@@ -106,6 +108,7 @@ export type Database = {
           contact_phone?: string | null
           contact_website?: string | null
           created_at?: string
+          custom_manufacturers?: string[] | null
           id?: string
           landing_benefit_1?: string | null
           landing_benefit_2?: string | null

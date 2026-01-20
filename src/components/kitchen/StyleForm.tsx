@@ -398,7 +398,26 @@ export function StyleForm({ data, onChange }: StyleFormProps) {
             </div>
           )}
           
-          {/* Manufacturer chips */}
+          {/* Studio custom manufacturers (from branding) */}
+          {branding.customManufacturers && branding.customManufacturers.length > 0 && (
+            <>
+              <p className="text-xs text-muted-foreground font-medium mt-2">Unsere Empfehlungen:</p>
+              <div className="flex flex-wrap gap-2">
+                {branding.customManufacturers.filter(m => !data.manufacturers.includes(m)).map(manufacturer => (
+                  <button 
+                    key={manufacturer}
+                    onClick={() => onChange({ manufacturers: [...data.manufacturers, manufacturer] })}
+                    className="px-4 py-2 rounded-full text-sm font-medium transition-all bg-accent/20 text-accent-foreground hover:bg-accent/30 border border-accent/30"
+                  >
+                    {manufacturer}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+          
+          {/* Standard manufacturer chips */}
+          <p className="text-xs text-muted-foreground font-medium mt-2">Weitere Hersteller:</p>
           <div className="flex flex-wrap gap-2">
             {KITCHEN_MANUFACTURERS.filter(m => m !== 'Andere' && !data.manufacturers.includes(m)).map(manufacturer => (
               <button 
