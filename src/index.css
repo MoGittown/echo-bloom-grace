@@ -137,32 +137,41 @@
   }
 
   /* ===== PROFESSIONAL PDF DESIGN SYSTEM ===== */
+  /* Optimized for print quality: 11pt base, stronger contrasts, wider margins */
   
-  /* PDF Page Container */
+  /* PDF Page Container - Professionelle Seitenränder (12mm ~ 45px) */
   .pdf-page {
-    @apply bg-white p-6 flex flex-col min-h-[1100px];
+    @apply bg-white flex flex-col;
+    padding: 45px 45px 40px 45px;
+    min-height: 1100px;
     font-family: 'Inter', system-ui, sans-serif;
-    font-size: 10pt;
-    line-height: 1.4;
-    color: hsl(var(--foreground));
+    font-size: 11pt;
+    line-height: 1.5;
+    color: hsl(20 14% 12%); /* Darker for better contrast */
   }
 
   /* PDF Header - Clean professional look */
   .pdf-header {
-    @apply flex items-center justify-between pb-3 mb-4;
-    border-bottom: 2px solid hsl(var(--primary));
+    @apply flex items-center justify-between mb-5;
+    padding-bottom: 14px;
+    border-bottom: 3px solid hsl(var(--primary));
   }
 
   .pdf-header-logo {
-    @apply flex items-center gap-3;
+    @apply flex items-center gap-4;
   }
 
   .pdf-header-logo img {
-    @apply h-10 max-w-[120px] object-contain;
+    height: 48px;
+    max-width: 140px;
+    object-fit: contain;
   }
 
   .pdf-header-logo .studio-name {
-    @apply text-lg font-bold text-foreground;
+    font-size: 14pt;
+    font-weight: 700;
+    color: hsl(20 14% 12%);
+    letter-spacing: -0.01em;
   }
 
   .pdf-header-title {
@@ -170,54 +179,80 @@
   }
 
   .pdf-header-title h1 {
-    @apply text-base font-bold text-foreground tracking-tight;
+    font-size: 13pt;
+    font-weight: 700;
+    color: hsl(20 14% 12%);
+    letter-spacing: -0.02em;
+    margin-bottom: 2px;
   }
 
   .pdf-header-title .subtitle {
-    @apply text-xs text-muted-foreground;
+    font-size: 10pt;
+    color: hsl(20 10% 40%);
   }
 
   .pdf-header-meta {
-    @apply text-right text-xs text-muted-foreground space-y-0.5;
+    @apply text-right space-y-1;
+    font-size: 10pt;
+    color: hsl(20 10% 40%);
   }
 
   .pdf-header-meta .value {
-    @apply font-medium text-foreground;
+    font-weight: 600;
+    color: hsl(20 14% 12%);
   }
 
   /* PDF Footer - Minimal and elegant */
   .pdf-footer {
-    @apply flex items-center justify-between pt-3 mt-auto text-[8pt] text-muted-foreground;
-    border-top: 1px solid hsl(var(--border) / 0.5);
+    @apply flex items-center justify-between mt-auto;
+    padding-top: 12px;
+    margin-top: auto;
+    font-size: 9pt;
+    color: hsl(20 10% 45%);
+    border-top: 1px solid hsl(30 15% 85%);
   }
 
   .pdf-footer .page-number {
-    @apply font-medium;
+    font-weight: 600;
+    color: hsl(20 14% 25%);
   }
 
   /* PDF Section Cards - Clean and structured */
   .pdf-section {
-    @apply rounded-lg border border-border/50 mb-4 overflow-hidden;
-    background: hsl(var(--card));
+    @apply rounded-lg overflow-hidden;
+    margin-bottom: 20px;
+    background: hsl(0 0% 100%);
+    border: 1px solid hsl(30 15% 88%);
+    box-shadow: 0 1px 3px hsl(20 14% 15% / 0.04);
   }
 
   .pdf-section-header {
-    @apply flex items-center gap-2 px-4 py-2.5 font-semibold text-[10pt];
-    background: hsl(var(--muted) / 0.5);
-    border-bottom: 1px solid hsl(var(--border) / 0.5);
+    @apply flex items-center gap-2.5;
+    padding: 12px 18px;
+    font-size: 11pt;
+    font-weight: 600;
+    color: hsl(20 14% 15%);
+    background: hsl(40 20% 97%);
+    border-bottom: 1px solid hsl(30 15% 90%);
   }
 
   .pdf-section-header svg {
-    @apply w-4 h-4 text-primary flex-shrink-0;
+    width: 18px;
+    height: 18px;
+    color: hsl(var(--primary));
+    flex-shrink: 0;
   }
 
   .pdf-section-body {
-    @apply p-4 text-[9pt];
+    padding: 18px 20px;
+    font-size: 10pt;
+    line-height: 1.55;
   }
 
   /* PDF Data Grid - For key-value pairs */
   .pdf-data-grid {
-    @apply grid gap-x-6 gap-y-2;
+    @apply grid;
+    gap: 16px 28px;
     grid-template-columns: repeat(2, 1fr);
   }
 
@@ -230,81 +265,115 @@
   }
 
   .pdf-data-item {
-    @apply flex flex-col gap-0.5;
+    @apply flex flex-col;
+    gap: 3px;
   }
 
   .pdf-data-label {
-    @apply text-[8pt] text-muted-foreground uppercase tracking-wide font-medium;
+    font-size: 9pt;
+    font-weight: 600;
+    color: hsl(20 10% 45%);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
   }
 
   .pdf-data-value {
-    @apply text-[9pt] font-medium text-foreground;
+    font-size: 11pt;
+    font-weight: 500;
+    color: hsl(20 14% 12%);
   }
 
   /* PDF Tags - For multiple values */
   .pdf-tag-list {
-    @apply flex flex-wrap gap-1;
+    @apply flex flex-wrap;
+    gap: 6px;
   }
 
   .pdf-tag {
-    @apply px-2 py-0.5 rounded text-[8pt] font-medium;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 9pt;
+    font-weight: 600;
     background: hsl(var(--primary) / 0.1);
     color: hsl(var(--primary));
   }
 
   .pdf-tag.accent {
     background: hsl(var(--accent) / 0.15);
-    color: hsl(var(--accent-foreground));
+    color: hsl(150 30% 30%);
   }
 
   .pdf-tag.muted {
-    background: hsl(var(--muted));
-    color: hsl(var(--muted-foreground));
+    background: hsl(40 20% 94%);
+    color: hsl(20 10% 35%);
   }
 
   /* PDF Highlight Box - For important summary data */
   .pdf-highlight-box {
-    @apply rounded-lg p-4 mb-4;
+    @apply rounded-lg;
+    padding: 20px;
+    margin-bottom: 20px;
     background: linear-gradient(135deg, hsl(var(--primary) / 0.08) 0%, hsl(var(--primary) / 0.02) 100%);
     border: 1px solid hsl(var(--primary) / 0.2);
   }
 
   .pdf-highlight-grid {
-    @apply grid gap-3;
+    @apply grid;
+    gap: 16px;
     grid-template-columns: repeat(4, 1fr);
   }
 
   .pdf-highlight-item {
-    @apply rounded-lg p-3 text-center;
-    background: hsl(var(--background));
-    box-shadow: 0 1px 3px hsl(var(--foreground) / 0.05);
+    @apply rounded-lg text-center;
+    padding: 14px;
+    background: hsl(0 0% 100%);
+    box-shadow: 0 1px 4px hsl(20 14% 15% / 0.06);
   }
 
   .pdf-highlight-label {
-    @apply text-[7pt] text-muted-foreground uppercase tracking-wider font-medium mb-1 flex items-center justify-center gap-1;
+    @apply flex items-center justify-center gap-1;
+    font-size: 8pt;
+    font-weight: 600;
+    color: hsl(20 10% 45%);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 6px;
   }
 
   .pdf-highlight-value {
-    @apply text-[11pt] font-bold text-foreground;
+    font-size: 13pt;
+    font-weight: 700;
+    color: hsl(20 14% 12%);
   }
 
   .pdf-highlight-sub {
-    @apply text-[8pt] text-muted-foreground;
+    font-size: 9pt;
+    color: hsl(20 10% 45%);
+    margin-top: 2px;
   }
 
   /* PDF Table - For structured data */
   .pdf-table {
-    @apply w-full text-[9pt];
+    @apply w-full;
+    font-size: 10pt;
   }
 
   .pdf-table th {
-    @apply text-left py-2 px-3 font-semibold text-[8pt] uppercase tracking-wide text-muted-foreground;
-    background: hsl(var(--muted) / 0.5);
-    border-bottom: 1px solid hsl(var(--border));
+    @apply text-left;
+    padding: 10px 14px;
+    font-size: 9pt;
+    font-weight: 700;
+    color: hsl(20 10% 40%);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    background: hsl(40 20% 96%);
+    border-bottom: 1px solid hsl(30 15% 88%);
   }
 
   .pdf-table td {
-    @apply py-2 px-3 border-b border-border/30;
+    padding: 10px 14px;
+    border-bottom: 1px solid hsl(30 15% 92%);
+    color: hsl(20 14% 15%);
   }
 
   .pdf-table tr:last-child td {
@@ -313,44 +382,69 @@
 
   /* PDF Canvas Container - For drawings */
   .pdf-canvas-container {
-    @apply flex justify-center p-2 rounded-lg;
-    background: hsl(var(--muted) / 0.3);
+    @apply flex justify-center;
+    padding: 12px;
+    border-radius: 8px;
+    background: hsl(40 20% 98%);
   }
 
   /* PDF Photo Grid */
   .pdf-photo-grid {
-    @apply grid grid-cols-2 gap-3;
+    @apply grid grid-cols-2;
+    gap: 14px;
   }
 
   .pdf-photo-item {
-    @apply rounded-lg overflow-hidden border border-border/50;
+    @apply rounded-lg overflow-hidden;
+    border: 1px solid hsl(30 15% 88%);
   }
 
   .pdf-photo-item img {
-    @apply w-full h-36 object-cover;
+    @apply w-full object-cover;
+    height: 150px;
   }
 
   .pdf-photo-caption {
-    @apply px-2 py-1.5 text-[8pt] text-muted-foreground;
-    background: hsl(var(--muted) / 0.5);
+    padding: 8px 12px;
+    font-size: 9pt;
+    color: hsl(20 10% 40%);
+    background: hsl(40 20% 97%);
   }
 
   /* PDF Inline List with Icons */
   .pdf-check-list {
-    @apply space-y-1.5;
+    @apply space-y-2;
   }
 
   .pdf-check-item {
-    @apply flex items-start gap-2 text-[9pt];
+    @apply flex items-start gap-2.5;
+    font-size: 10pt;
+    color: hsl(20 14% 15%);
   }
 
   .pdf-check-item svg {
-    @apply w-3.5 h-3.5 text-accent mt-0.5 flex-shrink-0;
+    width: 16px;
+    height: 16px;
+    color: hsl(var(--accent));
+    flex-shrink: 0;
+    margin-top: 2px;
   }
 
   /* PDF Two-Column Layout */
   .pdf-two-col {
-    @apply grid grid-cols-2 gap-4;
+    @apply grid grid-cols-2;
+    gap: 24px;
+  }
+
+  /* PDF Notes Section */
+  .pdf-notes {
+    padding: 16px 20px;
+    border-radius: 8px;
+    background: hsl(40 25% 97%);
+    border-left: 4px solid hsl(var(--primary));
+    font-size: 10pt;
+    line-height: 1.6;
+    color: hsl(20 14% 20%);
   }
 
   /* Legacy compatibility */
@@ -398,56 +492,57 @@
   /* Print Styles */
 
   /* PDF Export Styles (used by html2canvas via .pdf-export on cloned DOM) */
+  /* All workarounds consolidated here for maintainability */
   .pdf-export * {
-    /* Workaround for html2canvas Range/letter-spacing bugs */
-    letter-spacing: normal !important;
+    /* Critical: Workaround for html2canvas Range/letter-spacing bugs */
+    letter-spacing: 0 !important;
+    word-spacing: 0 !important;
     font-variant-ligatures: none !important;
     font-kerning: none !important;
+    text-rendering: geometricPrecision !important;
+    -webkit-font-smoothing: antialiased !important;
+  }
+
+  .pdf-export {
+    background: #ffffff !important;
   }
 
   .pdf-export .kitchen-card {
-    box-shadow: none;
+    box-shadow: none !important;
+    border: 1px solid hsl(30 15% 88%) !important;
   }
 
-  .pdf-export .kitchen-card,
-  .pdf-export .p-6 {
-    padding: 12px !important;
+  /* Ensure proper font sizing in export */
+  .pdf-export .pdf-page {
+    font-size: 11pt !important;
+    line-height: 1.5 !important;
+    color: hsl(20 14% 12%) !important;
   }
 
-  .pdf-export .kitchen-card {
-    margin-bottom: 8px !important;
+  .pdf-export .pdf-section-body {
+    font-size: 10pt !important;
   }
 
+  .pdf-export .pdf-data-value {
+    font-size: 11pt !important;
+    font-weight: 500 !important;
+  }
+
+  .pdf-export .pdf-data-label {
+    font-size: 9pt !important;
+  }
+
+  /* Spacing adjustments for PDF render */
   .pdf-export .space-y-6 > * {
-    margin-bottom: 8px !important;
-  }
-
-  .pdf-export .mt-6 {
-    margin-top: 8px !important;
-  }
-
-  .pdf-export .mb-6 {
-    margin-bottom: 8px !important;
+    margin-bottom: 12px !important;
   }
 
   .pdf-export .gap-6 {
-    gap: 8px !important;
+    gap: 12px !important;
   }
 
   .pdf-export .gap-4 {
-    gap: 6px !important;
-  }
-
-  .pdf-export .pb-6 {
-    padding-bottom: 12px !important;
-  }
-
-  .pdf-export .pt-4 {
-    padding-top: 8px !important;
-  }
-
-  .pdf-export .mt-4 {
-    margin-top: 8px !important;
+    gap: 10px !important;
   }
 
 @media print {
