@@ -1559,7 +1559,7 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
         </div>
 
         {/* ===== PAGE 3: Wall Views Nord & Ost ===== */}
-        <div data-pdf-page="3" className="print-page-break-before bg-white p-4 flex flex-col min-h-[1100px] text-[11pt]">
+        <div data-pdf-page="3" className="pdf-page">
           <PdfPageHeader
             protocolId={protocolId}
             createdDate={formatDate(project.createdAt)}
@@ -1601,7 +1601,7 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
         </div>
 
         {/* ===== PAGE 4: Wall Views Süd & West + Element Table ===== */}
-        <div data-pdf-page="4" className="print-page-break-before bg-white p-4 flex flex-col min-h-[1100px] text-[11pt]">
+        <div data-pdf-page="4" className="pdf-page">
           <PdfPageHeader
             protocolId={protocolId}
             createdDate={formatDate(project.createdAt)}
@@ -1675,7 +1675,7 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
         </div>
 
         {/* ===== PAGE 5: Must-haves, Nice-to-haves, Notes, ALL Photos ===== */}
-        <div data-pdf-page="5" className="print-page-break-before bg-white p-4 flex flex-col min-h-[1100px] text-[11pt]">
+        <div data-pdf-page="5" className="pdf-page">
           <PdfPageHeader
             protocolId={protocolId}
             createdDate={formatDate(project.createdAt)}
