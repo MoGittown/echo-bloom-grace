@@ -1375,7 +1375,7 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
           
           <PdfPageFooter
             pageNumber={1}
-            totalPages={5}
+            totalPages={totalPdfPages}
             contactLine={contactLine}
             studioName={branding.studioName}
           />
@@ -1558,7 +1558,7 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
           
           <PdfPageFooter
             pageNumber={2}
-            totalPages={5}
+            totalPages={totalPdfPages}
             contactLine={contactLine}
             studioName={branding.studioName}
           />
@@ -1600,7 +1600,7 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
           
           <PdfPageFooter
             pageNumber={3}
-            totalPages={5}
+            totalPages={totalPdfPages}
             contactLine={contactLine}
             studioName={branding.studioName}
           />
@@ -1674,7 +1674,7 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
           
           <PdfPageFooter
             pageNumber={4}
-            totalPages={5}
+            totalPages={totalPdfPages}
             contactLine={contactLine}
             studioName={branding.studioName}
           />
@@ -1738,7 +1738,7 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
           
           <PdfPageFooter
             pageNumber={5}
-            totalPages={5}
+            totalPages={totalPdfPages}
             contactLine={contactLine}
             studioName={branding.studioName}
           />
@@ -1785,7 +1785,7 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
               </div>
               <PdfPageFooter
                 pageNumber={pageNumber}
-                totalPages={5}
+                totalPages={totalPdfPages}
                 contactLine={contactLine}
                 studioName={branding.studioName}
               />
