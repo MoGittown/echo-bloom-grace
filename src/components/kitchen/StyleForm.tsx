@@ -398,37 +398,42 @@ export function StyleForm({ data, onChange }: StyleFormProps) {
             </div>
           )}
           
-          {/* Studio custom manufacturers (from branding) */}
-          {branding.customManufacturers && branding.customManufacturers.length > 0 && (
-            <>
-              <p className="text-xs text-muted-foreground font-medium mt-2">Unsere Empfehlungen:</p>
-              <div className="flex flex-wrap gap-2">
-                {branding.customManufacturers.filter(m => !data.manufacturers.includes(m)).map(manufacturer => (
-                  <button 
-                    key={manufacturer}
-                    onClick={() => onChange({ manufacturers: [...data.manufacturers, manufacturer] })}
-                    className="px-4 py-2 rounded-full text-sm font-medium transition-all bg-accent/20 text-accent-foreground hover:bg-accent/30 border border-accent/30"
-                  >
-                    {manufacturer}
-                  </button>
-                ))}
-              </div>
-            </>
-          )}
-          
-          {/* Standard manufacturer chips */}
-          <p className="text-xs text-muted-foreground font-medium mt-2">Weitere Hersteller:</p>
-          <div className="flex flex-wrap gap-2">
-            {KITCHEN_MANUFACTURERS.filter(m => m !== 'Andere' && !data.manufacturers.includes(m)).map(manufacturer => (
-              <button 
-                key={manufacturer}
-                onClick={() => onChange({ manufacturers: [...data.manufacturers, manufacturer] })}
-                className="px-4 py-2 rounded-full text-sm font-medium transition-all bg-muted text-muted-foreground hover:bg-muted/80"
-              >
-                {manufacturer}
-              </button>
-            ))}
-          </div>
+          {/* Studio's enabled manufacturers + custom manufacturers */}
+          {(() => {
+            // Combine enabled standard manufacturers with custom manufacturers
+            const studioManufacturers = [
+              ...(branding.enabledManufacturers || []),
+              ...(branding.customManufacturers || [])
+            ];
+            const availableManufacturers = studioManufacturers.filter(m => !data.manufacturers.includes(m));
+            
+            if (availableManufacturers.length > 0) {
+              return (
+                <div className="flex flex-wrap gap-2">
+                  {availableManufacturers.map(manufacturer => (
+                    <button 
+                      key={manufacturer}
+                      onClick={() => onChange({ manufacturers: [...data.manufacturers, manufacturer] })}
+                      className="px-4 py-2 rounded-full text-sm font-medium transition-all bg-muted text-muted-foreground hover:bg-muted/80"
+                    >
+                      {manufacturer}
+                    </button>
+                  ))}
+                </div>
+              );
+            }
+            
+            // If no manufacturers configured by studio, show hint
+            if (studioManufacturers.length === 0) {
+              return (
+                <p className="text-sm text-muted-foreground italic">
+                  Bitte geben Sie unten Ihren bevorzugten Hersteller ein.
+                </p>
+              );
+            }
+            
+            return null;
+          })()}
           
           {/* Custom manufacturer input */}
           <div className="flex items-center gap-2 pt-2 border-t border-border mt-4">

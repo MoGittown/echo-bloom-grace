@@ -28,6 +28,7 @@ export interface BrandingData {
   showAppointmentBooking: boolean;
   showManufacturerField: boolean;
   customManufacturers: string[];
+  enabledManufacturers: string[];
   landingPage: LandingPageData;
   contact: ContactData;
 }
@@ -58,6 +59,7 @@ const DEFAULT_BRANDING: BrandingData = {
   showAppointmentBooking: false,
   showManufacturerField: true,
   customManufacturers: [],
+  enabledManufacturers: [],
   landingPage: DEFAULT_LANDING,
   contact: DEFAULT_CONTACT,
 };
@@ -135,6 +137,7 @@ function parseBrandingData(data: any): BrandingData {
     showAppointmentBooking: data.show_appointment_booking ?? false,
     showManufacturerField: data.show_manufacturer_field ?? true,
     customManufacturers: data.custom_manufacturers || [],
+    enabledManufacturers: data.enabled_manufacturers || [],
     landingPage: {
       headline: data.landing_headline || DEFAULT_LANDING.headline,
       subheadline: data.landing_subheadline || DEFAULT_LANDING.subheadline,
@@ -303,6 +306,7 @@ export function useBrandingAdmin() {
           showAppointmentBooking: updates.showAppointmentBooking,
           showManufacturerField: updates.showManufacturerField,
           customManufacturers: updates.customManufacturers,
+          enabledManufacturers: updates.enabledManufacturers,
           landingHeadline: updates.landingPage?.headline,
           landingSubheadline: updates.landingPage?.subheadline,
           landingBenefit1: updates.landingPage?.benefit1,

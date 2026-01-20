@@ -86,6 +86,10 @@ export default function AdminPage() {
   const [editedManufacturers, setEditedManufacturers] = useState<string[]>([]);
   const [newManufacturer, setNewManufacturer] = useState('');
   const [hasManufacturerChanges, setHasManufacturerChanges] = useState(false);
+  
+  // Enabled standard manufacturers
+  const [editedEnabledManufacturers, setEditedEnabledManufacturers] = useState<string[]>([]);
+  const [hasEnabledChanges, setHasEnabledChanges] = useState(false);
 
   // Initialize edit state when branding loads
   useEffect(() => {
@@ -117,6 +121,9 @@ export default function AdminPage() {
     }
     if (branding.customManufacturers) {
       setEditedManufacturers(branding.customManufacturers);
+    }
+    if (branding.enabledManufacturers) {
+      setEditedEnabledManufacturers(branding.enabledManufacturers);
     }
   }, [branding]);
 
@@ -323,6 +330,29 @@ export default function AdminPage() {
   const removeCustomManufacturer = (manufacturer: string) => {
     setEditedManufacturers(prev => prev.filter(m => m !== manufacturer));
     setHasManufacturerChanges(true);
+  };
+
+  // Toggle enabled manufacturer
+  const toggleEnabledManufacturer = (manufacturer: string) => {
+    setEditedEnabledManufacturers(prev => 
+      prev.includes(manufacturer) 
+        ? prev.filter(m => m !== manufacturer)
+        : [...prev, manufacturer]
+    );
+    setHasEnabledChanges(true);
+  };
+
+  const handleSaveEnabledManufacturers = async () => {
+    setIsSaving(true);
+    const success = await updateBranding({ enabledManufacturers: editedEnabledManufacturers });
+    setIsSaving(false);
+
+    if (success) {
+      toast.success('Hersteller-Auswahl gespeichert');
+      setHasEnabledChanges(false);
+    } else {
+      toast.error('Fehler beim Speichern');
+    }
   };
 
   const handleSaveManufacturers = async () => {
@@ -946,16 +976,127 @@ export default function AdminPage() {
           </CardContent>
         </Card>
 
-        {/* Custom Manufacturers */}
+        {/* Standard Manufacturers Selection */}
         {(branding.showManufacturerField ?? true) && (
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Factory className="w-5 h-5" />
-                Eigene Küchenhersteller
+                Hersteller-Programm
               </CardTitle>
               <CardDescription>
-                Fügen Sie hier Ihre Eigenmarken oder Hersteller hinzu, die dann allen Kunden zur Auswahl stehen
+                Wählen Sie die Küchenhersteller aus, die Sie in Ihrem Studio führen. Nur diese werden Kunden angezeigt.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                {editedEnabledManufacturers.length === 0 
+                  ? 'Noch keine Hersteller ausgewählt. Klicken Sie auf die Hersteller, die Sie führen.'
+                  : `${editedEnabledManufacturers.length} Hersteller ausgewählt`}
+              </p>
+              
+              {/* Premium manufacturers */}
+              <div className="space-y-2">
+                <p className="text-xs font-medium text-muted-foreground">Premium / Luxus</p>
+                <div className="flex flex-wrap gap-2">
+                  {['Bulthaup', 'SieMatic', 'Poggenpohl', 'Leicht', 'Next125', 'Eggersmann', 'Warendorf', 'Allmilmö'].map(m => (
+                    <button 
+                      key={m}
+                      onClick={() => toggleEnabledManufacturer(m)}
+                      className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
+                        editedEnabledManufacturers.includes(m)
+                          ? 'bg-primary text-primary-foreground'
+                          : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                      }`}
+                    >
+                      {m}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Mid-range manufacturers */}
+              <div className="space-y-2">
+                <p className="text-xs font-medium text-muted-foreground">Gehobene Mittelklasse</p>
+                <div className="flex flex-wrap gap-2">
+                  {['Nolte', 'Schüller', 'Häcker', 'Ballerina', 'Bauformat', 'Brigitte', 'Rotpunkt', 'Sachsenküchen'].map(m => (
+                    <button 
+                      key={m}
+                      onClick={() => toggleEnabledManufacturer(m)}
+                      className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
+                        editedEnabledManufacturers.includes(m)
+                          ? 'bg-primary text-primary-foreground'
+                          : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                      }`}
+                    >
+                      {m}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Volume manufacturers */}
+              <div className="space-y-2">
+                <p className="text-xs font-medium text-muted-foreground">Volumenhersteller</p>
+                <div className="flex flex-wrap gap-2">
+                  {['Nobilia', 'Pino', 'Express Küchen', 'Burger Küchen', 'Wellmann', 'Alno', 'Impuls', 'IKEA'].map(m => (
+                    <button 
+                      key={m}
+                      onClick={() => toggleEnabledManufacturer(m)}
+                      className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
+                        editedEnabledManufacturers.includes(m)
+                          ? 'bg-primary text-primary-foreground'
+                          : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                      }`}
+                    >
+                      {m}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* AT/CH manufacturers */}
+              <div className="space-y-2">
+                <p className="text-xs font-medium text-muted-foreground">Österreich / Schweiz</p>
+                <div className="flex flex-wrap gap-2">
+                  {['Dan Küchen', 'Ewe', 'Intuo', 'Piatti', 'Forster'].map(m => (
+                    <button 
+                      key={m}
+                      onClick={() => toggleEnabledManufacturer(m)}
+                      className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
+                        editedEnabledManufacturers.includes(m)
+                          ? 'bg-primary text-primary-foreground'
+                          : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                      }`}
+                    >
+                      {m}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <Button 
+                onClick={handleSaveEnabledManufacturers}
+                disabled={!hasEnabledChanges || isSaving}
+                className="w-full"
+              >
+                {isSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                Hersteller-Programm speichern
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Custom Manufacturers */}
+        {(branding.showManufacturerField ?? true) && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Plus className="w-5 h-5" />
+                Eigene Hersteller / Eigenmarken
+              </CardTitle>
+              <CardDescription>
+                Fügen Sie zusätzliche Hersteller oder Ihre Eigenmarken hinzu
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -978,7 +1119,7 @@ export default function AdminPage() {
 
               {editedManufacturers.length === 0 && (
                 <p className="text-sm text-muted-foreground italic">
-                  Noch keine eigenen Hersteller hinzugefügt. Diese erscheinen zusätzlich zu den Standard-Herstellern.
+                  Noch keine eigenen Hersteller hinzugefügt.
                 </p>
               )}
 
@@ -1009,7 +1150,7 @@ export default function AdminPage() {
                 className="w-full"
               >
                 {isSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-                Hersteller speichern
+                Eigene Hersteller speichern
               </Button>
             </CardContent>
           </Card>

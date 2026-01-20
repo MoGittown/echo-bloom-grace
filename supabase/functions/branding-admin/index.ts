@@ -41,6 +41,7 @@ serve(async (req: Request) => {
       showAppointmentBooking,
       showManufacturerField,
       customManufacturers,
+      enabledManufacturers,
       landingHeadline,
       landingSubheadline,
       landingBenefit1,
@@ -141,6 +142,7 @@ serve(async (req: Request) => {
         if (showAppointmentBooking !== undefined) updateData.show_appointment_booking = showAppointmentBooking;
         if (showManufacturerField !== undefined) updateData.show_manufacturer_field = showManufacturerField;
         if (customManufacturers !== undefined) updateData.custom_manufacturers = customManufacturers;
+        if (enabledManufacturers !== undefined) updateData.enabled_manufacturers = enabledManufacturers;
         if (landingHeadline !== undefined) updateData.landing_headline = landingHeadline;
         if (landingSubheadline !== undefined) updateData.landing_subheadline = landingSubheadline;
         if (landingBenefit1 !== undefined) updateData.landing_benefit_1 = landingBenefit1;
