@@ -91,9 +91,11 @@ export async function exportKitchenPdf({ filename, root }: ExportOptions) {
   const pages = Array.from(root.querySelectorAll<HTMLElement>("[data-pdf-page]"));
   const targets = pages.length ? pages : [root];
 
-  const marginMm = 16; // genug Luft, damit nichts am Rand gekappt wird
-  const contentW = A4_MM_W - marginMm * 2;
-  const contentH = A4_MM_H - marginMm * 2;
+  const marginTopMm = 8; // reduzierter oberer Rand
+  const marginSideMm = 12; // seitlicher Rand
+  const marginBottomMm = 12; // unterer Rand
+  const contentW = A4_MM_W - marginSideMm * 2;
+  const contentH = A4_MM_H - marginTopMm - marginBottomMm;
 
   for (let i = 0; i < targets.length; i++) {
     const source = targets[i];
@@ -152,8 +154,8 @@ export async function exportKitchenPdf({ filename, root }: ExportOptions) {
       renderW = (canvas.width * renderH) / canvas.height;
     }
 
-    const x = marginMm + (contentW - renderW) / 2;
-    const y = marginMm + (contentH - renderH) / 2;
+    const x = marginSideMm + (contentW - renderW) / 2;
+    const y = marginTopMm; // Inhalt direkt am oberen Rand beginnen
 
     pdf.addImage(imgData, "PNG", x, y, renderW, renderH, undefined, "FAST");
   }
