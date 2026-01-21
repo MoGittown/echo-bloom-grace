@@ -6,12 +6,12 @@ type ExportOptions = {
   root: HTMLElement;
 };
 
-const A4_MM_W = 210;
-const A4_MM_H = 297;
+export const A4_MM_W = 210;
+export const A4_MM_H = 297;
 
 // A4 in px bei 96dpi
-const A4_PX_W = 794;
-const A4_PX_H = 1123;
+export const A4_PX_W = 794;
+export const A4_PX_H = 1123;
 
 function createStage() {
   const stage = document.createElement("div");
@@ -24,6 +24,7 @@ function createStage() {
   stage.style.background = "#ffffff";
   stage.style.overflow = "hidden";
   stage.style.zIndex = "2147483647";
+  stage.style.pointerEvents = "none";
   stage.classList.add("pdf-export");
   document.body.appendChild(stage);
   return stage;
@@ -34,114 +35,100 @@ function cleanupStage(stage: HTMLElement | null) {
   stage.remove();
 }
 
+/**
+ * Canvas wird beim cloneNode oft leer.
+ * Fix: Inhalt vom Original-Canvas in den Clone-Canvas kopieren, ohne Layout zu ändern.
+ *
+ * Matching:
+ * 1) per data-pdf-canvas (wenn vorhanden)
+ * 2) sonst per Index-Reihenfolge
+ */
+function copyCanvasContent(source: HTMLElement, clone: HTMLElement) {
+  const sourceAll = Array.from(source.querySelectorAll<HTMLCanvasElement>("canvas"));
+  const cloneAll = Array.from(clone.querySelectorAll<HTMLCanvasElement>("canvas"));
+
+  const sourceByKey = new Map<string, HTMLCanvasElement>();
+  for (const c of sourceAll) {
+    const key = c.getAttribute("data-pdf-canvas");
+    if (key) sourceByKey.set(key, c);
+  }
+
+  for (let i = 0; i < cloneAll.length; i++) {
+    const cc = cloneAll[i];
+    const key = cc.getAttribute("data-pdf-canvas");
+
+    const oc =
+      (key && sourceByKey.get(key)) ||
+      sourceAll[i];
+
+    if (!oc) continue;
+
+    try {
+      // Canvas Pixelgröße übernehmen
+      cc.width = oc.width;
+      cc.height = oc.height;
+
+      // CSS Größe übernehmen, damit es im Layout identisch bleibt
+      const cs = getComputedStyle(oc);
+      cc.style.width = cs.width;
+      cc.style.height = cs.height;
+      cc.style.display = "block";
+
+      const ctx = cc.getContext("2d");
+      if (!ctx) continue;
+
+      ctx.clearRect(0, 0, cc.width, cc.height);
+      ctx.drawImage(oc, 0, 0);
+    } catch {
+      // ignore
+    }
+  }
+}
+
 export async function exportKitchenPdf({ filename, root }: ExportOptions) {
   const pdf = new jsPDF({ orientation: "p", unit: "mm", format: "a4" });
 
   const pages = Array.from(root.querySelectorAll<HTMLElement>("[data-pdf-page]"));
   const targets = pages.length ? pages : [root];
 
-  const pageW = A4_MM_W;
-  const pageH = A4_MM_H;
-
-  const marginMm = 16;
-  const contentW = pageW - marginMm * 2;
-  const contentH = pageH - marginMm * 2;
+  const marginMm = 16; // genug Luft, damit nichts am Rand gekappt wird
+  const contentW = A4_MM_W - marginMm * 2;
+  const contentH = A4_MM_H - marginMm * 2;
 
   for (let i = 0; i < targets.length; i++) {
     const source = targets[i];
 
     const stage = createStage();
-
     const clone = source.cloneNode(true) as HTMLElement;
 
-    // A4 Box erzwingen
+    // A4 Rahmen, aber Layout-Spacing NICHT zerstören
     clone.style.width = `${A4_PX_W}px`;
-    clone.style.height = `${A4_PX_H}px`;
     clone.style.minHeight = `${A4_PX_H}px`;
-    clone.style.maxHeight = `${A4_PX_H}px`;
-    clone.style.maxWidth = "none";
-    clone.style.margin = "0";
-    clone.style.padding = "0";
     clone.style.background = "#ffffff";
-    clone.style.overflow = "hidden";
 
+    // wichtig: nicht hidden, sonst kappen Cards/Canvas gerne
+    clone.style.overflow = "visible";
+
+    // NICHT padding:0 setzen
+    // NICHT height:1123 festnageln (führt zu Clipping)
     stage.appendChild(clone);
 
-    // typische Layout Limits killen, aber nur im Stage
-    const all = Array.from(stage.querySelectorAll<HTMLElement>("*"));
-    for (const el of all) {
-      const cs = window.getComputedStyle(el);
-
-      if (cs.maxWidth && cs.maxWidth !== "none") el.style.maxWidth = "none";
-      if (cs.marginLeft === "auto") el.style.marginLeft = "0";
-      if (cs.marginRight === "auto") el.style.marginRight = "0";
-    }
-
-    // svg sichtbar halten
-    stage.querySelectorAll("svg").forEach((svg) => {
-      (svg as SVGElement).style.display = "inline-block";
-    });
-
-    // Canvas → img für html2canvas (stabil + ohne Clipping)
-    const imgLoads: Promise<void>[] = [];
-    const sourceCanvases = Array.from(
-      source.querySelectorAll<HTMLCanvasElement>("canvas[data-pdf-canvas]")
-    );
-    const cloneCanvases = Array.from(
-      stage.querySelectorAll<HTMLCanvasElement>("canvas[data-pdf-canvas]")
-    );
-
-    for (const c of cloneCanvases) {
-      const key = c.getAttribute("data-pdf-canvas");
-      if (!key) continue;
-      const original = sourceCanvases.find(
-        (o) => o.getAttribute("data-pdf-canvas") === key
-      );
-      if (!original) continue;
-
-      try {
-        const dataUrl = original.toDataURL("image/png");
-        const img = document.createElement("img");
-        img.src = dataUrl;
-        img.setAttribute("data-pdf-canvas-img", key);
-
-        // responsive statt fix
-        img.style.display = "block";
-        img.style.width = "100%";
-        img.style.height = "auto";
-        img.style.objectFit = "contain";
-        img.style.background = "#ffffff";
-
-        // max Höhe je nach Inhalt, damit nichts in den Footer läuft
-        img.style.maxHeight = key.startsWith("wall-") ? "240px" : "300px";
-
-        // warten bis das Bild wirklich da ist
-        const p =
-          typeof (img as any).decode === "function"
-            ? (img as any).decode().catch(() => {})
-            : new Promise<void>((resolve) => {
-                img.onload = () => resolve();
-                img.onerror = () => resolve();
-              });
-        imgLoads.push(p);
-
-        c.replaceWith(img);
-      } catch {
-        // tainted canvas → bleibt leer, aber dann ist wenigstens klar warum
-      }
-    }
-
-    // sicherstellen, dass die imgs gerendert sind
-    await Promise.all(imgLoads);
-
-    // fonts laden lassen
+    // Fonts laden lassen
     try {
       await document.fonts?.ready;
     } catch {
       // ignore
     }
 
-    const canvas = await html2canvas(stage, {
+    // Canvas Inhalte kopieren
+    copyCanvasContent(source, clone);
+
+    // 2 Frames warten, damit Canvas Draw sicher sitzt
+    await new Promise<void>((r) => requestAnimationFrame(() => r()));
+    await new Promise<void>((r) => requestAnimationFrame(() => r()));
+
+    // Screenshot vom Clone, nicht vom Stage
+    const canvas = await html2canvas(clone, {
       scale: 2,
       backgroundColor: "#ffffff",
       useCORS: true,
@@ -154,9 +141,9 @@ export async function exportKitchenPdf({ filename, root }: ExportOptions) {
     cleanupStage(stage);
 
     const imgData = canvas.toDataURL("image/png");
-
     if (i > 0) pdf.addPage();
 
+    // immer auf A4 Content-Bereich skalieren
     let renderW = contentW;
     let renderH = (canvas.height * renderW) / canvas.width;
 
@@ -173,6 +160,3 @@ export async function exportKitchenPdf({ filename, root }: ExportOptions) {
 
   pdf.save(filename);
 }
-
-// Export constants for reuse
-export { A4_MM_W, A4_MM_H, A4_PX_W, A4_PX_H };
