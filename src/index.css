@@ -627,9 +627,16 @@
   }
 
   /* Remove decorative backgrounds */
-  .min-h-screen {
+  .min-h-screen,
+  .bg-cover,
+  .bg-center,
+  [style*="background-image"] {
     background-image: none !important;
     background-color: white !important;
+  }
+
+  * {
+    background-image: none !important;
   }
 
   /* Ensure images are visible */
@@ -643,14 +650,9 @@
     height: auto !important;
   }
 
-  /* === PDF-LIKE HEADER FOR PRINT === */
+  /* === HIDE HEADER FOR PRINT === */
   .pdf-header {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    margin-bottom: 3mm !important;
-    padding-bottom: 2mm !important;
-    border-bottom: 2px solid hsl(24 70% 45%) !important;
+    display: none !important;
   }
 
   .pdf-header-logo img {
