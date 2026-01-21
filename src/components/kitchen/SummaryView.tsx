@@ -433,7 +433,7 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
   for (let i = 0; i < validPhotos.length; i += photosPerPage) {
     photoPages.push(validPhotos.slice(i, i + photosPerPage));
   }
-  const totalPdfPages = 5 + photoPages.length;
+  const totalPdfPages = 6 + photoPages.length;
   const createdIso = project.createdAt instanceof Date ? project.createdAt.toISOString() : String(project.createdAt);
   const protocolId = `KP-${createdIso.slice(2, 10).replace(/-/g, '')}`;
   const customerFullName = [project.customer.firstName, project.customer.lastName].filter(Boolean).join(' ') || 'Unbekannt';
@@ -1521,9 +1521,34 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
               </div>
             </div>
           </div>
+          </div>
+          
+          <PdfPageFooter
+            pageNumber={2}
+            totalPages={totalPdfPages}
+            contactLine={contactLine}
+            studioName={branding.studioName}
+          />
+        </div>
 
+        {/* ===== PAGE 3: Raummaße & Grundriss (dedizierte Seite) ===== */}
+        <div data-pdf-page="3" className="pdf-page">
+          <PdfPageHeader
+            protocolId={protocolId}
+            createdDate={formatDate(project.createdAt)}
+            customerName={customerFullName}
+            studioName={branding.studioName}
+            logoUrl={branding.logoUrl}
+          />
+          
+          <div className="flex-1">
+          <h3 className="font-semibold flex items-center gap-2 mb-4 text-lg">
+            <Ruler className="w-5 h-5 text-primary" />
+            Raummaße & Grundriss
+          </h3>
+          
           {/* Room Dimensions */}
-          <div className="pdf-section">
+          <div className="pdf-section mb-4">
             <div className="pdf-section-header">
               <Ruler />
               Raummasse
@@ -1559,14 +1584,14 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
             </div>
           </div>
 
-          {/* Floor Plan Visual */}
+          {/* Floor Plan Visual - larger on dedicated page */}
           <div className="pdf-section">
             <div className="pdf-section-header">
               <LayoutGrid />
               Grundriss
             </div>
             <div className="pdf-section-body">
-              <div className="pdf-canvas-container">
+              <div className="pdf-canvas-container" style={{ minHeight: '450px' }}>
                 <FloorPlanCanvas 
                   room={project.room} 
                   elements={project.floorPlan.elements}
@@ -1578,15 +1603,15 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
           </div>
           
           <PdfPageFooter
-            pageNumber={2}
+            pageNumber={3}
             totalPages={totalPdfPages}
             contactLine={contactLine}
             studioName={branding.studioName}
           />
         </div>
 
-        {/* ===== PAGE 3: Wall Views Nord & Ost ===== */}
-        <div data-pdf-page="3" className="pdf-page">
+        {/* ===== PAGE 4: Wall Views Nord & Ost ===== */}
+        <div data-pdf-page="4" className="pdf-page">
           <PdfPageHeader
             protocolId={protocolId}
             createdDate={formatDate(project.createdAt)}
@@ -1621,15 +1646,15 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
           </div>
           
           <PdfPageFooter
-            pageNumber={3}
+            pageNumber={4}
             totalPages={totalPdfPages}
             contactLine={contactLine}
             studioName={branding.studioName}
           />
         </div>
 
-        {/* ===== PAGE 4: Wall Views Süd & West + Element Table ===== */}
-        <div data-pdf-page="4" className="pdf-page">
+        {/* ===== PAGE 5: Wall Views Süd & West + Element Table ===== */}
+        <div data-pdf-page="5" className="pdf-page">
           <PdfPageHeader
             protocolId={protocolId}
             createdDate={formatDate(project.createdAt)}
@@ -1696,15 +1721,15 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
           </div>
           
           <PdfPageFooter
-            pageNumber={4}
+            pageNumber={5}
             totalPages={totalPdfPages}
             contactLine={contactLine}
             studioName={branding.studioName}
           />
         </div>
 
-        {/* ===== PAGE 5: Must-haves, Nice-to-haves, Notes, ALL Photos ===== */}
-        <div data-pdf-page="5" className="pdf-page">
+        {/* ===== PAGE 6: Must-haves, Nice-to-haves, Notes ===== */}
+        <div data-pdf-page="6" className="pdf-page">
           <PdfPageHeader
             protocolId={protocolId}
             createdDate={formatDate(project.createdAt)}
@@ -1760,7 +1785,7 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
           </div>
           
           <PdfPageFooter
-            pageNumber={5}
+            pageNumber={6}
             totalPages={totalPdfPages}
             contactLine={contactLine}
             studioName={branding.studioName}
@@ -1769,7 +1794,7 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
 
         {/* ===== PHOTO PAGES: Separate PDF pages for photos ===== */}
         {photoPages.map((pagePhotos, idx) => {
-          const pageNumber = 6 + idx;
+          const pageNumber = 7 + idx;
           return (
             <div key={idx} data-pdf-page={String(pageNumber)} className="pdf-page">
               <PdfPageHeader
