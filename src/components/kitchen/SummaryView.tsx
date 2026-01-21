@@ -437,7 +437,13 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
   const protocolId = `KP-${createdIso.slice(2, 10).replace(/-/g, '')}`;
   const customerFullName = [project.customer.firstName, project.customer.lastName].filter(Boolean).join(' ') || 'Unbekannt';
 
-  const handlePrint = useCallback(() => {
+  const handlePrint = useCallback(async () => {
+    try {
+      await document.fonts?.ready;
+    } catch {}
+    // 2 Frames warten, damit Layout wirklich steht
+    await new Promise<void>((r) => requestAnimationFrame(() => r()));
+    await new Promise<void>((r) => requestAnimationFrame(() => r()));
     window.print();
   }, []);
 
