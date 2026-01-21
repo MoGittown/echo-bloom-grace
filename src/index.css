@@ -150,6 +150,10 @@
     color: hsl(20 14% 12%); /* Darker for better contrast */
   }
 
+  /* PDF-Export: Seite clippen, Footer sichtbar lassen */
+  .pdf-export .pdf-page { overflow: hidden; }
+  .pdf-export .pdf-footer { overflow: visible !important; }
+
   /* PDF Header - Clean professional look */
   .pdf-header {
     @apply flex items-center justify-between mb-5;
