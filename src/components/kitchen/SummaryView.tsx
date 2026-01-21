@@ -226,7 +226,17 @@ function FloorPlanCanvas({
 }
 
 // Wall View Canvas Component for Summary - larger for print
-function WallViewCanvas({ room, elements, wall }: { room: RoomDimensions; elements: WallElement[]; wall: 'north' | 'east' | 'south' | 'west' }) {
+function WallViewCanvas({
+  room,
+  elements,
+  wall,
+  dataCanvasKey,
+}: {
+  room: RoomDimensions;
+  elements: WallElement[];
+  wall: 'north' | 'east' | 'south' | 'west';
+  dataCanvasKey: string;
+}) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   // Larger scale for better print quality
   const scale = 0.5;
@@ -362,6 +372,7 @@ function WallViewCanvas({ room, elements, wall }: { room: RoomDimensions; elemen
 
   return (
     <canvas
+      data-pdf-canvas={dataCanvasKey}
       ref={canvasRef}
       width={canvasWidth}
       height={canvasHeight}
@@ -1601,6 +1612,7 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
                     room={project.room} 
                     elements={wallElements}
                     wall={wall}
+                    dataCanvasKey={`wall-view-${wall}`}
                   />
                 </div>
               </div>
@@ -1643,6 +1655,7 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
                     room={project.room} 
                     elements={wallElements}
                     wall={wall}
+                    dataCanvasKey={`wall-view-${wall}`}
                   />
                 </div>
               </div>
