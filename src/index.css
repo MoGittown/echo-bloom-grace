@@ -166,8 +166,8 @@
 
   /* PDF Header - Clean professional look */
   .pdf-header {
-    @apply flex items-center justify-between mb-5;
-    padding-bottom: 14px;
+    @apply flex items-center justify-between mb-2;
+    padding-bottom: 8px;
     border-bottom: 3px solid hsl(var(--primary));
   }
 
