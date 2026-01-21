@@ -223,16 +223,15 @@
     flex: 1;
   }
 
-  /* Umbruch statt Kappung */
+  /* Abschneiden mit Ellipsis */
   .pdf-footer-contact {
     display: block;
     font-size: 9pt;
     line-height: 1.2;
     color: #444;
-    white-space: normal;
-    overflow: visible;
-    word-break: break-word;
-    overflow-wrap: anywhere;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   /* Seitenzahl bleibt fix */
