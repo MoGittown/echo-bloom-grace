@@ -345,7 +345,9 @@ const Index = () => {
         </main>
 
         {/* AI Chat Widget */}
-        <ChatWidget />
+        <div data-chat-widget className="no-print">
+          <ChatWidget />
+        </div>
       </div>
     </div>
   );
