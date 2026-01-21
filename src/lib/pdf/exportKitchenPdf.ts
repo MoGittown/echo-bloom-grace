@@ -43,7 +43,7 @@ export async function exportKitchenPdf({ filename, root }: ExportOptions) {
   const pageW = A4_MM_W;
   const pageH = A4_MM_H;
 
-  const marginMm = 14;
+  const marginMm = 12;
   const contentW = pageW - marginMm * 2;
   const contentH = pageH - marginMm * 2;
 
