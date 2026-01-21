@@ -608,13 +608,31 @@
     display: none !important;
   }
   
-  /* Remove decorative background images to save ink */
+  .print-only {
+    display: block !important;
+  }
+
+  /* Page setup */
+  @page {
+    size: A4 portrait;
+    margin: 10mm;
+  }
+
+  body {
+    background: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+    font-size: 10pt !important;
+  }
+
+  /* Remove decorative backgrounds */
   .min-h-screen {
     background-image: none !important;
     background-color: white !important;
   }
-  
-  /* Ensure actual photo images are visible in print */
+
+  /* Ensure images are visible */
   img {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
@@ -624,170 +642,287 @@
     max-width: 100% !important;
     height: auto !important;
   }
-  
+
+  /* === PDF-LIKE HEADER FOR PRINT === */
+  .pdf-header {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    margin-bottom: 3mm !important;
+    padding-bottom: 2mm !important;
+    border-bottom: 2px solid hsl(24 70% 45%) !important;
+  }
+
+  .pdf-header-logo img {
+    height: 12mm !important;
+    width: auto !important;
+  }
+
+  .pdf-header-title .title {
+    font-family: 'Playfair Display', serif !important;
+    font-size: 14pt !important;
+    font-weight: 700 !important;
+    color: hsl(20 14% 15%) !important;
+  }
+
+  .pdf-header-title .subtitle {
+    font-size: 9pt !important;
+    color: hsl(20 10% 40%) !important;
+  }
+
+  .pdf-header-meta {
+    text-align: right !important;
+    font-size: 9pt !important;
+    color: hsl(20 10% 40%) !important;
+  }
+
+  .pdf-header-meta .value {
+    font-weight: 600 !important;
+    color: hsl(20 14% 12%) !important;
+  }
+
+  /* === PDF-LIKE SECTIONS FOR PRINT === */
+  .pdf-section {
+    border-radius: 2mm !important;
+    margin-bottom: 2mm !important;
+    background: white !important;
+    border: 1px solid hsl(30 15% 88%) !important;
+    box-shadow: none !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  .pdf-section-header {
+    display: flex !important;
+    align-items: center !important;
+    gap: 2mm !important;
+    padding: 1.5mm 3mm !important;
+    font-size: 10pt !important;
+    font-weight: 600 !important;
+    color: hsl(20 14% 15%) !important;
+    background: hsl(40 20% 97%) !important;
+    border-bottom: 1px solid hsl(30 15% 90%) !important;
+  }
+
+  .pdf-section-header svg {
+    width: 3.5mm !important;
+    height: 3.5mm !important;
+    color: hsl(24 70% 45%) !important;
+  }
+
+  .pdf-section-body {
+    padding: 3mm 4mm !important;
+    font-size: 9pt !important;
+    line-height: 1.4 !important;
+  }
+
+  /* === PDF-LIKE DATA GRID FOR PRINT === */
+  .pdf-data-grid {
+    display: grid !important;
+    gap: 3mm 5mm !important;
+  }
+
+  .pdf-data-grid.cols-4 {
+    grid-template-columns: repeat(4, 1fr) !important;
+  }
+
+  .pdf-data-grid.cols-3 {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+
+  .pdf-data-item {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.5mm !important;
+  }
+
+  .pdf-data-label {
+    font-size: 7pt !important;
+    font-weight: 600 !important;
+    color: hsl(20 10% 45%) !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.03em !important;
+  }
+
+  .pdf-data-value {
+    font-size: 10pt !important;
+    font-weight: 500 !important;
+    color: hsl(20 14% 12%) !important;
+  }
+
+  /* === PDF-LIKE TAGS FOR PRINT === */
+  .pdf-tag-list {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 1.5mm !important;
+  }
+
+  .pdf-tag {
+    padding: 1mm 2.5mm !important;
+    border-radius: 1mm !important;
+    font-size: 8pt !important;
+    font-weight: 600 !important;
+    background: hsl(24 70% 45% / 0.1) !important;
+    color: hsl(24 70% 35%) !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .pdf-tag.accent {
+    background: hsl(150 25% 40% / 0.15) !important;
+    color: hsl(150 30% 30%) !important;
+  }
+
+  .pdf-tag.muted {
+    background: hsl(40 20% 94%) !important;
+    color: hsl(20 10% 35%) !important;
+  }
+
+  /* === PDF-LIKE TWO COLUMN LAYOUT === */
+  .pdf-two-col {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 2mm !important;
+  }
+
+  /* === PDF-LIKE HIGHLIGHT BOX === */
+  .pdf-highlight-box {
+    padding: 3mm !important;
+    border-radius: 2mm !important;
+    background: hsl(24 70% 45% / 0.08) !important;
+    border-left: 3px solid hsl(24 70% 45%) !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* === SPACING ADJUSTMENTS === */
+  .space-y-6 > * {
+    margin-bottom: 1.5mm !important;
+  }
+
+  .gap-6 {
+    gap: 1.5mm !important;
+  }
+
+  .gap-4 {
+    gap: 1mm !important;
+  }
+
+  .mt-6 {
+    margin-top: 1.5mm !important;
+  }
+
+  .mb-6 {
+    margin-bottom: 1.5mm !important;
+  }
+
+  .p-6 {
+    padding: 2mm !important;
+  }
+
+  /* === CANVAS & FLOORPLAN === */
+  .print-half-page {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    height: auto;
+    max-height: 130mm;
+    margin-bottom: 2mm;
+    padding: 2mm;
+    overflow: hidden;
+  }
+
+  .print-half-page canvas {
+    max-width: 170mm !important;
+    max-height: 110mm !important;
+    height: auto !important;
+    width: auto !important;
+    display: block;
+    margin: 0 auto;
+  }
+
+  .print-canvas-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100mm;
+    overflow: hidden;
+  }
+
+  /* === PAGE BREAKS === */
+  .print-page-break-before {
+    page-break-before: always !important;
+    break-before: page !important;
+  }
+
+  .print-no-break {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  /* === PHOTOS GRID === */
+  .print-photos-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 2mm !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  .print-photos-grid > div {
+    height: 40mm !important;
+    overflow: hidden !important;
+  }
+
+  .print-photos-grid img {
+    width: 100% !important;
+    height: 40mm !important;
+    object-fit: cover !important;
+    border-radius: 1.5mm;
+  }
+
   /* Photo grid for print */
   .grid img {
     width: 100% !important;
-    height: 120px !important;
+    height: 100px !important;
     object-fit: cover !important;
   }
 
-    .print-only {
-      display: block !important;
-    }
-
-    body {
-      background: white !important;
-      -webkit-print-color-adjust: exact;
-      print-color-adjust: exact;
-      font-size: 10pt !important;
-    }
-
-    .kitchen-card {
-      break-inside: avoid;
-      box-shadow: none;
-      border: 1px solid #ddd;
-      margin-bottom: 2mm !important;
-      padding: 3mm !important;
-    }
-
-    /* Reduce spacing in print */
-    .space-y-6 > * {
-      margin-bottom: 2mm !important;
-    }
-
-    .mt-6 {
-      margin-top: 2mm !important;
-    }
-
-    .mb-6 {
-      margin-bottom: 2mm !important;
-    }
-
-    .p-6 {
-      padding: 3mm !important;
-    }
-
-    .gap-6 {
-      gap: 2mm !important;
-    }
-
-    .gap-4 {
-      gap: 1.5mm !important;
-    }
-
-    .mb-4 {
-      margin-bottom: 1.5mm !important;
-    }
-
-    .pb-6 {
-      padding-bottom: 2mm !important;
-    }
-
-    .pt-4 {
-      padding-top: 1.5mm !important;
-    }
-
-    .mt-4 {
-      margin-top: 1.5mm !important;
-    }
-
-    /* Half page sections - DIN A4 is 297mm height, minus margins ~273mm usable, half is ~130mm */
-    .print-half-page {
-      page-break-inside: avoid !important;
-      break-inside: avoid !important;
-      height: auto;
-      max-height: 130mm;
-      margin-bottom: 3mm;
-      padding: 3mm;
-      overflow: hidden;
-      box-sizing: border-box;
-    }
-
-    .print-half-page canvas {
-      max-width: 170mm !important;
-      max-height: 110mm !important;
-      height: auto !important;
-      width: auto !important;
-      display: block;
-      margin: 0 auto;
-    }
-
-    /* Force page breaks before specific sections */
-    .print-page-break-before {
-      page-break-before: always !important;
-      break-before: page !important;
-    }
-
-    /* Avoid page breaks inside */
-    .print-no-break {
-      page-break-inside: avoid !important;
-      break-inside: avoid !important;
-    }
-
-    /* Photos grid - 2x2 layout on half page */
-    .print-photos-grid {
-      display: grid !important;
-      grid-template-columns: repeat(2, 1fr) !important;
-      gap: 3mm !important;
-      page-break-inside: avoid !important;
-      break-inside: avoid !important;
-    }
-
-    .print-photos-grid > div {
-      height: 45mm !important;
-      overflow: hidden !important;
-    }
-
-    .print-photos-grid img {
-      width: 100% !important;
-      height: 45mm !important;
-      object-fit: cover !important;
-      border-radius: 2mm;
-    }
-
-    /* Ensure proper page margins */
-    @page {
-      size: A4 portrait;
-      margin: 10mm;
-    }
-
-    /* Canvas containers in half-page sections */
-    .print-canvas-container {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100mm;
-      overflow: hidden;
-    }
-
-    /* Grid adjustments for print */
-    .grid.md\\:grid-cols-2 {
-      gap: 2mm !important;
-    }
-
-    .grid.md\\:grid-cols-4 {
-      gap: 1.5mm !important;
-    }
-
-    /* Text size adjustments */
-    h3 {
-      font-size: 11pt !important;
-      margin-bottom: 1.5mm !important;
-    }
-
-    .text-sm {
-      font-size: 9pt !important;
-    }
-
-    .text-xs {
-      font-size: 8pt !important;
-    }
-
-    .text-2xl {
-      font-size: 14pt !important;
-    }
+  /* === GRID ADJUSTMENTS === */
+  .grid.md\\:grid-cols-2 {
+    gap: 1.5mm !important;
   }
+
+  .grid.md\\:grid-cols-4 {
+    gap: 1mm !important;
+  }
+
+  /* === TEXT SIZES === */
+  h3 {
+    font-size: 10pt !important;
+    margin-bottom: 1mm !important;
+  }
+
+  .text-sm {
+    font-size: 8pt !important;
+  }
+
+  .text-xs {
+    font-size: 7pt !important;
+  }
+
+  .text-2xl {
+    font-size: 12pt !important;
+  }
+
+  /* Kitchen cards */
+  .kitchen-card {
+    break-inside: avoid;
+    box-shadow: none;
+    border: 1px solid #ddd;
+    margin-bottom: 1.5mm !important;
+    padding: 2mm !important;
+  }
+}
 }
 
 @layer utilities {
