@@ -1471,40 +1471,38 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
             </div>
           </div>
 
-          {/* MUELL & BELEUCHTUNG */}
-          <div className="pdf-two-col">
-            <div className="pdf-section">
-              <div className="pdf-section-header">
-                <Trash2 />
-                Muellsystem
-              </div>
-              <div className="pdf-section-body">
-                {wasteSystem.length > 0 ? (
-                  <div className="pdf-tag-list">
-                    {wasteSystem.map((w) => (
-                      <span key={w} className="pdf-tag muted">{w}</span>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-muted-foreground italic">Nicht angegeben</p>
-                )}
-              </div>
+          {/* MUELL & BELEUCHTUNG - nebeneinander mit flex-wrap für alle Elemente */}
+          <div className="pdf-section">
+            <div className="pdf-section-header">
+              <Trash2 />
+              Muellsystem & Beleuchtung
             </div>
-            <div className="pdf-section">
-              <div className="pdf-section-header">
-                <Lightbulb />
-                Beleuchtung
-              </div>
-              <div className="pdf-section-body">
-                {lightingOptions.length > 0 ? (
-                  <div className="pdf-tag-list">
-                    {lightingOptions.map((l) => (
-                      <span key={l} className="pdf-tag muted">{l}</span>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-muted-foreground italic">Nicht angegeben</p>
-                )}
+            <div className="pdf-section-body">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-[8pt] font-medium text-muted-foreground mb-1">MÜLLSYSTEM</p>
+                  {wasteSystem.length > 0 ? (
+                    <div className="pdf-tag-list">
+                      {wasteSystem.map((w) => (
+                        <span key={w} className="pdf-tag muted">{w}</span>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground italic text-[9pt]">Nicht angegeben</p>
+                  )}
+                </div>
+                <div>
+                  <p className="text-[8pt] font-medium text-muted-foreground mb-1">BELEUCHTUNG</p>
+                  {lightingOptions.length > 0 ? (
+                    <div className="pdf-tag-list">
+                      {lightingOptions.map((l) => (
+                        <span key={l} className="pdf-tag muted">{l}</span>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground italic text-[9pt]">Nicht angegeben</p>
+                  )}
+                </div>
               </div>
             </div>
           </div>
