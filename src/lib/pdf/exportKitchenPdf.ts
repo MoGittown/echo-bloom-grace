@@ -82,6 +82,33 @@ export async function exportKitchenPdf({ filename, root }: ExportOptions) {
       (svg as SVGElement).style.display = "inline-block";
     });
 
+    // Canvas Inhalte aus dem Original übernehmen (Clone Canvas sind oft leer)
+    const sourceCanvases = Array.from(source.querySelectorAll<HTMLCanvasElement>("canvas[data-pdf-canvas]"));
+    const cloneCanvases = Array.from(stage.querySelectorAll<HTMLCanvasElement>("canvas[data-pdf-canvas]"));
+    for (const c of cloneCanvases) {
+      const key = c.getAttribute("data-pdf-canvas");
+      if (!key) continue;
+      const original = sourceCanvases.find(o => o.getAttribute("data-pdf-canvas") === key);
+      if (!original) continue;
+      try {
+        const dataUrl = original.toDataURL("image/png");
+        const img = document.createElement("img");
+        img.src = dataUrl;
+        // Größe exakt übernehmen
+        img.width = original.width;
+        img.height = original.height;
+        // Styling wie Canvas
+        img.style.width = getComputedStyle(original).width;
+        img.style.height = getComputedStyle(original).height;
+        img.style.display = "block";
+        img.style.maxWidth = "100%";
+        // Canvas im Clone ersetzen
+        c.replaceWith(img);
+      } catch {
+        // wenn Canvas "tainted" wäre, bleibt er halt wie er ist
+      }
+    }
+
     // fonts laden lassen
     try {
       await document.fonts?.ready;
