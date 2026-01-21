@@ -351,21 +351,21 @@
   /* PDF Highlight Box - For important summary data */
   .pdf-highlight-box {
     @apply rounded-lg;
-    padding: 20px;
-    margin-bottom: 20px;
+    padding: 12px;
+    margin-bottom: 12px;
     background: linear-gradient(135deg, hsl(var(--primary) / 0.08) 0%, hsl(var(--primary) / 0.02) 100%);
     border: 1px solid hsl(var(--primary) / 0.2);
   }
 
   .pdf-highlight-grid {
     @apply grid;
-    gap: 16px;
+    gap: 10px;
     grid-template-columns: repeat(4, 1fr);
   }
 
   .pdf-highlight-item {
     @apply rounded-lg text-center;
-    padding: 14px;
+    padding: 10px;
     background: hsl(0 0% 100%);
     box-shadow: 0 1px 4px hsl(20 14% 15% / 0.06);
   }
@@ -377,7 +377,7 @@
     color: hsl(20 10% 45%);
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    margin-bottom: 6px;
+    margin-bottom: 4px;
   }
 
   .pdf-highlight-value {
