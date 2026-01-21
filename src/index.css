@@ -154,6 +154,16 @@
   .pdf-export .pdf-page { overflow: hidden; }
   .pdf-export .pdf-footer { overflow: visible !important; }
 
+  /* Canvas Bereiche im PDF nicht kappen */
+  .pdf-export .pdf-canvas-container {
+    overflow: visible !important;
+  }
+
+  /* falls kitchen-card irgendwo overflow-hidden setzt */
+  .pdf-export .kitchen-card {
+    overflow: visible !important;
+  }
+
   /* PDF Header - Clean professional look */
   .pdf-header {
     @apply flex items-center justify-between mb-5;
