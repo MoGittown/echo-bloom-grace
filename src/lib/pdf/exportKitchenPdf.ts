@@ -91,9 +91,9 @@ export async function exportKitchenPdf({ filename, root }: ExportOptions) {
   const pages = Array.from(root.querySelectorAll<HTMLElement>("[data-pdf-page]"));
   const targets = pages.length ? pages : [root];
 
-  const marginTopMm = 8; // reduzierter oberer Rand
-  const marginSideMm = 12; // seitlicher Rand
-  const marginBottomMm = 12; // unterer Rand
+  const marginTopMm = 4; // minimaler oberer Rand
+  const marginSideMm = 10; // seitlicher Rand
+  const marginBottomMm = 4; // minimaler unterer Rand
   const contentW = A4_MM_W - marginSideMm * 2;
   const contentH = A4_MM_H - marginTopMm - marginBottomMm;
 
