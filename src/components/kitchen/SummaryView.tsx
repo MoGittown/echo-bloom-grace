@@ -101,7 +101,15 @@ const getUntaggedItems = (items: string[] | undefined): string[] => {
 };
 
 // Floor Plan Canvas Component for Summary - larger for print
-function FloorPlanCanvas({ room, elements }: { room: RoomDimensions; elements: WallElement[] }) {
+function FloorPlanCanvas({
+  room,
+  elements,
+  dataCanvasKey,
+}: {
+  room: RoomDimensions;
+  elements: WallElement[];
+  dataCanvasKey: string;
+}) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   // Larger scale for better print quality
   const scale = 0.6;
@@ -208,6 +216,7 @@ function FloorPlanCanvas({ room, elements }: { room: RoomDimensions; elements: W
 
   return (
     <canvas
+      data-pdf-canvas={dataCanvasKey}
       ref={canvasRef}
       width={canvasWidth}
       height={canvasHeight}
@@ -1549,7 +1558,8 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
               <div className="pdf-canvas-container">
                 <FloorPlanCanvas 
                   room={project.room} 
-                  elements={project.floorPlan.elements} 
+                  elements={project.floorPlan.elements}
+                  dataCanvasKey="floor-plan"
                 />
               </div>
             </div>
