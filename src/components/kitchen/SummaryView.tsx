@@ -52,7 +52,7 @@ import { toast } from 'sonner';
 import { AppointmentRequest } from './AppointmentRequest';
 import { PdfDebugConsole, type PdfDebugEvent, type PdfDebugLevel } from './PdfDebugConsole';
 import { PdfPageHeader } from './PdfPageHeader';
-import { PdfPageFooter } from './PdfPageFooter';
+
 
 interface SummaryViewProps {
   project: KitchenProject;
@@ -433,15 +433,9 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
   for (let i = 0; i < validPhotos.length; i += photosPerPage) {
     photoPages.push(validPhotos.slice(i, i + photosPerPage));
   }
-  const totalPdfPages = 6 + photoPages.length;
   const createdIso = project.createdAt instanceof Date ? project.createdAt.toISOString() : String(project.createdAt);
   const protocolId = `KP-${createdIso.slice(2, 10).replace(/-/g, '')}`;
   const customerFullName = [project.customer.firstName, project.customer.lastName].filter(Boolean).join(' ') || 'Unbekannt';
-  const contactLine = [
-    branding.contact.phone,
-    branding.contact.email,
-    branding.contact.website,
-  ].filter(Boolean).join(' | ');
 
   const handlePrint = useCallback(() => {
     window.print();
@@ -1392,13 +1386,6 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
               </div>
             </div>
           </div>
-          
-          <PdfPageFooter
-            pageNumber={1}
-            totalPages={totalPdfPages}
-            contactLine={contactLine}
-            studioName={branding.studioName}
-          />
         </div>
 
         {/* ===== PAGE 2: Sink, Waste, Lighting, Room, Floor Plan ===== */}
@@ -1522,13 +1509,6 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
             </div>
           </div>
           </div>
-          
-          <PdfPageFooter
-            pageNumber={2}
-            totalPages={totalPdfPages}
-            contactLine={contactLine}
-            studioName={branding.studioName}
-          />
         </div>
 
         {/* ===== PAGE 3: Raummaße & Grundriss (dedizierte Seite) ===== */}
@@ -1600,14 +1580,7 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
               </div>
             </div>
           </div>
-          </div>
-          
-          <PdfPageFooter
-            pageNumber={3}
-            totalPages={totalPdfPages}
-            contactLine={contactLine}
-            studioName={branding.studioName}
-          />
+        </div>
         </div>
 
         {/* ===== PAGE 4: Wall Views Nord & Ost ===== */}
@@ -1644,13 +1617,6 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
             );
           })}
           </div>
-          
-          <PdfPageFooter
-            pageNumber={4}
-            totalPages={totalPdfPages}
-            contactLine={contactLine}
-            studioName={branding.studioName}
-          />
         </div>
 
         {/* ===== PAGE 5: Wall Views Süd & West + Element Table ===== */}
@@ -1719,13 +1685,6 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
             </div>
           )}
           </div>
-          
-          <PdfPageFooter
-            pageNumber={5}
-            totalPages={totalPdfPages}
-            contactLine={contactLine}
-            studioName={branding.studioName}
-          />
         </div>
 
         {/* ===== PAGE 6: Must-haves, Nice-to-haves, Notes ===== */}
@@ -1783,13 +1742,6 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
           )}
 
           </div>
-          
-          <PdfPageFooter
-            pageNumber={6}
-            totalPages={totalPdfPages}
-            contactLine={contactLine}
-            studioName={branding.studioName}
-          />
         </div>
 
         {/* ===== PHOTO PAGES: Separate PDF pages for photos ===== */}
@@ -1831,12 +1783,6 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
                   </div>
                 </div>
               </div>
-              <PdfPageFooter
-                pageNumber={pageNumber}
-                totalPages={totalPdfPages}
-                contactLine={contactLine}
-                studioName={branding.studioName}
-              />
             </div>
           );
         })}
