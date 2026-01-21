@@ -267,9 +267,9 @@
   }
 
   .pdf-section-header {
-    @apply flex items-center gap-2.5;
-    padding: 12px 18px;
-    font-size: 11pt;
+    @apply flex items-center gap-2;
+    padding: 6px 12px;
+    font-size: 10pt;
     font-weight: 600;
     color: hsl(20 14% 15%);
     background: hsl(40 20% 97%);
@@ -277,8 +277,8 @@
   }
 
   .pdf-section-header svg {
-    width: 18px;
-    height: 18px;
+    width: 14px;
+    height: 14px;
     color: hsl(var(--primary));
     flex-shrink: 0;
   }
