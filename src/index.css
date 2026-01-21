@@ -202,11 +202,12 @@
     color: hsl(20 14% 12%);
   }
 
-  /* PDF Footer - Minimal and elegant */
+  /* Footer nie abschneiden */
   .pdf-footer {
     margin-top: auto;
     padding-top: 12px;
     border-top: 1px solid rgba(0,0,0,0.12);
+    overflow: visible !important;
   }
 
   .pdf-footer-inner {
@@ -216,21 +217,22 @@
     gap: 12px;
   }
 
-  /* extrem wichtig, sonst kann der Text nicht schrumpfen und wird abgeschnitten */
+  /* wichtig, sonst kann links nicht schrumpfen */
   .pdf-footer-left {
     min-width: 0;
     flex: 1;
   }
 
-  /* Abschneiden mit Ellipsis */
+  /* Umbruch statt Kappung */
   .pdf-footer-contact {
     display: block;
     font-size: 9pt;
-    color: #444;
     line-height: 1.2;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    color: #444;
+    white-space: normal;
+    overflow: visible;
+    word-break: break-word;
+    overflow-wrap: anywhere;
   }
 
   /* Seitenzahl bleibt fix */
@@ -239,7 +241,6 @@
     font-size: 9pt;
     font-weight: 600;
     color: #111;
-    text-align: right;
     white-space: nowrap;
   }
 
