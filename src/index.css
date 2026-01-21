@@ -222,14 +222,15 @@
     flex: 1;
   }
 
-  /* Umbruch statt Abschneiden */
+  /* Abschneiden mit Ellipsis */
   .pdf-footer-contact {
     display: block;
     font-size: 9pt;
     color: #444;
     line-height: 1.2;
-    word-break: break-word;
-    overflow-wrap: anywhere;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   /* Seitenzahl bleibt fix */
