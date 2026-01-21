@@ -113,7 +113,7 @@ export async function exportKitchenPdf({ filename, root }: ExportOptions) {
         img.style.background = "#ffffff";
 
         // max Höhe je nach Inhalt, damit nichts in den Footer läuft
-        img.style.maxHeight = key.startsWith("wall-") ? "260px" : "320px";
+        img.style.maxHeight = key.startsWith("wall-") ? "240px" : "300px";
 
         // warten bis das Bild wirklich da ist
         const p =
