@@ -82,32 +82,57 @@ export async function exportKitchenPdf({ filename, root }: ExportOptions) {
       (svg as SVGElement).style.display = "inline-block";
     });
 
-    // Canvas Inhalte aus dem Original übernehmen (Clone Canvas sind oft leer)
-    const sourceCanvases = Array.from(source.querySelectorAll<HTMLCanvasElement>("canvas[data-pdf-canvas]"));
-    const cloneCanvases = Array.from(stage.querySelectorAll<HTMLCanvasElement>("canvas[data-pdf-canvas]"));
+    // Canvas → img für html2canvas (stabil + ohne Clipping)
+    const imgLoads: Promise<void>[] = [];
+    const sourceCanvases = Array.from(
+      source.querySelectorAll<HTMLCanvasElement>("canvas[data-pdf-canvas]")
+    );
+    const cloneCanvases = Array.from(
+      stage.querySelectorAll<HTMLCanvasElement>("canvas[data-pdf-canvas]")
+    );
+
     for (const c of cloneCanvases) {
       const key = c.getAttribute("data-pdf-canvas");
       if (!key) continue;
-      const original = sourceCanvases.find(o => o.getAttribute("data-pdf-canvas") === key);
+      const original = sourceCanvases.find(
+        (o) => o.getAttribute("data-pdf-canvas") === key
+      );
       if (!original) continue;
+
       try {
         const dataUrl = original.toDataURL("image/png");
         const img = document.createElement("img");
         img.src = dataUrl;
-        // Größe exakt übernehmen
-        img.width = original.width;
-        img.height = original.height;
-        // Styling wie Canvas
-        img.style.width = getComputedStyle(original).width;
-        img.style.height = getComputedStyle(original).height;
+        img.setAttribute("data-pdf-canvas-img", key);
+
+        // responsive statt fix
         img.style.display = "block";
-        img.style.maxWidth = "100%";
-        // Canvas im Clone ersetzen
+        img.style.width = "100%";
+        img.style.height = "auto";
+        img.style.objectFit = "contain";
+        img.style.background = "#ffffff";
+
+        // max Höhe je nach Inhalt, damit nichts in den Footer läuft
+        img.style.maxHeight = key.startsWith("wall-") ? "260px" : "320px";
+
+        // warten bis das Bild wirklich da ist
+        const p =
+          typeof (img as any).decode === "function"
+            ? (img as any).decode().catch(() => {})
+            : new Promise<void>((resolve) => {
+                img.onload = () => resolve();
+                img.onerror = () => resolve();
+              });
+        imgLoads.push(p);
+
         c.replaceWith(img);
       } catch {
-        // wenn Canvas "tainted" wäre, bleibt er halt wie er ist
+        // tainted canvas → bleibt leer, aber dann ist wenigstens klar warum
       }
     }
+
+    // sicherstellen, dass die imgs gerendert sind
+    await Promise.all(imgLoads);
 
     // fonts laden lassen
     try {
