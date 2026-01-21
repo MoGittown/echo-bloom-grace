@@ -1612,7 +1612,7 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
                     room={project.room} 
                     elements={wallElements}
                     wall={wall}
-                    dataCanvasKey={`wall-view-${wall}`}
+                    dataCanvasKey={`wall-${wall}`}
                   />
                 </div>
               </div>
@@ -1655,7 +1655,7 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
                     room={project.room} 
                     elements={wallElements}
                     wall={wall}
-                    dataCanvasKey={`wall-view-${wall}`}
+                    dataCanvasKey={`wall-${wall}`}
                   />
                 </div>
               </div>
