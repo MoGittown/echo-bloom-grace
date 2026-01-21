@@ -1570,7 +1570,7 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
                 <FloorPlanCanvas 
                   room={project.room} 
                   elements={project.floorPlan.elements}
-                  dataCanvasKey="floor-plan"
+                  dataCanvasKey="floorplan"
                 />
               </div>
             </div>
