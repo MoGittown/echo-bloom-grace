@@ -1288,103 +1288,6 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
                 </div>
               </div>
             </div>
-
-            {/* ELEKTROGERAETE */}
-            <div className="pdf-section">
-              <div className="pdf-section-header">
-                <Plug />
-                Elektrogeraete
-              </div>
-              <div className="pdf-section-body">
-                <div className="pdf-check-list">
-                  {project.preferences.appliances.cooktop && (
-                    <div className="pdf-check-item">
-                      <CheckCircle />
-                      <div>
-                        <span className="font-medium">Kochfeld:</span> {project.preferences.appliances.cooktop}
-                        {cooktopSize && <span className="text-muted-foreground"> ({cooktopSize})</span>}
-                        {cooktopExtras.length > 0 && (
-                          <div className="pdf-tag-list mt-1">
-                            {cooktopExtras.map(e => <span key={e} className="pdf-tag accent">{e}</span>)}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                  {project.preferences.appliances.hood && (
-                    <div className="pdf-check-item">
-                      <CheckCircle />
-                      <div>
-                        <span className="font-medium">Dunstabzug:</span> {project.preferences.appliances.hood}
-                        {hoodVentilation && <span className="text-muted-foreground"> ({hoodVentilation})</span>}
-                      </div>
-                    </div>
-                  )}
-                  {project.preferences.appliances.oven && (
-                    <div className="pdf-check-item">
-                      <CheckCircle />
-                      <div>
-                        <span className="font-medium">Backofen:</span> {project.preferences.appliances.oven}
-                        {ovenHeight && <span className="text-muted-foreground"> ({ovenHeight})</span>}
-                        {ovenExtras.length > 0 && (
-                          <div className="pdf-tag-list mt-1">
-                            {ovenExtras.map(e => <span key={e} className="pdf-tag accent">{e}</span>)}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                  {project.preferences.appliances.fridge && (
-                    <div className="pdf-check-item">
-                      <CheckCircle />
-                      <div>
-                        <span className="font-medium">Kuehlschrank:</span> {project.preferences.appliances.fridge}
-                        {fridgeExtras.length > 0 && (
-                          <div className="pdf-tag-list mt-1">
-                            {fridgeExtras.map(e => <span key={e} className="pdf-tag accent">{e}</span>)}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                  {project.preferences.appliances.dishwasher && (
-                    <div className="pdf-check-item">
-                      <CheckCircle />
-                      <div>
-                        <span className="font-medium">Geschirrspueler:</span>
-                        <span> {dishwasherWidth || '60 cm'}</span>
-                        <span>, {dishwasherHeight || 'Normal (unter AP)'}</span>
-                        <span>, {dishwasherIntegration || 'Vollintegriert'}</span>
-                      </div>
-                    </div>
-                  )}
-                  {project.preferences.appliances.microwave && (
-                    <div className="pdf-check-item">
-                      <CheckCircle />
-                      <span>Mikrowelle (Einbau)</span>
-                    </div>
-                  )}
-                </div>
-                
-                {applianceBrands.length > 0 && (
-                  <div className="mt-3 pt-3 border-t border-border/30">
-                    <span className="pdf-data-label">Bevorzugte Geraetemarken</span>
-                    <div className="pdf-tag-list mt-1">
-                      {applianceBrands.map((brand) => (
-                        <span key={brand} className="pdf-tag">{brand}</span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                
-                {applianceNotes.length > 0 && (
-                  <div className="mt-3 pt-3 border-t border-border/30">
-                    <span className="pdf-data-label">Sonstige Wuensche</span>
-                    <p className="mt-1">{applianceNotes.join(', ')}</p>
-                  </div>
-                )}
-              </div>
-            </div>
           </div>
         </div>
 
@@ -1399,6 +1302,103 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
           />
           
           <div className="flex-1">
+          {/* ELEKTROGERAETE (von Seite 1 hierher verschoben) */}
+          <div className="pdf-section">
+            <div className="pdf-section-header">
+              <Plug />
+              Elektrogeraete
+            </div>
+            <div className="pdf-section-body">
+              <div className="pdf-check-list">
+                {project.preferences.appliances.cooktop && (
+                  <div className="pdf-check-item">
+                    <CheckCircle />
+                    <div>
+                      <span className="font-medium">Kochfeld:</span> {project.preferences.appliances.cooktop}
+                      {cooktopSize && <span className="text-muted-foreground"> ({cooktopSize})</span>}
+                      {cooktopExtras.length > 0 && (
+                        <div className="pdf-tag-list mt-1">
+                          {cooktopExtras.map(e => <span key={e} className="pdf-tag accent">{e}</span>)}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+                {project.preferences.appliances.hood && (
+                  <div className="pdf-check-item">
+                    <CheckCircle />
+                    <div>
+                      <span className="font-medium">Dunstabzug:</span> {project.preferences.appliances.hood}
+                      {hoodVentilation && <span className="text-muted-foreground"> ({hoodVentilation})</span>}
+                    </div>
+                  </div>
+                )}
+                {project.preferences.appliances.oven && (
+                  <div className="pdf-check-item">
+                    <CheckCircle />
+                    <div>
+                      <span className="font-medium">Backofen:</span> {project.preferences.appliances.oven}
+                      {ovenHeight && <span className="text-muted-foreground"> ({ovenHeight})</span>}
+                      {ovenExtras.length > 0 && (
+                        <div className="pdf-tag-list mt-1">
+                          {ovenExtras.map(e => <span key={e} className="pdf-tag accent">{e}</span>)}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+                {project.preferences.appliances.fridge && (
+                  <div className="pdf-check-item">
+                    <CheckCircle />
+                    <div>
+                      <span className="font-medium">Kuehlschrank:</span> {project.preferences.appliances.fridge}
+                      {fridgeExtras.length > 0 && (
+                        <div className="pdf-tag-list mt-1">
+                          {fridgeExtras.map(e => <span key={e} className="pdf-tag accent">{e}</span>)}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+                {project.preferences.appliances.dishwasher && (
+                  <div className="pdf-check-item">
+                    <CheckCircle />
+                    <div>
+                      <span className="font-medium">Geschirrspueler:</span>
+                      <span> {dishwasherWidth || '60 cm'}</span>
+                      <span>, {dishwasherHeight || 'Normal (unter AP)'}</span>
+                      <span>, {dishwasherIntegration || 'Vollintegriert'}</span>
+                    </div>
+                  </div>
+                )}
+                {project.preferences.appliances.microwave && (
+                  <div className="pdf-check-item">
+                    <CheckCircle />
+                    <span>Mikrowelle (Einbau)</span>
+                  </div>
+                )}
+              </div>
+              
+              {applianceBrands.length > 0 && (
+                <div className="mt-3 pt-3 border-t border-border/30">
+                  <span className="pdf-data-label">Bevorzugte Geraetemarken</span>
+                  <div className="pdf-tag-list mt-1">
+                    {applianceBrands.map((brand) => (
+                      <span key={brand} className="pdf-tag">{brand}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {applianceNotes.length > 0 && (
+                <div className="mt-3 pt-3 border-t border-border/30">
+                  <span className="pdf-data-label">Sonstige Wuensche</span>
+                  <p className="mt-1">{applianceNotes.join(', ')}</p>
+                </div>
+              )}
+            </div>
+          </div>
+
           {/* SPUELE & ARMATUR */}
           <div className="pdf-section">
             <div className="pdf-section-header">
