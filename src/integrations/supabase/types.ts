@@ -133,7 +133,84 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      studio_branding_public: {
+        Row: {
+          contact_address: string | null
+          contact_email: string | null
+          contact_phone: string | null
+          contact_website: string | null
+          created_at: string | null
+          custom_manufacturers: string[] | null
+          enabled_manufacturers: string[] | null
+          id: string | null
+          landing_benefit_1: string | null
+          landing_benefit_2: string | null
+          landing_benefit_3: string | null
+          landing_cta_text: string | null
+          landing_headline: string | null
+          landing_subheadline: string | null
+          landing_why_text: string | null
+          logo_url: string | null
+          primary_color: string | null
+          show_appointment_booking: boolean | null
+          show_default_branding: boolean | null
+          show_landing_page: boolean | null
+          show_manufacturer_field: boolean | null
+          studio_name: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          contact_address?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          contact_website?: string | null
+          created_at?: string | null
+          custom_manufacturers?: string[] | null
+          enabled_manufacturers?: string[] | null
+          id?: string | null
+          landing_benefit_1?: string | null
+          landing_benefit_2?: string | null
+          landing_benefit_3?: string | null
+          landing_cta_text?: string | null
+          landing_headline?: string | null
+          landing_subheadline?: string | null
+          landing_why_text?: string | null
+          logo_url?: string | null
+          primary_color?: string | null
+          show_appointment_booking?: boolean | null
+          show_default_branding?: boolean | null
+          show_landing_page?: boolean | null
+          show_manufacturer_field?: boolean | null
+          studio_name?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          contact_address?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          contact_website?: string | null
+          created_at?: string | null
+          custom_manufacturers?: string[] | null
+          enabled_manufacturers?: string[] | null
+          id?: string | null
+          landing_benefit_1?: string | null
+          landing_benefit_2?: string | null
+          landing_benefit_3?: string | null
+          landing_cta_text?: string | null
+          landing_headline?: string | null
+          landing_subheadline?: string | null
+          landing_why_text?: string | null
+          logo_url?: string | null
+          primary_color?: string | null
+          show_appointment_booking?: boolean | null
+          show_default_branding?: boolean | null
+          show_landing_page?: boolean | null
+          show_manufacturer_field?: boolean | null
+          studio_name?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       [_ in never]: never

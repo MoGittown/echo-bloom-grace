@@ -166,18 +166,18 @@ export function useBranding() {
     const loadBranding = async () => {
       try {
         const { data, error } = await supabase
-          .from('studio_branding')
+          .from('studio_branding_public' as any)
           .select('*')
           .limit(1)
           .maybeSingle();
 
         if (data && !error) {
-          const brandingData = parseBrandingData(data);
+          const brandingData = parseBrandingData(data as any);
           setBranding(brandingData);
           
           // Apply the primary color to CSS
-          if (data.primary_color) {
-            applyPrimaryColor(data.primary_color);
+          if ((data as any).primary_color) {
+            applyPrimaryColor((data as any).primary_color);
           }
         }
       } catch (error) {
@@ -209,7 +209,7 @@ export function useBrandingAdmin() {
     const checkStatus = async () => {
       try {
         const { data, error } = await supabase
-          .from('studio_branding')
+          .from('studio_branding_public' as any)
           .select('*')
           .limit(1)
           .maybeSingle();
@@ -220,7 +220,7 @@ export function useBrandingAdmin() {
         } else if (!data) {
           setNeedsSetup(true);
         } else if (data) {
-          setBranding(parseBrandingData(data));
+          setBranding(parseBrandingData(data as any));
         }
       } catch (error) {
         console.error('Failed to check branding status:', error);
