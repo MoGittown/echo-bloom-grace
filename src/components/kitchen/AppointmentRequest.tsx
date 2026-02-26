@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { escapeHtml } from '@/lib/htmlSanitizer';
 import { Calendar } from '@/components/ui/calendar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -87,11 +88,11 @@ export function AppointmentRequest({
             summaryHtml: `
               <div class="section">
                 <div class="section-title">📅 Neue Terminanfrage</div>
-                <div class="info-row"><span class="info-label">Kunde:</span><span class="info-value">${customerName}</span></div>
-                <div class="info-row"><span class="info-label">E-Mail:</span><span class="info-value">${customerEmail || '-'}</span></div>
-                <div class="info-row"><span class="info-label">Telefon:</span><span class="info-value">${customerPhone || '-'}</span></div>
+                <div class="info-row"><span class="info-label">Kunde:</span><span class="info-value">${escapeHtml(customerName)}</span></div>
+                <div class="info-row"><span class="info-label">E-Mail:</span><span class="info-value">${escapeHtml(customerEmail) || '-'}</span></div>
+                <div class="info-row"><span class="info-label">Telefon:</span><span class="info-value">${escapeHtml(customerPhone) || '-'}</span></div>
                 <div class="info-row"><span class="info-label">Wunschdatum:</span><span class="info-value">${selectedDate.toLocaleDateString('de-DE', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}</span></div>
-                <div class="info-row"><span class="info-label">Wunschzeit:</span><span class="info-value">${selectedTime} Uhr</span></div>
+                <div class="info-row"><span class="info-label">Wunschzeit:</span><span class="info-value">${escapeHtml(selectedTime)} Uhr</span></div>
               </div>
               <p style="margin-top: 20px; padding: 15px; background: #fff3cd; border-radius: 8px; color: #856404;">
                 ⚠️ <strong>Bitte bestätigen Sie diesen Termin</strong> telefonisch oder per E-Mail beim Kunden.
