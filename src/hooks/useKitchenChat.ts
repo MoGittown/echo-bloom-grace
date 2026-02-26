@@ -26,9 +26,12 @@ const parseResponse = (content: string): { text: string; questions: string[] } =
   return { text, questions: [] };
 };
 
+const MIN_REQUEST_INTERVAL = 2000; // 2 seconds between requests
+
 export const useKitchenChat = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [lastRequestTime, setLastRequestTime] = useState(0);
 
   // Extract suggested questions from the last assistant message
   const suggestedQuestions = useMemo(() => {
@@ -51,6 +54,13 @@ export const useKitchenChat = () => {
 
   const sendMessage = useCallback(async (input: string) => {
     if (!input.trim() || isLoading) return;
+
+    const now = Date.now();
+    if (now - lastRequestTime < MIN_REQUEST_INTERVAL) {
+      toast.error('Bitte warten Sie einen Moment vor der nächsten Frage.');
+      return;
+    }
+    setLastRequestTime(now);
 
     const userMsg: ChatMessage = { role: 'user', content: input.trim() };
     setMessages(prev => [...prev, userMsg]);
@@ -161,7 +171,7 @@ export const useKitchenChat = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [messages, isLoading]);
+  }, [messages, isLoading, lastRequestTime]);
 
   const clearChat = useCallback(() => {
     setMessages([]);

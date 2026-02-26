@@ -81,7 +81,16 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     const { recipientEmail, customerName, projectDate, summaryHtml, customerData }: ProtocolEmailRequest = await req.json();
 
-    console.log(`Sending protocol email for customer to ${recipientEmail}`);
+    // Validate email format and length
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!recipientEmail || typeof recipientEmail !== 'string' || recipientEmail.length > 254 || !emailRegex.test(recipientEmail)) {
+      return new Response(
+        JSON.stringify({ error: "Invalid recipient email address." }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    console.log(`Sending protocol email for customer`);
 
     // Escape all user-provided values before interpolation into HTML
     const safeCustomerName = escapeHtml(customerName);
