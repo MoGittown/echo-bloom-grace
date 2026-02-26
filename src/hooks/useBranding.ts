@@ -343,30 +343,26 @@ export function useBrandingAdmin() {
 
   const uploadLogo = useCallback(async (file: File): Promise<string | null> => {
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `logo-${Date.now()}.${fileExt}`;
-      const filePath = `branding/${fileName}`;
+      if (!sessionPassword) return null;
 
-      const { error: uploadError } = await supabase.storage
-        .from('studio-assets')
-        .upload(filePath, file, { upsert: true });
+      const formData = new FormData();
+      formData.append('action', 'upload-logo');
+      formData.append('password', sessionPassword);
+      formData.append('file', file);
 
-      if (uploadError) throw uploadError;
+      const { data, error } = await supabase.functions.invoke('branding-admin', {
+        body: formData,
+      });
 
-      const { data: urlData } = supabase.storage
-        .from('studio-assets')
-        .getPublicUrl(filePath);
+      if (error) throw error;
+      if (!data?.success) throw new Error(data?.error || 'Upload failed');
 
-      const logoUrl = urlData.publicUrl;
-      
-      // Update branding with new logo URL
-      const success = await updateBranding({ logoUrl });
-      return success ? logoUrl : null;
+      return data.logoUrl;
     } catch (error) {
       console.error('Logo upload failed:', error);
       return null;
     }
-  }, [updateBranding]);
+  }, [sessionPassword]);
 
   const logout = useCallback(() => {
     setIsAuthenticated(false);
