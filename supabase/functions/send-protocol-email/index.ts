@@ -29,20 +29,41 @@ interface ProtocolEmailRequest {
   customerData?: CustomerData;
 }
 
+/** Escapes HTML special characters to prevent injection */
+function escapeHtml(text: string | null | undefined): string {
+  if (!text) return '';
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+/** Escapes CSV fields to prevent formula injection */
+function escapeCsvField(field: string): string {
+  if (!field) return '';
+  // Prevent CSV formula injection
+  if (/^[=+\-@\t\r]/.test(field)) {
+    return "'" + field;
+  }
+  return field;
+}
+
 // Generate CSV content with customer contact data only
 function generateContactCSV(customer: CustomerData, projectDate: string): string {
   const rows = [
     ['Feld', 'Wert'],
-    ['Vorname', customer.firstName || ''],
-    ['Nachname', customer.lastName || ''],
-    ['E-Mail', customer.email || ''],
-    ['Telefon', customer.phone || ''],
-    ['Straße', customer.address || ''],
-    ['PLZ', customer.postalCode || ''],
-    ['Ort', customer.city || ''],
-    ['Zeitrahmen', customer.timeline || ''],
-    ['Anmerkungen', (customer.notes || '').replace(/\n/g, ' ')],
-    ['Protokoll-Datum', projectDate],
+    ['Vorname', escapeCsvField(customer.firstName || '')],
+    ['Nachname', escapeCsvField(customer.lastName || '')],
+    ['E-Mail', escapeCsvField(customer.email || '')],
+    ['Telefon', escapeCsvField(customer.phone || '')],
+    ['Straße', escapeCsvField(customer.address || '')],
+    ['PLZ', escapeCsvField(customer.postalCode || '')],
+    ['Ort', escapeCsvField(customer.city || '')],
+    ['Zeitrahmen', escapeCsvField(customer.timeline || '')],
+    ['Anmerkungen', escapeCsvField((customer.notes || '').replace(/\n/g, ' '))],
+    ['Protokoll-Datum', escapeCsvField(projectDate)],
   ];
 
   // Convert to CSV with semicolon separator (German Excel compatible)
@@ -60,13 +81,20 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     const { recipientEmail, customerName, projectDate, summaryHtml, customerData }: ProtocolEmailRequest = await req.json();
 
-    console.log(`Sending protocol email for ${customerName} to ${recipientEmail}`);
+    console.log(`Sending protocol email for customer to ${recipientEmail}`);
+
+    // Escape all user-provided values before interpolation into HTML
+    const safeCustomerName = escapeHtml(customerName);
+    const safeProjectDate = escapeHtml(projectDate);
+    const safePhone = customerData ? escapeHtml(customerData.phone) : '';
+    const safeEmail = customerData ? escapeHtml(customerData.email) : '';
+    const safeTimeline = customerData ? escapeHtml(customerData.timeline) : '';
 
     // Build email options
     const emailOptions: any = {
       from: "Küchenberatung <onboarding@resend.dev>",
       to: [recipientEmail],
-      subject: `Beratungsprotokoll: ${customerName} - ${projectDate}`,
+      subject: `Beratungsprotokoll: ${safeCustomerName} - ${safeProjectDate}`,
       html: `
         <!DOCTYPE html>
         <html lang="de">
@@ -189,8 +217,8 @@ const handler = async (req: Request): Promise<Response> => {
             <div class="header">
               <h1>🏠 Beratungsprotokoll</h1>
               <div class="meta">
-                <strong>Kunde:</strong> ${customerName}<br>
-                <strong>Datum:</strong> ${projectDate}
+                <strong>Kunde:</strong> ${safeCustomerName}<br>
+                <strong>Datum:</strong> ${safeProjectDate}
               </div>
             </div>
 
@@ -200,11 +228,11 @@ const handler = async (req: Request): Promise<Response> => {
               <div class="highlight-grid">
                 <div class="highlight-item">
                   <div class="highlight-label">Kontakt</div>
-                  <div class="highlight-value">${customerData.phone || customerData.email || 'Nicht angegeben'}</div>
+                  <div class="highlight-value">${safePhone || safeEmail || 'Nicht angegeben'}</div>
                 </div>
                 <div class="highlight-item">
                   <div class="highlight-label">Zeitrahmen</div>
-                  <div class="highlight-value">${customerData.timeline || 'Nicht angegeben'}</div>
+                  <div class="highlight-value">${safeTimeline || 'Nicht angegeben'}</div>
                 </div>
               </div>
             </div>
@@ -247,7 +275,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     const emailResponse = await resend.emails.send(emailOptions);
 
-    console.log("Email sent successfully:", emailResponse);
+    console.log("Email sent successfully");
 
     return new Response(JSON.stringify(emailResponse), {
       status: 200,
@@ -259,7 +287,7 @@ const handler = async (req: Request): Promise<Response> => {
   } catch (error: any) {
     console.error("Error in send-protocol-email function:", error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: "Failed to send email. Please try again later." }),
       {
         status: 500,
         headers: { "Content-Type": "application/json", ...corsHeaders },

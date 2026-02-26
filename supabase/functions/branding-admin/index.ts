@@ -17,8 +17,6 @@ async function legacyHashPassword(password: string): Promise<string> {
 }
 
 function isLegacyHash(hash: string): boolean {
-  // bcrypt hashes start with $2a$, $2b$, or $2y$ and are 60 chars
-  // SHA-256 hex hashes are exactly 64 hex characters
   return /^[a-f0-9]{64}$/.test(hash);
 }
 
@@ -28,7 +26,6 @@ async function hashPassword(password: string): Promise<string> {
 
 async function verifyPassword(password: string, hash: string): Promise<boolean> {
   if (isLegacyHash(hash)) {
-    // Verify against legacy SHA-256 hash
     const legacyHash = await legacyHashPassword(password);
     return legacyHash === hash;
   }
@@ -45,6 +42,94 @@ serve(async (req: Request) => {
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+    const contentType = req.headers.get("content-type") || "";
+
+    // Handle multipart form data for file uploads
+    if (contentType.includes("multipart/form-data")) {
+      const formData = await req.formData();
+      const action = formData.get("action") as string;
+      const password = formData.get("password") as string;
+      const file = formData.get("file") as File;
+
+      if (action !== "upload-logo" || !file || !password) {
+        return new Response(
+          JSON.stringify({ error: "Invalid upload request" }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
+        );
+      }
+
+      // Verify password first
+      const { data: existingBranding } = await supabase
+        .from("studio_branding")
+        .select("*")
+        .limit(1)
+        .single();
+
+      if (!existingBranding) {
+        return new Response(
+          JSON.stringify({ success: false, error: "no_branding_setup" }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
+        );
+      }
+
+      const isValid = await verifyPassword(password, existingBranding.admin_password_hash);
+      if (!isValid) {
+        return new Response(
+          JSON.stringify({ success: false, error: "invalid_password" }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 401 }
+        );
+      }
+
+      // Validate file type
+      const allowedTypes = ["image/png", "image/jpeg", "image/webp", "image/svg+xml", "image/gif"];
+      if (!allowedTypes.includes(file.type)) {
+        return new Response(
+          JSON.stringify({ success: false, error: "invalid_file_type" }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
+        );
+      }
+
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        return new Response(
+          JSON.stringify({ success: false, error: "file_too_large" }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
+        );
+      }
+
+      const fileExt = file.name.split('.').pop();
+      const fileName = `logo-${Date.now()}.${fileExt}`;
+      const filePath = `branding/${fileName}`;
+
+      const fileBuffer = await file.arrayBuffer();
+      const { error: uploadError } = await supabase.storage
+        .from("studio-assets")
+        .upload(filePath, fileBuffer, { 
+          upsert: true, 
+          contentType: file.type 
+        });
+
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage
+        .from("studio-assets")
+        .getPublicUrl(filePath);
+
+      const logoUrl = urlData.publicUrl;
+
+      // Update branding with new logo URL
+      await supabase
+        .from("studio_branding")
+        .update({ logo_url: logoUrl })
+        .eq("id", existingBranding.id);
+
+      return new Response(
+        JSON.stringify({ success: true, logoUrl }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Handle JSON requests (existing actions)
     const { 
       action, 
       password, 
@@ -89,7 +174,6 @@ serve(async (req: Request) => {
         
         const isValid = await verifyPassword(password, existingBranding.admin_password_hash);
         
-        // If valid and using legacy hash, upgrade to bcrypt transparently
         if (isValid && isLegacyHash(existingBranding.admin_password_hash)) {
           const newHash = await hashPassword(password);
           await supabase
@@ -98,7 +182,6 @@ serve(async (req: Request) => {
             .eq("id", existingBranding.id);
         }
 
-        // Strip admin_password_hash from response
         if (isValid && existingBranding) {
           const { admin_password_hash: _, ...safeBranding } = existingBranding;
           return new Response(
@@ -143,7 +226,6 @@ serve(async (req: Request) => {
 
         if (error) throw error;
 
-        // Strip admin_password_hash from response
         const { admin_password_hash: _, ...safeBranding } = data;
         return new Response(
           JSON.stringify({ success: true, branding: safeBranding }),
@@ -167,7 +249,6 @@ serve(async (req: Request) => {
           );
         }
 
-        // If using legacy hash, upgrade transparently
         if (isLegacyHash(existingBranding.admin_password_hash)) {
           const newHash = await hashPassword(password);
           await supabase
@@ -198,7 +279,6 @@ serve(async (req: Request) => {
         if (contactEmail !== undefined) updateData.contact_email = contactEmail;
         if (contactWebsite !== undefined) updateData.contact_website = contactWebsite;
         
-        // Handle password change
         if (newPassword && newPassword.length >= 6) {
           updateData.admin_password_hash = await hashPassword(newPassword);
         }
@@ -212,7 +292,6 @@ serve(async (req: Request) => {
 
         if (error) throw error;
 
-        // Strip admin_password_hash from response
         const { admin_password_hash: _, ...safeBranding } = data;
         return new Response(
           JSON.stringify({ success: true, branding: safeBranding }),
