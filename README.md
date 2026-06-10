@@ -1,4 +1,10 @@
-# Welcome to your Lovable project
+# Küchenready Web (`kuechenready.de`)
+
+[![Deploy Web to Hostinger](https://github.com/MoGittown/echo-bloom-grace/actions/workflows/deploy-hostinger.yml/badge.svg)](https://github.com/MoGittown/echo-bloom-grace/actions/workflows/deploy-hostinger.yml)
+
+**Deploy-Status:** [GitHub Actions](https://github.com/MoGittown/echo-bloom-grace/actions) → Workflow „Deploy Web to Hostinger“ (grüner Haken = Build/Deploy OK).
+
+Einrichtung: `docs/DEPLOY_GITHUB.md`
 
 ## Project info
 
