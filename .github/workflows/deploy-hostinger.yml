@@ -85,8 +85,7 @@ jobs:
           local-dir: ./dist/
           # FTP-Root ist oft public_html → Addon-Domain ein Verzeichnis höher
           server-dir: ../domains/kuechenready.de/public_html/
-          # Dotfiles (.htaccess) werden nur mit clean-slate mit hochgeladen
-          dangerous-clean-slate: true
+          dangerous-clean-slate: false
 
       - name: Deploy erfolgreich (Summary)
         run: |
