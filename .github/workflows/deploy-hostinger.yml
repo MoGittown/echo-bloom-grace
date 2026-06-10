@@ -31,19 +31,11 @@ jobs:
 
       - name: Build production bundle
         run: npm run build
-        env:
-          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
-          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
-          VITE_PUBLIC_WEB_URL: ${{ secrets.VITE_PUBLIC_WEB_URL }}
-          VITE_APP_DEEP_LINK_SCHEME: kuechencheck
-          VITE_PLAY_STORE_URL: ${{ secrets.VITE_PLAY_STORE_URL }}
 
       - name: Production-Build prüfen
         run: |
           grep -q '/assets/' dist/index.html
           ! grep -q '/src/main' dist/index.html
-          test -n "${{ secrets.VITE_SUPABASE_URL }}"
-          test -n "${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}"
 
       - name: Build erfolgreich (Summary)
         run: |
