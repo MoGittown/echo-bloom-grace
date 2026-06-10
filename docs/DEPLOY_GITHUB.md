@@ -20,7 +20,7 @@ Bei Push auf `main` startet der Workflow automatisch.
 | `FTP_SERVER` | `ftp.kuechenready.de` |
 | `FTP_USERNAME` | FTP-Benutzer aus hPanel |
 | `FTP_PASSWORD` | FTP-Passwort |
-| `FTP_SERVER_DIR` | `public_html` |
+| `FTP_SERVER_DIR` | `domains/kuechenready.de/public_html/` *(Addon-Domain, nicht `public_html`)* |
 
 ### Build (Supabase + Domain)
 

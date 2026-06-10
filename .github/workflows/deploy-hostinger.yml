@@ -76,8 +76,8 @@ jobs:
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           local-dir: ./dist/
-          server-dir: ${{ secrets.FTP_SERVER_DIR }}
-          # Erster Deploy: alte Site-Dateien (z. B. /404) blockieren sonst das Sync-Löschen
+          # Addon-Domain bei Hostinger (nicht Account-root public_html)
+          server-dir: domains/kuechenready.de/public_html/
           dangerous-clean-slate: true
 
       - name: Deploy erfolgreich (Summary)
