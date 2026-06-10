@@ -38,6 +38,13 @@ jobs:
           VITE_APP_DEEP_LINK_SCHEME: kuechencheck
           VITE_PLAY_STORE_URL: ${{ secrets.VITE_PLAY_STORE_URL }}
 
+      - name: Production-Build prüfen
+        run: |
+          grep -q '/assets/' dist/index.html
+          ! grep -q '/src/main' dist/index.html
+          test -n "${{ secrets.VITE_SUPABASE_URL }}"
+          test -n "${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}"
+
       - name: Build erfolgreich (Summary)
         run: |
           echo "## ✅ Web-Build erfolgreich" >> $GITHUB_STEP_SUMMARY
@@ -73,6 +80,11 @@ jobs:
       - name: SPA .htaccess sicherstellen
         run: test -f dist/.htaccess || cp public/.htaccess dist/.htaccess
 
+      - name: Dist-Artefakt prüfen
+        run: |
+          grep -q '/assets/' dist/index.html
+          ! grep -q '/src/main' dist/index.html
+
       - name: Deploy to Hostinger via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
@@ -85,7 +97,14 @@ jobs:
           local-dir: ./dist/
           # FTP-Root ist oft public_html → Addon-Domain ein Verzeichnis höher
           server-dir: ../domains/kuechenready.de/public_html/
-          dangerous-clean-slate: false
+          dangerous-clean-slate: true
+
+      - name: Live-Seite prüfen
+        run: |
+          sleep 5
+          HTML="$(curl -fsSL https://kuechenready.de/)"
+          echo "$HTML" | grep -q '/assets/'
+          ! echo "$HTML" | grep -q '/src/main'
 
       - name: Deploy erfolgreich (Summary)
         run: |
