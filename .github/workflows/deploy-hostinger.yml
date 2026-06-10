@@ -75,6 +75,9 @@ jobs:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftps
+          port: 21
+          timeout: 120000
           local-dir: ./dist/
           # Addon-Domain bei Hostinger (nicht Account-root public_html)
           server-dir: domains/kuechenready.de/public_html/
