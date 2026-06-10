@@ -89,7 +89,7 @@ jobs:
           local-dir: ./dist/
           # FTP-Root ist oft public_html → Addon-Domain ein Verzeichnis höher
           server-dir: ../domains/kuechenready.de/public_html/
-          dangerous-clean-slate: false
+          dangerous-clean-slate: true
 
       - name: Live-Seite prüfen
         run: |
