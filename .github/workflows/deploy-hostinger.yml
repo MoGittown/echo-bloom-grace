@@ -79,9 +79,12 @@ jobs:
           port: 21
           timeout: 120000
           local-dir: ./dist/
-          # Addon-Domain bei Hostinger (nicht Account-root public_html)
-          server-dir: domains/kuechenready.de/public_html/
+          # FTP-Root ist oft public_html → Addon-Domain ein Verzeichnis höher
+          server-dir: ../domains/kuechenready.de/public_html/
           dangerous-clean-slate: true
+          include: |
+            **/*
+            **/.htaccess
 
       - name: Deploy erfolgreich (Summary)
         run: |

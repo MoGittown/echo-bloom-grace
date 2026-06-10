@@ -1,4 +1,5 @@
 # Hostinger / Apache: React SPA (Routes /s/*, /admin)
+DirectoryIndex index.html index.php
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /
