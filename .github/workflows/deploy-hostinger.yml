@@ -56,6 +56,7 @@ jobs:
         with:
           name: dist
           path: dist/
+          include-hidden-files: true
           retention-days: 7
 
   deploy:
@@ -69,6 +70,9 @@ jobs:
           name: dist
           path: dist/
 
+      - name: SPA .htaccess sicherstellen
+        run: test -f dist/.htaccess || cp public/.htaccess dist/.htaccess
+
       - name: Deploy to Hostinger via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
@@ -81,10 +85,8 @@ jobs:
           local-dir: ./dist/
           # FTP-Root ist oft public_html → Addon-Domain ein Verzeichnis höher
           server-dir: ../domains/kuechenready.de/public_html/
+          # Dotfiles (.htaccess) werden nur mit clean-slate mit hochgeladen
           dangerous-clean-slate: true
-          include: |
-            **/*
-            **/.htaccess
 
       - name: Deploy erfolgreich (Summary)
         run: |
