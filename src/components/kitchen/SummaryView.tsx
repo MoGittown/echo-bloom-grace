@@ -53,6 +53,8 @@ import { toast } from 'sonner';
 import { AppointmentRequest } from './AppointmentRequest';
 import { PdfDebugConsole, type PdfDebugEvent, type PdfDebugLevel } from './PdfDebugConsole';
 import { PdfPageHeader } from './PdfPageHeader';
+import { PdfPageFooter } from './PdfPageFooter';
+import { useParams } from 'react-router-dom';
 
 
 interface SummaryViewProps {
@@ -425,7 +427,8 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
     return String(err);
   }, []);
 
-  const { branding } = useBranding();
+  const { slug: studioSlug } = useParams<{ slug?: string }>();
+  const { branding } = useBranding(studioSlug);
 
   // PDF metadata for professional header/footer
   const validPhotos = project.photos.filter(p => p.preview);
@@ -437,6 +440,14 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
   const createdIso = project.createdAt instanceof Date ? project.createdAt.toISOString() : String(project.createdAt);
   const protocolId = `KP-${createdIso.slice(2, 10).replace(/-/g, '')}`;
   const customerFullName = [project.customer.firstName, project.customer.lastName].filter(Boolean).join(' ') || 'Unbekannt';
+  const studioDisplayName = branding.displayAppName || branding.studioName;
+  const pdfContactLine = [
+    branding.contact.address,
+    branding.contact.phone,
+    branding.contact.email,
+    branding.contact.website,
+    branding.studioSettings.pdf.footerText,
+  ].filter(Boolean).join(' · ');
 
   const handlePrint = useCallback(async () => {
     try {
@@ -995,7 +1006,7 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
             protocolId={protocolId}
             createdDate={formatDate(project.createdAt)}
             customerName={customerFullName}
-            studioName={branding.studioName}
+            studioName={studioDisplayName}
             logoUrl={branding.logoUrl}
           />
           
@@ -1296,6 +1307,12 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
               </div>
             </div>
           </div>
+          <PdfPageFooter
+            pageNumber={1}
+            totalPages={photoPages.length + 3}
+            contactLine={pdfContactLine}
+            studioName={studioDisplayName}
+          />
         </div>
 
         {/* ===== PAGE 2: Sink, Waste, Lighting, Room, Floor Plan ===== */}

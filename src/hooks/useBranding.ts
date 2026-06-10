@@ -1,5 +1,16 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import {
+  DEFAULT_STUDIO_SETTINGS,
+  mergeStudioSettings,
+  type StudioSettings,
+} from '@/types/studioSettings';
+import {
+  DEFAULT_FEATURE_CONFIG,
+  parseFeatureConfig,
+  type FeatureConfig,
+} from '@/types/featureConfig';
+import { buildBrandingUpdateBody, type BrandingUpdates } from '@/lib/brandingApi';
 
 export interface LandingPageData {
   headline: string;
@@ -21,9 +32,18 @@ export interface ContactData {
 
 export interface BrandingData {
   id?: string;
+  studioSlug?: string | null;
+  studioCode?: string | null;
   studioName: string;
+  displayAppName?: string | null;
+  slogan?: string | null;
   logoUrl: string | null;
+  logoWhiteUrl?: string | null;
   primaryColor: string;
+  secondaryColor?: string;
+  accentColor?: string;
+  imprintUrl?: string | null;
+  privacyUrl?: string | null;
   showDefaultBranding: boolean;
   showAppointmentBooking: boolean;
   showManufacturerField: boolean;
@@ -31,6 +51,8 @@ export interface BrandingData {
   enabledManufacturers: string[];
   landingPage: LandingPageData;
   contact: ContactData;
+  studioSettings: StudioSettings;
+  featureConfig: FeatureConfig;
 }
 
 const DEFAULT_LANDING: LandingPageData = {
@@ -55,6 +77,8 @@ const DEFAULT_BRANDING: BrandingData = {
   studioName: '',
   logoUrl: null,
   primaryColor: '#8B7355',
+  secondaryColor: '#6B7280',
+  accentColor: '#16A34A',
   showDefaultBranding: true,
   showAppointmentBooking: false,
   showManufacturerField: true,
@@ -62,6 +86,8 @@ const DEFAULT_BRANDING: BrandingData = {
   enabledManufacturers: [],
   landingPage: DEFAULT_LANDING,
   contact: DEFAULT_CONTACT,
+  studioSettings: DEFAULT_STUDIO_SETTINGS,
+  featureConfig: DEFAULT_FEATURE_CONFIG,
 };
 
 // Helper to convert hex to HSL
@@ -130,14 +156,25 @@ function applyPrimaryColor(hexColor: string) {
 function parseBrandingData(data: any): BrandingData {
   return {
     id: data.id,
+    studioSlug: data.studio_slug || null,
+    studioCode: data.studio_code || null,
     studioName: data.studio_name || '',
+    displayAppName: data.display_app_name || null,
+    slogan: data.slogan || null,
     logoUrl: data.logo_url,
+    logoWhiteUrl: data.logo_white_url || null,
     primaryColor: data.primary_color || '#C2410C',
+    secondaryColor: data.secondary_color || '#6B7280',
+    accentColor: data.accent_color || '#16A34A',
+    imprintUrl: data.imprint_url || null,
+    privacyUrl: data.privacy_url || null,
     showDefaultBranding: data.show_default_branding ?? true,
     showAppointmentBooking: data.show_appointment_booking ?? false,
     showManufacturerField: data.show_manufacturer_field ?? true,
     customManufacturers: data.custom_manufacturers || [],
     enabledManufacturers: data.enabled_manufacturers || [],
+    studioSettings: mergeStudioSettings(data.studio_settings),
+    featureConfig: parseFeatureConfig(data.feature_config),
     landingPage: {
       headline: data.landing_headline || DEFAULT_LANDING.headline,
       subheadline: data.landing_subheadline || DEFAULT_LANDING.subheadline,
@@ -157,25 +194,24 @@ function parseBrandingData(data: any): BrandingData {
   };
 }
 
-export function useBranding() {
+export function useBranding(studioSlug?: string) {
   const [branding, setBranding] = useState<BrandingData>(DEFAULT_BRANDING);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Load branding from database (public read)
   useEffect(() => {
     const loadBranding = async () => {
       try {
-        const { data, error } = await supabase
-          .from('studio_branding_public' as any)
-          .select('*')
-          .limit(1)
-          .maybeSingle();
+        let query = supabase.from('studio_branding_public' as any).select('*');
+        if (studioSlug) {
+          query = query.eq('studio_slug', studioSlug);
+        } else {
+          query = query.limit(1);
+        }
+        const { data, error } = await query.maybeSingle();
 
         if (data && !error) {
           const brandingData = parseBrandingData(data as any);
           setBranding(brandingData);
-          
-          // Apply the primary color to CSS
           if ((data as any).primary_color) {
             applyPrimaryColor((data as any).primary_color);
           }
@@ -188,7 +224,7 @@ export function useBranding() {
     };
 
     loadBranding();
-  }, []);
+  }, [studioSlug]);
 
   return {
     branding,
@@ -291,35 +327,16 @@ export function useBrandingAdmin() {
     }
   }, []);
 
-  const updateBranding = useCallback(async (updates: Partial<Omit<BrandingData, 'landingPage' | 'contact'>> & { landingPage?: Partial<LandingPageData>; contact?: Partial<ContactData> }): Promise<boolean> => {
+  const updateBranding = useCallback(async (updates: BrandingUpdates): Promise<boolean> => {
     if (!sessionPassword) return false;
 
     try {
+      const body = buildBrandingUpdateBody(sessionPassword, {
+        ...updates,
+        targetStudioSlug: branding.studioSlug ?? undefined,
+      });
       const { data, error } = await supabase.functions.invoke('branding-admin', {
-        body: {
-          action: 'update',
-          password: sessionPassword,
-          studioName: updates.studioName,
-          logoUrl: updates.logoUrl,
-          primaryColor: updates.primaryColor,
-          showDefaultBranding: updates.showDefaultBranding,
-          showAppointmentBooking: updates.showAppointmentBooking,
-          showManufacturerField: updates.showManufacturerField,
-          customManufacturers: updates.customManufacturers,
-          enabledManufacturers: updates.enabledManufacturers,
-          landingHeadline: updates.landingPage?.headline,
-          landingSubheadline: updates.landingPage?.subheadline,
-          landingBenefit1: updates.landingPage?.benefit1,
-          landingBenefit2: updates.landingPage?.benefit2,
-          landingBenefit3: updates.landingPage?.benefit3,
-          landingCtaText: updates.landingPage?.ctaText,
-          landingWhyText: updates.landingPage?.whyText,
-          showLandingPage: updates.landingPage?.showLandingPage,
-          contactAddress: updates.contact?.address,
-          contactPhone: updates.contact?.phone,
-          contactEmail: updates.contact?.email,
-          contactWebsite: updates.contact?.website,
-        },
+        body,
       });
 
       if (error) throw error;
@@ -339,7 +356,7 @@ export function useBrandingAdmin() {
       console.error('Update failed:', error);
       return false;
     }
-  }, [sessionPassword]);
+  }, [sessionPassword, branding.studioSlug]);
 
   const uploadLogo = useCallback(async (file: File): Promise<string | null> => {
     try {
@@ -349,20 +366,29 @@ export function useBrandingAdmin() {
       formData.append('action', 'upload-logo');
       formData.append('password', sessionPassword);
       formData.append('file', file);
+      if (branding.studioSlug) {
+        formData.append('targetStudioSlug', branding.studioSlug);
+      }
 
-      const { data, error } = await supabase.functions.invoke('branding-admin', {
+      const url = import.meta.env.VITE_SUPABASE_URL;
+      const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+      const res = await fetch(`${url}/functions/v1/branding-admin`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${key}` },
         body: formData,
       });
-
-      if (error) throw error;
+      const data = await res.json();
       if (!data?.success) throw new Error(data?.error || 'Upload failed');
 
-      return data.logoUrl;
+      if (data.branding) {
+        setBranding(parseBrandingData(data.branding));
+      }
+      return data.logoUrl as string;
     } catch (error) {
       console.error('Logo upload failed:', error);
       return null;
     }
-  }, [sessionPassword]);
+  }, [sessionPassword, branding.studioSlug]);
 
   const logout = useCallback(() => {
     setIsAuthenticated(false);

@@ -26,7 +26,15 @@ interface ProtocolEmailRequest {
   customerName: string;
   projectDate: string;
   summaryHtml: string;
+  summaryPlainText?: string;
+  projectJson?: string;
   customerData?: CustomerData;
+}
+
+function encodeAttachmentUtf8(content: string): string {
+  const encoder = new TextEncoder();
+  const bytes = encoder.encode("\ufeff" + content);
+  return btoa(String.fromCharCode(...bytes));
 }
 
 /** Escapes HTML special characters to prevent injection */
@@ -79,7 +87,7 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { recipientEmail, customerName, projectDate, summaryHtml, customerData }: ProtocolEmailRequest = await req.json();
+    const { recipientEmail, customerName, projectDate, summaryHtml, summaryPlainText, projectJson, customerData }: ProtocolEmailRequest = await req.json();
 
     // Validate email format and length
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -202,6 +210,11 @@ const handler = async (req: Request): Promise<Response> => {
               font-size: 13px;
               margin: 2px;
             }
+            .info-line {
+              margin-bottom: 6px;
+              font-size: 13px;
+              color: #2d2a26;
+            }
             .footer {
               margin-top: 30px;
               padding-top: 20px;
@@ -247,7 +260,7 @@ const handler = async (req: Request): Promise<Response> => {
             </div>
             
             <div class="csv-note">
-              📎 <strong>CSV-Datei im Anhang:</strong> Die Kundenkontaktdaten können direkt in Ihre Planungssoftware importiert werden.
+              📎 <strong>Dateien im Anhang:</strong> Kontaktdaten (CSV), vollständige Checkliste (TXT) und Projekt-Daten (JSON) für die Terminvorbereitung.
             </div>
             ` : ''}
             
@@ -263,23 +276,35 @@ const handler = async (req: Request): Promise<Response> => {
       `,
     };
 
-    // Add CSV attachment if customer data is provided
+    const attachments: Array<{ filename: string; content: string }> = [];
+
     if (customerData) {
       const csvContent = generateContactCSV(customerData, projectDate);
       const lastName = customerData.lastName || 'Kunde';
       const dateStr = new Date().toISOString().split('T')[0];
-      
-      // Encode CSV content as base64 using TextEncoder
-      const encoder = new TextEncoder();
-      const csvBytes = encoder.encode('\ufeff' + csvContent);
-      const base64Content = btoa(String.fromCharCode(...csvBytes));
-      
-      emailOptions.attachments = [
-        {
-          filename: `Kontaktdaten_${lastName}_${dateStr}.csv`,
-          content: base64Content,
-        }
-      ];
+
+      attachments.push({
+        filename: `Kontaktdaten_${lastName}_${dateStr}.csv`,
+        content: encodeAttachmentUtf8(csvContent),
+      });
+
+      if (summaryPlainText && summaryPlainText.trim().length > 0) {
+        attachments.push({
+          filename: `Checkliste_${lastName}_${dateStr}.txt`,
+          content: encodeAttachmentUtf8(summaryPlainText),
+        });
+      }
+
+      if (projectJson && projectJson.trim().length > 0) {
+        attachments.push({
+          filename: `Projekt_${lastName}_${dateStr}.json`,
+          content: btoa(unescape(encodeURIComponent(projectJson))),
+        });
+      }
+    }
+
+    if (attachments.length > 0) {
+      emailOptions.attachments = attachments;
     }
 
     const emailResponse = await resend.emails.send(emailOptions);

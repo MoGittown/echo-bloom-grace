@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useKitchenProject } from '@/hooks/useKitchenProject';
 import { useBranding } from '@/hooks/useBranding';
 import { LandingPage } from '@/components/LandingPage';
@@ -52,6 +52,7 @@ const STARTED_KEY = 'kitchen-has-started';
 
 const Index = () => {
   const navigate = useNavigate();
+  const { slug: studioSlug } = useParams<{ slug?: string }>();
   const [logoClickCount, setLogoClickCount] = useState(0);
   const [showLanding, setShowLanding] = useState(() => {
     try {
@@ -100,7 +101,7 @@ const Index = () => {
     goToStep,
   } = useKitchenProject();
 
-  const { branding } = useBranding();
+  const { branding } = useBranding(studioSlug);
 
   // Validate customer form - now only used for inline validation display
   const validateCustomerForm = useCallback(() => {

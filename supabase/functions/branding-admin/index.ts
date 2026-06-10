@@ -32,6 +32,76 @@ async function verifyPassword(password: string, hash: string): Promise<boolean> 
   return await bcrypt.compare(password, hash);
 }
 
+function slugifyStudioName(name: string): string {
+  const map: Record<string, string> = {
+    ä: "ae", ö: "oe", ü: "ue", ß: "ss",
+  };
+  let slug = name.toLowerCase().trim();
+  for (const [char, repl] of Object.entries(map)) {
+    slug = slug.replaceAll(char, repl);
+  }
+  slug = slug
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 48);
+  return slug || "studio";
+}
+
+async function ensureUniqueSlug(
+  supabase: ReturnType<typeof createClient>,
+  base: string,
+): Promise<string> {
+  let candidate = base;
+  let suffix = 0;
+  while (true) {
+    const { data } = await supabase
+      .from("studio_branding")
+      .select("id")
+      .eq("studio_slug", candidate)
+      .maybeSingle();
+    if (!data) return candidate;
+    suffix += 1;
+    candidate = `${base}-${suffix}`;
+  }
+}
+
+async function fetchBranding(
+  supabase: ReturnType<typeof createClient>,
+  studioSlug?: string,
+) {
+  if (studioSlug) {
+    const normalized = slugifyStudioName(studioSlug);
+    const { data } = await supabase
+      .from("studio_branding")
+      .select("*")
+      .eq("studio_slug", normalized)
+      .maybeSingle();
+    return data;
+  }
+  const { data } = await supabase
+    .from("studio_branding")
+    .select("*")
+    .limit(1)
+    .maybeSingle();
+  return data;
+}
+
+const DEFAULT_FEATURE_CONFIG = {
+  steps: {
+    style: true,
+    appliances: true,
+    sink: true,
+    room: true,
+    floorPlan: true,
+    wallView: true,
+    photos: true,
+    contact: true,
+  },
+  kitchenChat: true,
+  pdfExport: true,
+  protocolEmail: true,
+};
+
 serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -49,6 +119,7 @@ serve(async (req: Request) => {
       const formData = await req.formData();
       const action = formData.get("action") as string;
       const password = formData.get("password") as string;
+      const studioSlugField = formData.get("studioSlug") as string | null;
       const file = formData.get("file") as File;
 
       if (action !== "upload-logo" || !file || !password) {
@@ -59,11 +130,10 @@ serve(async (req: Request) => {
       }
 
       // Verify password first
-      const { data: existingBranding } = await supabase
-        .from("studio_branding")
-        .select("*")
-        .limit(1)
-        .single();
+      const existingBranding = await fetchBranding(
+        supabase,
+        studioSlugField || undefined,
+      );
 
       if (!existingBranding) {
         return new Response(
@@ -153,18 +223,28 @@ serve(async (req: Request) => {
       contactAddress,
       contactPhone,
       contactEmail,
-      contactWebsite
+      contactWebsite,
+      studioSlug,
+      targetStudioSlug,
+      featureConfig,
+      removeLogo,
+      displayAppName,
+      slogan,
+      logoWhiteUrl,
+      secondaryColor,
+      accentColor,
+      imprintUrl,
+      privacyUrl,
+      studioCode,
+      studioSettings,
     } = await req.json();
-
-    // Get existing branding (service role bypasses RLS)
-    const { data: existingBranding } = await supabase
-      .from("studio_branding")
-      .select("*")
-      .limit(1)
-      .single();
 
     switch (action) {
       case "verify": {
+        const existingBranding = await fetchBranding(
+          supabase,
+          targetStudioSlug ?? studioSlug,
+        );
         if (!existingBranding) {
           return new Response(
             JSON.stringify({ success: false, error: "no_branding_setup", needsSetup: true }),
@@ -197,6 +277,7 @@ serve(async (req: Request) => {
       }
 
       case "setup": {
+        const existingBranding = await fetchBranding(supabase);
         if (existingBranding) {
           return new Response(
             JSON.stringify({ success: false, error: "already_setup" }),
@@ -212,14 +293,18 @@ serve(async (req: Request) => {
         }
 
         const passwordHash = await hashPassword(password);
+        const slugBase = slugifyStudioName(studioName || "studio");
+        const uniqueSlug = await ensureUniqueSlug(supabase, slugBase);
         const { data, error } = await supabase
           .from("studio_branding")
           .insert({
             admin_password_hash: passwordHash,
             studio_name: studioName || "",
+            studio_slug: uniqueSlug,
             logo_url: logoUrl || null,
             primary_color: primaryColor || "#8B7355",
             show_default_branding: showDefaultBranding ?? true,
+            feature_config: DEFAULT_FEATURE_CONFIG,
           })
           .select()
           .single();
@@ -234,6 +319,10 @@ serve(async (req: Request) => {
       }
 
       case "update": {
+        const existingBranding = await fetchBranding(
+          supabase,
+          targetStudioSlug ?? studioSlug,
+        );
         if (!existingBranding) {
           return new Response(
             JSON.stringify({ success: false, error: "no_branding_setup" }),
@@ -259,7 +348,40 @@ serve(async (req: Request) => {
 
         const updateData: Record<string, unknown> = {};
         if (studioName !== undefined) updateData.studio_name = studioName;
-        if (logoUrl !== undefined) updateData.logo_url = logoUrl;
+        if (removeLogo === true) updateData.logo_url = null;
+        else if (logoUrl !== undefined) updateData.logo_url = logoUrl;
+        if (studioSlug !== undefined) {
+          const normalized = slugifyStudioName(studioSlug);
+          if (!normalized) {
+            return new Response(
+              JSON.stringify({ success: false, error: "invalid_slug" }),
+              { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
+            );
+          }
+          const { data: slugConflict } = await supabase
+            .from("studio_branding")
+            .select("id")
+            .eq("studio_slug", normalized)
+            .neq("id", existingBranding.id)
+            .maybeSingle();
+          if (slugConflict) {
+            return new Response(
+              JSON.stringify({ success: false, error: "slug_taken" }),
+              { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
+            );
+          }
+          updateData.studio_slug = normalized;
+        }
+        if (featureConfig !== undefined) updateData.feature_config = featureConfig;
+        if (displayAppName !== undefined) updateData.display_app_name = displayAppName;
+        if (slogan !== undefined) updateData.slogan = slogan;
+        if (logoWhiteUrl !== undefined) updateData.logo_white_url = logoWhiteUrl;
+        if (secondaryColor !== undefined) updateData.secondary_color = secondaryColor;
+        if (accentColor !== undefined) updateData.accent_color = accentColor;
+        if (imprintUrl !== undefined) updateData.imprint_url = imprintUrl;
+        if (privacyUrl !== undefined) updateData.privacy_url = privacyUrl;
+        if (studioCode !== undefined) updateData.studio_code = studioCode;
+        if (studioSettings !== undefined) updateData.studio_settings = studioSettings;
         if (primaryColor !== undefined) updateData.primary_color = primaryColor;
         if (showDefaultBranding !== undefined) updateData.show_default_branding = showDefaultBranding;
         if (showAppointmentBooking !== undefined) updateData.show_appointment_booking = showAppointmentBooking;
