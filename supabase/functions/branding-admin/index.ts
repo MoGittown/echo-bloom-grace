@@ -21,7 +21,7 @@ function isLegacyHash(hash: string): boolean {
 }
 
 async function hashPassword(password: string): Promise<string> {
-  const salt = await bcrypt.genSalt(10);
+  const salt = bcrypt.genSaltSync(10);
   return bcrypt.hashSync(password, salt);
 }
 
