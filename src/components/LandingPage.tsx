@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { BrandingData } from '@/hooks/useBranding';
@@ -137,11 +138,26 @@ export function LandingPage({ branding, onStart }: LandingPageProps) {
 
       {/* Footer */}
       <footer className="relative z-10 py-6 px-4 border-t border-border/50 bg-card/30 backdrop-blur-sm">
-        <div className="max-w-6xl mx-auto text-center text-sm text-muted-foreground">
+        <div className="max-w-6xl mx-auto text-center text-sm text-muted-foreground space-y-2">
           {studioName ? (
             <span>© {new Date().getFullYear()} {studioName}</span>
           ) : (
             <span>Küchen-Beratungsprotokoll</span>
+          )}
+          {(branding.studioSlug || branding.privacyUrl || branding.imprintUrl) && (
+            <p className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
+              {branding.studioSlug && (
+                <>
+                  <Link className="underline hover:text-foreground" to={`/s/${branding.studioSlug}/impressum`}>
+                    Impressum
+                  </Link>
+                  <span aria-hidden>·</span>
+                  <Link className="underline hover:text-foreground" to={`/s/${branding.studioSlug}/datenschutz`}>
+                    Datenschutz
+                  </Link>
+                </>
+              )}
+            </p>
           )}
         </div>
       </footer>

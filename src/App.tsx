@@ -6,6 +6,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Admin from "./pages/Admin";
 import StudioPortal from "./pages/StudioPortal";
+import StudioImpressum from "./pages/StudioImpressum";
+import StudioDatenschutz from "./pages/StudioDatenschutz";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -22,6 +24,8 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/s/:slug" element={<StudioPortal />} />
           <Route path="/s/:slug/check" element={<Index />} />
+          <Route path="/s/:slug/impressum" element={<StudioImpressum />} />
+          <Route path="/s/:slug/datenschutz" element={<StudioDatenschutz />} />
           <Route path="/admin" element={<Admin />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
