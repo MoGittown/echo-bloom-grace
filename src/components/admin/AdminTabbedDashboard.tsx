@@ -21,6 +21,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { DsgvoChecklist } from '@/components/admin/DsgvoChecklist';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const COLOR_PRESETS = ['#8B7355', '#C2410C', '#2E7D32', '#1D4ED8', '#7C3AED', '#BE123C', '#0F766E', '#374151'];
@@ -91,7 +92,9 @@ export function AdminTabbedDashboard({ branding, updateBranding, uploadLogo, log
             )}
             <div>
               <h1 className="font-semibold">Studio-Admin</h1>
-              <p className="text-xs text-muted-foreground">{branding.displayAppName || branding.studioName}</p>
+              <p className="text-xs text-muted-foreground">
+                {branding.displayAppName || branding.studioName} — gilt für Web & App
+              </p>
             </div>
           </div>
           <div className="flex gap-2">
@@ -314,12 +317,19 @@ export function AdminTabbedDashboard({ branding, updateBranding, uploadLogo, log
           </TabsContent>
 
           <TabsContent value="legal" className="space-y-4">
+            <DsgvoChecklist branding={{
+              ...branding,
+              privacyUrl: form.privacyUrl || null,
+              imprintUrl: form.imprintUrl || null,
+              contact: form.contact,
+              studioSettings: form.studioSettings,
+            }} />
             <Card>
               <CardHeader><CardTitle>Rechtliches & Datenschutz</CardTitle></CardHeader>
               <CardContent className="space-y-3">
                 <Field label="Link Datenschutzerklärung" value={form.privacyUrl || ''} onChange={(v) => setForm({ ...form, privacyUrl: v })} />
                 <Field label="Link Impressum" value={form.imprintUrl || ''} onChange={(v) => setForm({ ...form, imprintUrl: v })} />
-                <TextField label="Einwilligungstext (in App)" value={form.studioSettings.legal.consentText} onChange={(v) => setForm({
+                <TextField label="Einwilligungstext (Web & App)" value={form.studioSettings.legal.consentText} onChange={(v) => setForm({
                   ...form, studioSettings: { ...form.studioSettings, legal: { ...form.studioSettings.legal, consentText: v } },
                 })} />
                 <SaveButton saving={saving} onClick={() => save({

@@ -200,6 +200,30 @@ export function useBranding(studioSlug?: string) {
 
   useEffect(() => {
     const loadBranding = async () => {
+      const applyLoaded = (row: any) => {
+        const brandingData = parseBrandingData(row);
+        setBranding(brandingData);
+        if (row.primary_color) {
+          applyPrimaryColor(row.primary_color);
+        }
+      };
+
+      try {
+        const { data, error } = await supabase.functions.invoke('branding-admin', {
+          body: {
+            action: 'public-get',
+            studioSlug: studioSlug || undefined,
+          },
+        });
+
+        if (!error && !data?.error && data?.branding) {
+          applyLoaded(data.branding);
+          return;
+        }
+      } catch (error) {
+        console.warn('Branding via edge function failed, trying view:', error);
+      }
+
       try {
         let query = supabase.from('studio_branding_public' as any).select('*');
         if (studioSlug) {
@@ -210,20 +234,14 @@ export function useBranding(studioSlug?: string) {
         const { data, error } = await query.maybeSingle();
 
         if (data && !error) {
-          const brandingData = parseBrandingData(data as any);
-          setBranding(brandingData);
-          if ((data as any).primary_color) {
-            applyPrimaryColor((data as any).primary_color);
-          }
+          applyLoaded(data as any);
         }
       } catch (error) {
         console.error('Failed to load branding:', error);
-      } finally {
-        setIsLoading(false);
       }
     };
 
-    loadBranding();
+    loadBranding().finally(() => setIsLoading(false));
   }, [studioSlug]);
 
   return {
@@ -240,33 +258,70 @@ export function useBrandingAdmin() {
   const [needsSetup, setNeedsSetup] = useState(false);
   const [sessionPassword, setSessionPassword] = useState<string | null>(null);
 
-  // Check initial state
+  const loadPublicBranding = useCallback(async () => {
+    const tryInvoke = async (action: string) => {
+      const { data, error } = await supabase.functions.invoke('branding-admin', {
+        body: { action },
+      });
+      if (error || data?.error) return null;
+      return data?.branding ?? null;
+    };
+
+    const fromStatus = await tryInvoke('status');
+    if (fromStatus) return fromStatus;
+
+    const fromPublic = await tryInvoke('public-get');
+    if (fromPublic) return fromPublic;
+
+    const { data } = await supabase
+      .from('studio_branding_public' as any)
+      .select('*')
+      .limit(1)
+      .maybeSingle();
+    return data ?? null;
+  }, []);
+
+  // Check initial state (Edge Function + Fallbacks)
   useEffect(() => {
     const checkStatus = async () => {
       try {
-        const { data, error } = await supabase
-          .from('studio_branding_public' as any)
-          .select('*')
-          .limit(1)
-          .maybeSingle();
+        const { data, error } = await supabase.functions.invoke('branding-admin', {
+          body: { action: 'verify', password: '__status_probe__' },
+        });
 
-        if (error && error.code === 'PGRST116') {
-          // No rows = needs setup
+        if (error) throw error;
+
+        if (data?.needsSetup || data?.error === 'no_branding_setup') {
           setNeedsSetup(true);
-        } else if (!data) {
-          setNeedsSetup(true);
-        } else if (data) {
-          setBranding(parseBrandingData(data as any));
+          return;
+        }
+
+        setNeedsSetup(false);
+        const row = await loadPublicBranding();
+        if (row) {
+          setBranding(parseBrandingData(row));
         }
       } catch (error) {
         console.error('Failed to check branding status:', error);
+        try {
+          const row = await loadPublicBranding();
+          if (row) {
+            setBranding(parseBrandingData(row));
+            setNeedsSetup(false);
+          } else {
+            setNeedsSetup(true);
+          }
+        } catch (fallbackError) {
+          console.error('Branding fallback failed:', fallbackError);
+          setNeedsSetup(true);
+        }
       } finally {
         setIsLoading(false);
       }
     };
 
     checkStatus();
-  }, []);
+  }, [loadPublicBranding]);
 
   const verifyPassword = useCallback(async (password: string): Promise<boolean> => {
     try {
@@ -296,7 +351,10 @@ export function useBrandingAdmin() {
     }
   }, []);
 
-  const setupBranding = useCallback(async (password: string, initialData?: Partial<BrandingData>): Promise<boolean> => {
+  const setupBranding = useCallback(async (
+    password: string,
+    initialData?: Partial<BrandingData>,
+  ): Promise<{ ok: boolean; error?: string }> => {
     try {
       const { data, error } = await supabase.functions.invoke('branding-admin', {
         body: {
@@ -311,6 +369,14 @@ export function useBrandingAdmin() {
 
       if (error) throw error;
 
+      if (data?.error === 'already_setup') {
+        setNeedsSetup(false);
+        if (data.branding) {
+          setBranding(parseBrandingData(data.branding));
+        }
+        return { ok: false, error: 'already_setup' };
+      }
+
       if (data.success) {
         setIsAuthenticated(true);
         setSessionPassword(password);
@@ -318,12 +384,12 @@ export function useBrandingAdmin() {
         if (data.branding) {
           setBranding(parseBrandingData(data.branding));
         }
-        return true;
+        return { ok: true };
       }
-      return false;
+      return { ok: false, error: data?.error || 'setup_failed' };
     } catch (error) {
       console.error('Setup failed:', error);
-      return false;
+      return { ok: false, error: 'network_error' };
     }
   }, []);
 

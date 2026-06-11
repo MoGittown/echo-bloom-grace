@@ -49,10 +49,21 @@ export default function AdminPage() {
       return;
     }
     setIsSubmitting(true);
-    const ok = await setupBranding(password, { studioName });
+    const result = await setupBranding(password, { studioName });
     setIsSubmitting(false);
-    if (ok) toast.success('Studio eingerichtet');
-    else toast.error('Einrichtung fehlgeschlagen');
+    if (result.ok) {
+      toast.success('Studio eingerichtet');
+      return;
+    }
+    if (result.error === 'already_setup') {
+      toast.info('Studio ist bereits eingerichtet — bitte mit dem Admin-Passwort anmelden.');
+      return;
+    }
+    if (result.error === 'password_too_short') {
+      toast.error('Passwort mindestens 6 Zeichen');
+      return;
+    }
+    toast.error('Einrichtung fehlgeschlagen — bitte später erneut versuchen.');
   };
 
   if (isLoading) {
@@ -118,7 +129,11 @@ export default function AdminPage() {
             <Lock className="w-8 h-8 text-primary" />
           </div>
           <CardTitle>Studio-Admin</CardTitle>
-          <CardDescription>Branding, Check-Schritte, PDF & Kunden-Links</CardDescription>
+          <CardDescription>
+            {branding.studioName
+              ? `Anmelden für „${branding.studioName}“`
+              : 'Branding, Check-Schritte, PDF & Kunden-Links'}
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">

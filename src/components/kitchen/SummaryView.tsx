@@ -1970,9 +1970,25 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
                     htmlFor="consent" 
                     className="text-sm font-normal leading-relaxed cursor-pointer"
                   >
-                    Ich stimme zu, dass meine Daten an {branding.studioName || 'das Küchenstudio'} übermittelt werden, 
-                    um meine Anfrage zu bearbeiten. <span className="text-destructive">*</span>
+                    {branding.studioSettings.legal.consentText?.trim() ||
+                      `Ich willige ein, dass meine Daten an ${studioDisplayName} zur Vorbereitung des Küchenberatungstermins verarbeitet werden.`}
+                    {' '}<span className="text-destructive">*</span>
                   </Label>
+                  {(branding.privacyUrl || branding.imprintUrl) && (
+                    <p className="text-xs text-muted-foreground pt-1">
+                      {branding.privacyUrl && (
+                        <a href={branding.privacyUrl} target="_blank" rel="noopener noreferrer" className="underline">
+                          Datenschutz
+                        </a>
+                      )}
+                      {branding.privacyUrl && branding.imprintUrl && ' · '}
+                      {branding.imprintUrl && (
+                        <a href={branding.imprintUrl} target="_blank" rel="noopener noreferrer" className="underline">
+                          Impressum
+                        </a>
+                      )}
+                    </p>
+                  )}
                   {sendFormErrors.consent && (
                     <p className="text-xs text-destructive">{sendFormErrors.consent}</p>
                   )}

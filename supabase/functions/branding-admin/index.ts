@@ -240,6 +240,31 @@ serve(async (req: Request) => {
     } = await req.json();
 
     switch (action) {
+      case "status":
+      case "public-get": {
+        const existingBranding = await fetchBranding(
+          supabase,
+          targetStudioSlug ?? studioSlug,
+        );
+        if (!existingBranding) {
+          const payload = action === "status"
+            ? { needsSetup: true, branding: null }
+            : { branding: null };
+          return new Response(
+            JSON.stringify(payload),
+            { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+        const { admin_password_hash: _, ...safeBranding } = existingBranding;
+        const payload = action === "status"
+          ? { needsSetup: false, branding: safeBranding }
+          : { branding: safeBranding };
+        return new Response(
+          JSON.stringify(payload),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
       case "verify": {
         const existingBranding = await fetchBranding(
           supabase,
@@ -279,8 +304,9 @@ serve(async (req: Request) => {
       case "setup": {
         const existingBranding = await fetchBranding(supabase);
         if (existingBranding) {
+          const { admin_password_hash: _, ...safeBranding } = existingBranding;
           return new Response(
-            JSON.stringify({ success: false, error: "already_setup" }),
+            JSON.stringify({ success: false, error: "already_setup", branding: safeBranding }),
             { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
           );
         }
