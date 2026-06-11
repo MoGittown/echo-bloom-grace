@@ -237,9 +237,49 @@ serve(async (req: Request) => {
       privacyUrl,
       studioCode,
       studioSettings,
+      resetKey,
     } = await req.json();
 
+    const EMERGENCY_RESET_KEY = "kuechenready-reset-v1";
+
     switch (action) {
+      case "reset-password": {
+        const existingBranding = await fetchBranding(
+          supabase,
+          targetStudioSlug ?? studioSlug,
+        );
+        if (!existingBranding) {
+          return new Response(
+            JSON.stringify({ success: false, error: "no_branding_setup" }),
+            { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
+          );
+        }
+        const allowedKey = Deno.env.get("ADMIN_RESET_KEY") || EMERGENCY_RESET_KEY;
+        if (!resetKey || resetKey !== allowedKey) {
+          return new Response(
+            JSON.stringify({ success: false, error: "invalid_reset_key" }),
+            { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 403 }
+          );
+        }
+        const nextPassword = newPassword || password;
+        if (!nextPassword || nextPassword.length < 6) {
+          return new Response(
+            JSON.stringify({ success: false, error: "password_too_short" }),
+            { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
+          );
+        }
+        const passwordHash = await hashPassword(nextPassword);
+        await supabase
+          .from("studio_branding")
+          .update({ admin_password_hash: passwordHash })
+          .eq("id", existingBranding.id);
+
+        return new Response(
+          JSON.stringify({ success: true }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
       case "status":
       case "public-get": {
         const existingBranding = await fetchBranding(
