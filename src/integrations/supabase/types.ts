@@ -59,8 +59,11 @@ export type Database = {
           contact_website: string | null
           created_at: string
           custom_manufacturers: string[] | null
+          display_app_name: string | null
           enabled_manufacturers: string[] | null
+          feature_config: Json
           id: string
+          imprint_url: string | null
           landing_benefit_1: string | null
           landing_benefit_2: string | null
           landing_benefit_3: string | null
@@ -70,11 +73,16 @@ export type Database = {
           landing_why_text: string | null
           logo_url: string | null
           primary_color: string | null
+          privacy_url: string | null
           show_appointment_booking: boolean | null
           show_default_branding: boolean | null
           show_landing_page: boolean | null
           show_manufacturer_field: boolean | null
+          slogan: string | null
+          studio_code: string | null
           studio_name: string
+          studio_settings: Json
+          studio_slug: string | null
           updated_at: string
         }
         Insert: {
@@ -85,8 +93,11 @@ export type Database = {
           contact_website?: string | null
           created_at?: string
           custom_manufacturers?: string[] | null
+          display_app_name?: string | null
           enabled_manufacturers?: string[] | null
+          feature_config?: Json
           id?: string
+          imprint_url?: string | null
           landing_benefit_1?: string | null
           landing_benefit_2?: string | null
           landing_benefit_3?: string | null
@@ -96,11 +107,16 @@ export type Database = {
           landing_why_text?: string | null
           logo_url?: string | null
           primary_color?: string | null
+          privacy_url?: string | null
           show_appointment_booking?: boolean | null
           show_default_branding?: boolean | null
           show_landing_page?: boolean | null
           show_manufacturer_field?: boolean | null
+          slogan?: string | null
+          studio_code?: string | null
           studio_name?: string
+          studio_settings?: Json
+          studio_slug?: string | null
           updated_at?: string
         }
         Update: {
@@ -111,8 +127,11 @@ export type Database = {
           contact_website?: string | null
           created_at?: string
           custom_manufacturers?: string[] | null
+          display_app_name?: string | null
           enabled_manufacturers?: string[] | null
+          feature_config?: Json
           id?: string
+          imprint_url?: string | null
           landing_benefit_1?: string | null
           landing_benefit_2?: string | null
           landing_benefit_3?: string | null
@@ -122,11 +141,16 @@ export type Database = {
           landing_why_text?: string | null
           logo_url?: string | null
           primary_color?: string | null
+          privacy_url?: string | null
           show_appointment_booking?: boolean | null
           show_default_branding?: boolean | null
           show_landing_page?: boolean | null
           show_manufacturer_field?: boolean | null
+          slogan?: string | null
+          studio_code?: string | null
           studio_name?: string
+          studio_settings?: Json
+          studio_slug?: string | null
           updated_at?: string
         }
         Relationships: []
