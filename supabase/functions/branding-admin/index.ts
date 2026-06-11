@@ -385,10 +385,70 @@ serve(async (req: Request) => {
         );
       }
 
+      case "repair-schema": {
+        const allowedKey = Deno.env.get("ADMIN_RESET_KEY") || EMERGENCY_RESET_KEY;
+        if (!resetKey || resetKey !== allowedKey) {
+          return new Response(
+            JSON.stringify({ success: false, error: "invalid_reset_key" }),
+            { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 403 }
+          );
+        }
+        const dbUrl = Deno.env.get("SUPABASE_DB_URL");
+        if (!dbUrl) {
+          return new Response(
+            JSON.stringify({ success: false, error: "missing_supabase_db_url_secret" }),
+            { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
+          );
+        }
+        const { default: postgres } = await import("https://deno.land/x/postgresjs@v3.4.4/mod.js");
+        const sql = postgres(dbUrl, { prepare: false });
+        try {
+          await sql.unsafe(`
+            ALTER TABLE public.studio_branding
+              ADD COLUMN IF NOT EXISTS studio_slug TEXT,
+              ADD COLUMN IF NOT EXISTS feature_config JSONB NOT NULL DEFAULT '{"steps":{"style":true,"appliances":true,"sink":true,"room":true,"floorPlan":true,"wallView":true,"photos":true,"contact":true},"kitchenChat":true,"pdfExport":true,"protocolEmail":true}'::jsonb,
+              ADD COLUMN IF NOT EXISTS display_app_name TEXT,
+              ADD COLUMN IF NOT EXISTS slogan TEXT,
+              ADD COLUMN IF NOT EXISTS logo_white_url TEXT,
+              ADD COLUMN IF NOT EXISTS secondary_color TEXT DEFAULT '#6B7280',
+              ADD COLUMN IF NOT EXISTS accent_color TEXT DEFAULT '#16A34A',
+              ADD COLUMN IF NOT EXISTS imprint_url TEXT,
+              ADD COLUMN IF NOT EXISTS privacy_url TEXT,
+              ADD COLUMN IF NOT EXISTS studio_code TEXT,
+              ADD COLUMN IF NOT EXISTS studio_settings JSONB NOT NULL DEFAULT '{}'::jsonb;
+          `);
+          await sql.unsafe(`
+            UPDATE public.studio_branding
+            SET studio_slug = 'studio-' || substr(id::text, 1, 8)
+            WHERE studio_slug IS NULL OR studio_slug = '';
+          `);
+          await sql.unsafe(`DROP VIEW IF EXISTS public.studio_branding_public;`);
+          await sql.unsafe(`
+            CREATE VIEW public.studio_branding_public
+            WITH (security_invoker = off) AS
+            SELECT id, studio_slug, studio_code, studio_name, display_app_name, slogan,
+              logo_url, logo_white_url, primary_color, secondary_color, accent_color,
+              show_default_branding, show_landing_page, show_appointment_booking, show_manufacturer_field,
+              landing_headline, landing_subheadline, landing_benefit_1, landing_benefit_2, landing_benefit_3,
+              landing_cta_text, landing_why_text, contact_address, contact_phone, contact_email, contact_website,
+              imprint_url, privacy_url, custom_manufacturers, enabled_manufacturers, feature_config,
+              studio_settings, created_at, updated_at
+            FROM public.studio_branding;
+          `);
+          await sql.unsafe(`GRANT SELECT ON public.studio_branding_public TO anon, authenticated;`);
+        } finally {
+          await sql.end();
+        }
+        return new Response(
+          JSON.stringify({ success: true }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
       case "update": {
         const existingBranding = await fetchBranding(
           supabase,
-          targetStudioSlug ?? studioSlug,
+          targetStudioSlug,
         );
         if (!existingBranding) {
           return new Response(
