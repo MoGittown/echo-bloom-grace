@@ -21,7 +21,8 @@ function isLegacyHash(hash: string): boolean {
 }
 
 async function hashPassword(password: string): Promise<string> {
-  return await bcrypt.hash(password, 12);
+  const salt = await bcrypt.genSalt(10);
+  return bcrypt.hashSync(password, salt);
 }
 
 async function verifyPassword(password: string, hash: string): Promise<boolean> {
@@ -29,7 +30,7 @@ async function verifyPassword(password: string, hash: string): Promise<boolean> 
     const legacyHash = await legacyHashPassword(password);
     return legacyHash === hash;
   }
-  return await bcrypt.compare(password, hash);
+  return bcrypt.compareSync(password, hash);
 }
 
 function slugifyStudioName(name: string): string {
