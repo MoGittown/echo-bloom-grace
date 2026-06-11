@@ -32,7 +32,18 @@ Bei Push auf `main` startet der Workflow automatisch.
 
 Optional: `VITE_PLAY_STORE_URL`
 
+### Supabase (Admin-Fix, Edge Functions, DB)
+
+| Secret | Woher |
+|--------|--------|
+| `SUPABASE_ACCESS_TOKEN` | [Supabase Account → Access Tokens](https://supabase.com/dashboard/account/tokens) |
+| `SUPABASE_DB_PASSWORD` | Supabase Projekt → Settings → Database → Database password |
+
+Workflow: **Deploy Supabase** (startet bei Änderungen unter `supabase/`).
+
 **Ohne FTP-Secrets:** Job „Build Web App“ wird grün, „Deploy to Hostinger“ schlägt fehl.
+
+**Ohne Supabase-Secrets:** Web-Deploy läuft, aber Functions/Migrationen werden übersprungen.
 
 ## Manuell starten
 
