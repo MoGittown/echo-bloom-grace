@@ -107,9 +107,13 @@ const handler = async (req: Request): Promise<Response> => {
     const safeEmail = customerData ? escapeHtml(customerData.email) : '';
     const safeTimeline = customerData ? escapeHtml(customerData.timeline) : '';
 
+    // Sender address: configurable via RESEND_FROM_EMAIL secret (e.g. "Küchenberatung <protokoll@kuechenready.de>")
+    // Fallback to Resend sandbox sender if not set (only delivers to verified Resend account address).
+    const fromAddress = Deno.env.get("RESEND_FROM_EMAIL") || "Küchenberatung <onboarding@resend.dev>";
+
     // Build email options
     const emailOptions: any = {
-      from: "Küchenberatung <onboarding@resend.dev>",
+      from: fromAddress,
       to: [recipientEmail],
       subject: `Beratungsprotokoll: ${safeCustomerName} - ${safeProjectDate}`,
       html: `
