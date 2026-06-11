@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useParams } from 'react-router-dom';
 import { KitchenPreferences, KITCHEN_STYLES, KITCHEN_COLORS, KITCHEN_MATERIALS, KITCHEN_MANUFACTURERS, COUNTERTOP_MATERIALS, STORAGE_OPTIONS } from '@/types/kitchen';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -69,7 +70,8 @@ const calculateWorkHeight = (bodyHeight: number): number => {
 export function StyleForm({ data, onChange }: StyleFormProps) {
   const [newHeight, setNewHeight] = useState('');
   const [customManufacturer, setCustomManufacturer] = useState('');
-  const { branding } = useBranding();
+  const { slug } = useParams<{ slug?: string }>();
+  const { branding } = useBranding(slug);
   
   const toggle = (arr: string[], item: string) => arr.includes(item) ? arr.filter(i => i !== item) : [...arr, item];
 

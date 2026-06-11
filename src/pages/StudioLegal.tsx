@@ -134,7 +134,8 @@ function DatenschutzContent({
   displayName: string;
   slug?: string;
 }) {
-  const checkUrl = slug ? `https://kuechenready.de/s/${slug}/check` : 'https://kuechenready.de';
+  const webOrigin = import.meta.env.VITE_PUBLIC_WEB_URL || 'https://kuechenready.de';
+  const checkUrl = slug ? `${webOrigin}/s/${slug}/check` : webOrigin;
 
   return (
     <>

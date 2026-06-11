@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useParams } from 'react-router-dom';
 import { escapeHtml } from '@/lib/htmlSanitizer';
 import { Calendar } from '@/components/ui/calendar';
 import { Button } from '@/components/ui/button';
@@ -50,7 +51,8 @@ export function AppointmentRequest({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   
-  const { branding } = useBranding();
+  const { slug } = useParams<{ slug?: string }>();
+  const { branding } = useBranding(slug);
 
   // Don't show if appointment booking is disabled
   if (!branding.showAppointmentBooking) {

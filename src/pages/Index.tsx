@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useKitchenProject } from '@/hooks/useKitchenProject';
 import { useBranding } from '@/hooks/useBranding';
@@ -27,27 +27,11 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { ChevronLeft, ChevronRight, RotateCcw, ChefHat, User, Ruler, LayoutGrid, Square, Palette, Camera, FileText, Plug, Droplets } from 'lucide-react';
+import { ChevronLeft, ChevronRight, RotateCcw, ChefHat } from 'lucide-react';
+import { getActiveWizardSteps } from '@/lib/wizardSteps';
+import bgStyle from '@/assets/bg-style.jpg';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
-// Background images
-import bgStyle from '@/assets/bg-style.jpg';
-import bgAppliances from '@/assets/bg-appliances.jpg';
-import bgSink from '@/assets/bg-sink.jpg';
-import bgRoom from '@/assets/bg-room.jpg';
-
-const STEPS = [
-  { title: 'Stil', icon: <Palette className="w-5 h-5" />, bg: bgStyle },
-  { title: 'Geräte', icon: <Plug className="w-5 h-5" />, bg: bgAppliances },
-  { title: 'Spüle', icon: <Droplets className="w-5 h-5" />, bg: bgSink },
-  { title: 'Raum', icon: <Ruler className="w-5 h-5" />, bg: bgRoom },
-  { title: 'Grundriss', icon: <LayoutGrid className="w-5 h-5" />, bg: bgRoom },
-  { title: 'Wände', icon: <Square className="w-5 h-5" />, bg: bgRoom },
-  { title: 'Fotos', icon: <Camera className="w-5 h-5" />, bg: bgStyle },
-  { title: 'Kontakt', icon: <User className="w-5 h-5" />, bg: bgStyle },
-  { title: 'Übersicht', icon: <FileText className="w-5 h-5" />, bg: bgStyle },
-];
-
 const STARTED_KEY = 'kitchen-has-started';
 
 const Index = () => {
@@ -102,6 +86,21 @@ const Index = () => {
   } = useKitchenProject();
 
   const { branding } = useBranding(studioSlug);
+  const activeSteps = useMemo(
+    () => getActiveWizardSteps(branding.featureConfig),
+    [branding.featureConfig],
+  );
+  const stepIndicators = useMemo(
+    () => activeSteps.map((s) => ({ title: s.title, icon: s.icon })),
+    [activeSteps],
+  );
+  const currentStepId = activeSteps[currentStep]?.id;
+
+  useEffect(() => {
+    if (currentStep >= activeSteps.length) {
+      goToStep(Math.max(0, activeSteps.length - 1));
+    }
+  }, [activeSteps.length, currentStep, goToStep]);
 
   // Validate customer form - now only used for inline validation display
   const validateCustomerForm = useCallback(() => {
@@ -195,9 +194,9 @@ const Index = () => {
     );
   }
 
-  const totalSteps = STEPS.length;
-  const currentBg = STEPS[currentStep]?.bg || bgStyle;
-  const progressPercent = ((currentStep + 1) / totalSteps) * 100;
+  const totalSteps = activeSteps.length;
+  const currentBg = activeSteps[currentStep]?.bg || bgStyle;
+  const progressPercent = totalSteps > 0 ? ((currentStep + 1) / totalSteps) * 100 : 0;
 
   return (
     <div className="min-h-screen bg-background relative">
@@ -291,37 +290,37 @@ const Index = () => {
         {/* Step Indicator */}
         <div className="bg-card/50 backdrop-blur-md border-b">
           <div className="container mx-auto">
-            <StepIndicator steps={STEPS} currentStep={currentStep} onStepClick={handleGoToStep} />
+            <StepIndicator steps={stepIndicators} currentStep={currentStep} onStepClick={handleGoToStep} />
           </div>
         </div>
 
         {/* Main Content */}
         <main className="container mx-auto px-4 py-8 max-w-4xl">
-          {currentStep === 0 && (
+          {currentStepId === 'style' && (
             <StyleForm data={project.preferences} onChange={updatePreferences} />
           )}
-          {currentStep === 1 && (
+          {currentStepId === 'appliances' && (
             <AppliancesForm data={project.preferences} onChange={updatePreferences} />
           )}
-          {currentStep === 2 && (
+          {currentStepId === 'sink' && (
             <SinkForm data={project.preferences} onChange={updatePreferences} />
           )}
-          {currentStep === 3 && (
+          {currentStepId === 'room' && (
             <RoomForm data={project.room} onChange={updateRoom} />
           )}
-          {currentStep === 4 && (
+          {currentStepId === 'floorPlan' && (
             <FloorPlanEditor floorPlan={project.floorPlan} room={project.room} onChange={updateFloorPlan} />
           )}
-          {currentStep === 5 && (
+          {currentStepId === 'wallView' && (
             <WallViewEditor floorPlan={project.floorPlan} room={project.room} />
           )}
-          {currentStep === 6 && (
+          {currentStepId === 'photos' && (
             <PhotoUpload photos={project.photos} onAdd={addPhoto} onRemove={removePhoto} />
           )}
-          {currentStep === 7 && (
+          {currentStepId === 'contact' && (
             <CustomerForm data={project.customer} onChange={updateCustomer} errors={customerErrors} />
           )}
-          {currentStep === 8 && (
+          {currentStepId === 'summary' && (
             <SummaryView project={project} onUpdateNotes={updateNotes} onUpdateCustomer={updateCustomer} />
           )}
 
@@ -345,10 +344,11 @@ const Index = () => {
           </div>
         </main>
 
-        {/* AI Chat Widget */}
-        <div data-chat-widget className="no-print">
-          <ChatWidget />
-        </div>
+        {branding.featureConfig.kitchenChat && (
+          <div data-chat-widget className="no-print">
+            <ChatWidget />
+          </div>
+        )}
       </div>
     </div>
   );

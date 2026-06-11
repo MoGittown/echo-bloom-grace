@@ -3,6 +3,10 @@ import { Resend } from "https://esm.sh/resend@2.0.0";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
+/** Verified Resend domain required for delivery to studio inboxes (not onboarding@resend.dev). */
+const RESEND_FROM_EMAIL =
+  Deno.env.get("RESEND_FROM_EMAIL") ?? "Küchenberatung <onboarding@resend.dev>";
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
@@ -107,13 +111,9 @@ const handler = async (req: Request): Promise<Response> => {
     const safeEmail = customerData ? escapeHtml(customerData.email) : '';
     const safeTimeline = customerData ? escapeHtml(customerData.timeline) : '';
 
-    // Sender address: configurable via RESEND_FROM_EMAIL secret (e.g. "Küchenberatung <protokoll@kuechenready.de>")
-    // Fallback to Resend sandbox sender if not set (only delivers to verified Resend account address).
-    const fromAddress = Deno.env.get("RESEND_FROM_EMAIL") || "Küchenberatung <onboarding@resend.dev>";
-
     // Build email options
     const emailOptions: any = {
-      from: fromAddress,
+      from: RESEND_FROM_EMAIL,
       to: [recipientEmail],
       subject: `Beratungsprotokoll: ${safeCustomerName} - ${safeProjectDate}`,
       html: `

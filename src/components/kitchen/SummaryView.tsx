@@ -1854,17 +1854,22 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
             <Printer className="w-4 h-4" />
             Drucken
           </Button>
-          <Button onClick={handleDownloadPDF} className="gap-2" disabled={isGenerating}>
-            <Download className="w-4 h-4" />
-            {isGenerating ? 'Wird erstellt...' : 'Als PDF speichern'}
-          </Button>
-          <Button onClick={() => setPdfDebugOpen(true)} variant="outline" className="gap-2 hidden">
-            <FileText className="w-4 h-4" />
-            PDF-Debug{pdfDebugEvents.length ? ` (${pdfDebugEvents.length})` : ''}
-          </Button>
+          {branding.featureConfig.pdfExport && (
+            <Button onClick={handleDownloadPDF} className="gap-2" disabled={isGenerating}>
+              <Download className="w-4 h-4" />
+              {isGenerating ? 'Wird erstellt...' : 'Als PDF speichern'}
+            </Button>
+          )}
+          {import.meta.env.DEV && (
+            <Button onClick={() => setPdfDebugOpen(true)} variant="outline" className="gap-2">
+              <FileText className="w-4 h-4" />
+              PDF-Debug{pdfDebugEvents.length ? ` (${pdfDebugEvents.length})` : ''}
+            </Button>
+          )}
         </div>
 
         {/* Send to Studio Section */}
+        {branding.featureConfig.protocolEmail && (
         <div className="kitchen-card p-6 no-print mt-6">
           <div className="text-center mb-4">
             <h3 className="text-lg font-semibold flex items-center justify-center gap-2">
@@ -2036,6 +2041,7 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
             </div>
           )}
         </div>
+        )}
 
         {/* Appointment Request - only show if configured */}
         {branding.showAppointmentBooking && (
