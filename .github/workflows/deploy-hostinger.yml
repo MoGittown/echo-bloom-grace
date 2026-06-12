@@ -85,7 +85,7 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           protocol: ftps
           port: 21
-          timeout: 120000
+          timeout: 300000
           local-dir: ./dist/
           # FTP-Root ist oft public_html → Addon-Domain ein Verzeichnis höher
           server-dir: ../domains/kuechenready.de/public_html/
