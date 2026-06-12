@@ -441,13 +441,19 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
   const protocolId = `KP-${createdIso.slice(2, 10).replace(/-/g, '')}`;
   const customerFullName = [project.customer.firstName, project.customer.lastName].filter(Boolean).join(' ') || 'Unbekannt';
   const studioDisplayName = branding.displayAppName || branding.studioName;
-  const pdfContactLine = [
-    branding.contact.address,
-    branding.contact.phone,
-    branding.contact.email,
-    branding.contact.website,
-    branding.studioSettings.pdf.footerText,
-  ].filter(Boolean).join(' · ');
+  const pdfContactLine = (() => {
+    const customFooter = branding.studioSettings.pdf.footerText?.trim();
+    if (customFooter) return customFooter;
+    return [
+      studioDisplayName,
+      branding.contact.address,
+      branding.contact.phone,
+      branding.contact.email,
+      branding.contact.website,
+    ]
+      .filter(Boolean)
+      .join(' · ');
+  })();
 
   const handlePrint = useCallback(async () => {
     try {
