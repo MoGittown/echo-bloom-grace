@@ -139,12 +139,12 @@
   /* ===== PROFESSIONAL PDF DESIGN SYSTEM ===== */
   /* Optimized for print quality: 11pt base, stronger contrasts, wider margins */
   
-  /* PDF Page Container — feste A4-Höhe, Footer absolut am unteren Rand */
+  /* PDF Page Container — Footer-Zone unten reserviert (s. pdfLayout.ts) */
   .pdf-page {
     @apply bg-white;
     position: relative;
     box-sizing: border-box;
-    padding: 36px 40px 52px 40px;
+    padding: 36px 40px 96px 40px;
     height: 1123px;
     min-height: 1123px;
     max-height: 1123px;
@@ -165,7 +165,7 @@
 
   .pdf-page > .flex-1 {
     overflow: hidden;
-    max-height: calc(1123px - 36px - 52px - 72px);
+    max-height: calc(1123px - 36px - 96px - 72px);
   }
 
   .pdf-export .pdf-page {
@@ -174,7 +174,7 @@
 
   .pdf-export .pdf-page > .flex-1 {
     overflow: hidden !important;
-    max-height: calc(1123px - 36px - 52px - 72px) !important;
+    max-height: calc(1123px - 36px - 96px - 72px) !important;
   }
 
   /* Canvas Bereiche im PDF nicht kappen */
@@ -239,14 +239,15 @@
     color: hsl(20 14% 12%);
   }
 
-  /* Footer fix am Seitenende (zuverlässig für html2canvas) */
+  /* Footer in eigener Zone — höher als Seitenrand */
   .pdf-footer {
     position: absolute;
     left: 40px;
     right: 40px;
-    bottom: 16px;
-    padding-top: 10px;
-    border-top: 1px solid rgba(0, 0, 0, 0.15);
+    bottom: 44px;
+    min-height: 40px;
+    padding: 12px 0 6px;
+    border-top: 1px solid rgba(0, 0, 0, 0.18);
     background: #fff;
     z-index: 2;
   }
@@ -601,13 +602,8 @@
     padding: 6px 10px !important;
   }
 
-  .pdf-export .pdf-footer {
-    position: absolute !important;
-    left: 40px !important;
-    right: 40px !important;
-    bottom: 16px !important;
-    background: #fff !important;
-    z-index: 5 !important;
+  .pdf-export [data-pdf-footer] {
+    display: none !important;
   }
 
   /* Muted text readable in PDF */
