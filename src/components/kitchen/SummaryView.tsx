@@ -449,16 +449,6 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
     branding.studioSettings.pdf.footerText,
   ].filter(Boolean).join(' · ');
 
-  const totalPdfPages = 6 + photoPages.length;
-  const pdfFooter = (pageNumber: number) => (
-    <PdfPageFooter
-      pageNumber={pageNumber}
-      totalPages={totalPdfPages}
-      contactLine={pdfContactLine}
-      studioName={studioDisplayName}
-    />
-  );
-
   const handlePrint = useCallback(async () => {
     try {
       await document.fonts?.ready;
@@ -807,6 +797,27 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
   const countertopThickness = getTaggedItems(project.preferences.mustHaves, 'APStärke:');
   const backsplash = getTaggedItems(project.preferences.mustHaves, 'Nische:');
   const freeformMustHaves = getUntaggedItems(project.preferences.mustHaves);
+
+  const hasExtrasPage =
+    project.floorPlan.elements.length > 0 ||
+    freeformMustHaves.length > 0 ||
+    project.preferences.niceToHaves.length > 0 ||
+    !!project.additionalNotes?.trim() ||
+    !!branding.studioSettings.pdf.privacySnippet?.trim() ||
+    !!branding.studioSettings.pdf.termsSnippet?.trim();
+
+  const totalPdfPages = 5 + (hasExtrasPage ? 1 : 0) + photoPages.length;
+  const extrasPageNumber = 6;
+  const photoPageStart = 5 + (hasExtrasPage ? 1 : 0) + 1;
+
+  const pdfFooter = (pageNumber: number) => (
+    <PdfPageFooter
+      pageNumber={pageNumber}
+      totalPages={totalPdfPages}
+      contactLine={pdfContactLine}
+      studioName={studioDisplayName}
+    />
+  );
 
   // Extract appliance details from appliances.other
   const applianceOther = project.preferences.appliances.other || [];
@@ -1682,15 +1693,29 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
               </div>
             );
           })}
+          </div>
+          {pdfFooter(5)}
+        </div>
 
-          {/* Floor Plan Elements Table - on Page 4 */}
+        {/* ===== PAGE 6 (optional): Elemente, Must-haves, Notizen ===== */}
+        {hasExtrasPage && (
+        <div data-pdf-page={String(extrasPageNumber)} className="pdf-page">
+          <PdfPageHeader
+            protocolId={protocolId}
+            createdDate={formatDate(project.createdAt)}
+            customerName={customerFullName}
+            studioName={studioDisplayName}
+            logoUrl={branding.logoUrl}
+          />
+          
+          <div className="flex-1">
           {project.floorPlan.elements.length > 0 && (
-            <div className="kitchen-card p-4 mt-4">
-              <h3 className="font-semibold flex items-center gap-2 mb-3">
-                <FileText className="w-5 h-5 text-primary" />
+            <div className="pdf-section mb-4">
+              <div className="pdf-section-header">
+                <FileText />
                 Eingetragene Elemente ({project.floorPlan.elements.length})
-              </h3>
-              <div className="overflow-x-auto">
+              </div>
+              <div className="pdf-section-body">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b">
@@ -1714,22 +1739,7 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
               </div>
             </div>
           )}
-          </div>
-          {pdfFooter(5)}
-        </div>
 
-        {/* ===== PAGE 6: Must-haves, Nice-to-haves, Notes ===== */}
-        <div data-pdf-page="6" className="pdf-page">
-          <PdfPageHeader
-            protocolId={protocolId}
-            createdDate={formatDate(project.createdAt)}
-            customerName={customerFullName}
-            studioName={studioDisplayName}
-            logoUrl={branding.logoUrl}
-          />
-          
-          <div className="flex-1">
-          {/* Must-haves & Nice-to-haves */}
           {(freeformMustHaves.length > 0 || project.preferences.niceToHaves.length > 0) && (
             <div className="grid md:grid-cols-2 gap-4 mb-4">
               {freeformMustHaves.length > 0 && (
@@ -1761,24 +1771,43 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
             </div>
           )}
 
-          {/* Print version of notes */}
-          {project.additionalNotes && (
-            <div className="kitchen-card p-4 mb-4 hidden print:block">
-              <h3 className="font-semibold flex items-center gap-2 mb-2">
-                <StickyNote className="w-5 h-5 text-primary" />
+          {project.additionalNotes?.trim() && (
+            <div className="pdf-section mb-4">
+              <div className="pdf-section-header">
+                <StickyNote />
                 Zusätzliche Notizen
-              </h3>
-              <p className="whitespace-pre-wrap text-sm">{project.additionalNotes}</p>
+              </div>
+              <div className="pdf-section-body">
+                <p className="whitespace-pre-wrap text-sm">{project.additionalNotes}</p>
+              </div>
+            </div>
+          )}
+
+          {(branding.studioSettings.pdf.privacySnippet || branding.studioSettings.pdf.termsSnippet) && (
+            <div className="pdf-section">
+              <div className="pdf-section-header">
+                <FileText />
+                Hinweise
+              </div>
+              <div className="pdf-section-body text-sm space-y-2">
+                {branding.studioSettings.pdf.privacySnippet && (
+                  <p>{branding.studioSettings.pdf.privacySnippet}</p>
+                )}
+                {branding.studioSettings.pdf.termsSnippet && (
+                  <p>{branding.studioSettings.pdf.termsSnippet}</p>
+                )}
+              </div>
             </div>
           )}
 
           </div>
-          {pdfFooter(6)}
+          {pdfFooter(extrasPageNumber)}
         </div>
+        )}
 
         {/* ===== PHOTO PAGES: Separate PDF pages for photos ===== */}
         {photoPages.map((pagePhotos, idx) => {
-          const pageNumber = 7 + idx;
+          const pageNumber = photoPageStart + idx;
           return (
             <div key={idx} data-pdf-page={String(pageNumber)} className="pdf-page">
               <PdfPageHeader

@@ -155,6 +155,14 @@
     color: hsl(20 14% 12%);
   }
 
+  /* Web-Übersicht: klare Seitentrennung (nicht im Export) */
+  #pdf-root > .pdf-page {
+    border: 1px solid hsl(30 15% 88%);
+    border-radius: 6px;
+    box-shadow: 0 4px 24px hsl(20 14% 15% / 0.08);
+    margin-bottom: 2rem;
+  }
+
   .pdf-page > .flex-1 {
     overflow: hidden;
     max-height: calc(1123px - 36px - 52px - 72px);
@@ -565,6 +573,7 @@
     background: #fff !important;
   }
 
+  .pdf-export.pdf-page,
   .pdf-export .pdf-page {
     width: 794px !important;
     height: 1123px !important;
@@ -574,6 +583,10 @@
     overflow: hidden !important;
     background: #fff !important;
     box-sizing: border-box !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    margin-bottom: 0 !important;
   }
 
   .pdf-export .pdf-section {
