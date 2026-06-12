@@ -583,6 +583,9 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
 
       const { data, error } = await supabase.functions.invoke('send-protocol-email', {
         body: {
+          // recipientEmail = Rückwärtskompatibilität mit der alten Function;
+          // die neue Version ignoriert das Feld und löst per studioSlug auf.
+          recipientEmail,
           studioSlug,
           customerName,
           projectDate,
@@ -680,6 +683,7 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
 
       const { data, error } = await supabase.functions.invoke('send-protocol-email', {
         body: {
+          recipientEmail: studioEmail,
           studioSlug,
           customerName,
           projectDate,

@@ -84,6 +84,7 @@ export function AppointmentRequest({
       if (branding.contact.email) {
         await supabase.functions.invoke('send-protocol-email', {
           body: {
+            recipientEmail: branding.contact.email,
             studioSlug: slug,
             customerName,
             projectDate: new Date().toLocaleDateString('de-DE'),
