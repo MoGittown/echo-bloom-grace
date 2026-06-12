@@ -1,4 +1,5 @@
 project_id = "sbofbqdcygsjefgepvuz"
+# Auto-Deploy via GitHub Actions (db push + functions) – Secrets gesetzt 2026-06-12
 
 [functions.send-protocol-email]
 verify_jwt = false
