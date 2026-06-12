@@ -3,12 +3,15 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Suspense, lazy } from "react";
 import Index from "./pages/Index";
-import Admin from "./pages/Admin";
-import StudioPortal from "./pages/StudioPortal";
-import StudioImpressum from "./pages/StudioImpressum";
-import StudioDatenschutz from "./pages/StudioDatenschutz";
-import NotFound from "./pages/NotFound";
+
+// Admin, Studio-Portal & Legal-Seiten lazy laden – halten das Initial-Bundle klein.
+const Admin = lazy(() => import("./pages/Admin"));
+const StudioPortal = lazy(() => import("./pages/StudioPortal"));
+const StudioImpressum = lazy(() => import("./pages/StudioImpressum"));
+const StudioDatenschutz = lazy(() => import("./pages/StudioDatenschutz"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 5 * 60 * 1000 } },
@@ -20,16 +23,18 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/s/:slug" element={<StudioPortal />} />
-          <Route path="/s/:slug/check" element={<Index />} />
-          <Route path="/s/:slug/impressum" element={<StudioImpressum />} />
-          <Route path="/s/:slug/datenschutz" element={<StudioDatenschutz />} />
-          <Route path="/admin" element={<Admin />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <Suspense fallback={null}>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/s/:slug" element={<StudioPortal />} />
+            <Route path="/s/:slug/check" element={<Index />} />
+            <Route path="/s/:slug/impressum" element={<StudioImpressum />} />
+            <Route path="/s/:slug/datenschutz" element={<StudioDatenschutz />} />
+            <Route path="/admin" element={<Admin />} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Suspense>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

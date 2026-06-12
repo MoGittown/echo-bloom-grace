@@ -46,7 +46,6 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { exportKitchenPdf } from '@/lib/pdf/exportKitchenPdf';
 import { RoomDimensions, WallElement } from '@/types/kitchen';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -478,6 +477,9 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
 
     try {
       const filename = `Kuechen-Beratung_${project.customer.lastName || 'Kunde'}_${new Date().toISOString().split('T')[0]}.pdf`;
+      // Dynamischer Import: jspdf + html2canvas landen in einem eigenen Chunk,
+      // der erst beim PDF-Export geladen wird (kleineres Initial-Bundle).
+      const { exportKitchenPdf } = await import('@/lib/pdf/exportKitchenPdf');
       await exportKitchenPdf({ filename, root });
       addPdfDebugEvent('success', `PDF gespeichert: ${filename}`);
     } catch (error) {
@@ -581,7 +583,7 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
 
       const { data, error } = await supabase.functions.invoke('send-protocol-email', {
         body: {
-          recipientEmail,
+          studioSlug,
           customerName,
           projectDate,
           summaryHtml,
@@ -678,7 +680,7 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
 
       const { data, error } = await supabase.functions.invoke('send-protocol-email', {
         body: {
-          recipientEmail: studioEmail,
+          studioSlug,
           customerName,
           projectDate,
           summaryHtml,

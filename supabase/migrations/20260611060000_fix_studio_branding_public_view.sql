@@ -75,7 +75,9 @@ FROM public.studio_branding;
 
 GRANT SELECT ON public.studio_branding_public TO anon, authenticated;
 
--- Admin-Passwort zurücksetzen (einmalig: Kuechenready2026!)
+-- Admin-Passwort auf einen Bootstrap-Hash setzen.
+-- WICHTIG: Direkt nach dem Deploy über scripts/reset-admin-password.sh
+-- (ADMIN_RESET_KEY-Secret) auf ein individuelles Passwort ändern.
 UPDATE public.studio_branding
 SET admin_password_hash = '$2b$12$qrDvOxqQ9D1WfxxoMnsd3e/g64ro01R9jSXmHo2KKiQA.tyMDZTNC'
 WHERE admin_password_hash IS NOT NULL;

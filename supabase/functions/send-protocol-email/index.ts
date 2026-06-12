@@ -1,7 +1,57 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
 import { Resend } from "https://esm.sh/resend@2.0.0";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+
+/**
+ * Studio-E-Mail wird serverseitig aus der DB aufgelöst, damit der Client
+ * NICHT als offenes Spam-Relay missbraucht werden kann. Empfänger ist immer
+ * die im Branding hinterlegte Studio-Adresse.
+ */
+function slugifyStudioName(name: string): string {
+  const map: Record<string, string> = { ä: "ae", ö: "oe", ü: "ue", ß: "ss" };
+  let slug = name.toLowerCase().trim();
+  for (const [char, repl] of Object.entries(map)) {
+    slug = slug.replaceAll(char, repl);
+  }
+  return (
+    slug
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 48) || "studio"
+  );
+}
+
+async function resolveStudioEmail(studioSlug?: string): Promise<string | null> {
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!supabaseUrl || !serviceKey) return null;
+  const supabase = createClient(supabaseUrl, serviceKey);
+
+  let query = supabase.from("studio_branding").select("contact_email");
+  if (studioSlug && studioSlug.trim()) {
+    query = query.eq("studio_slug", slugifyStudioName(studioSlug));
+  } else {
+    query = query.limit(1);
+  }
+  const { data } = await query.maybeSingle();
+  const email = (data as { contact_email?: string } | null)?.contact_email?.trim();
+  return email && email.length > 0 ? email : null;
+}
+
+/** Best-effort In-Memory Rate-Limit gegen Massen-Versand (pro Instanz). */
+const RATE_WINDOW_MS = 60_000;
+const RATE_MAX_PER_WINDOW = 8;
+const rateHits = new Map<string, number[]>();
+
+function isRateLimited(key: string): boolean {
+  const now = Date.now();
+  const hits = (rateHits.get(key) ?? []).filter((t) => now - t < RATE_WINDOW_MS);
+  hits.push(now);
+  rateHits.set(key, hits);
+  return hits.length > RATE_MAX_PER_WINDOW;
+}
 
 /** Verified Resend domain required for delivery to studio inboxes (not onboarding@resend.dev). */
 const RESEND_FROM_EMAIL =
@@ -26,7 +76,9 @@ interface CustomerData {
 }
 
 interface ProtocolEmailRequest {
-  recipientEmail: string;
+  /** @deprecated Empfänger wird serverseitig aus dem Branding aufgelöst. */
+  recipientEmail?: string;
+  studioSlug?: string;
   customerName: string;
   projectDate: string;
   summaryHtml: string;
@@ -91,13 +143,25 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { recipientEmail, customerName, projectDate, summaryHtml, summaryPlainText, projectJson, customerData }: ProtocolEmailRequest = await req.json();
+    const { studioSlug, customerName, projectDate, summaryHtml, summaryPlainText, projectJson, customerData }: ProtocolEmailRequest = await req.json();
 
-    // Validate email format and length
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!recipientEmail || typeof recipientEmail !== 'string' || recipientEmail.length > 254 || !emailRegex.test(recipientEmail)) {
+    // Rate-Limit pro Absender-IP, um Massen-Versand zu verhindern
+    const clientIp =
+      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+    if (isRateLimited(`${clientIp}:${studioSlug ?? "default"}`)) {
       return new Response(
-        JSON.stringify({ error: "Invalid recipient email address." }),
+        JSON.stringify({ error: "Too many requests. Please try again later." }),
+        { status: 429, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    // SICHERHEIT: Empfänger wird serverseitig aus dem Branding bestimmt –
+    // niemals aus dem Client-Payload. Verhindert Missbrauch als Spam-Relay.
+    const recipientEmail = await resolveStudioEmail(studioSlug);
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!recipientEmail || recipientEmail.length > 254 || !emailRegex.test(recipientEmail)) {
+      return new Response(
+        JSON.stringify({ error: "Studio email is not configured." }),
         { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }

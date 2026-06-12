@@ -6,7 +6,8 @@ Vor dem ersten Küchenstudio alle Punkte durchgehen. Geschätzte Dauer: **45–6
 
 ## Vorbereitung (einmalig)
 
-- [ ] **Admin-Passwort** geändert (nicht mehr `Kuechenready2026!`)
+- [ ] 🔐 **Admin-Passwort geändert** (Bootstrap-Hash ersetzen) — via `scripts/reset-admin-password.sh` mit gesetztem `ADMIN_RESET_KEY`-Secret. **Blocker!**
+- [ ] 🔐 **Secret `ADMIN_RESET_KEY`** in Supabase gesetzt (kein hartcodierter Fallback mehr)
 - [ ] **Hostinger Git Auto-Deploy** deaktiviert (nur GitHub Actions)
 - [x] **Lovable/Supabase:** `RESEND_API_KEY` gesetzt
 - [x] **Lovable/Supabase:** `LOVABLE_API_KEY` gesetzt (KI-Berater)

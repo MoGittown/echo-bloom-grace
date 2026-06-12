@@ -241,7 +241,8 @@ serve(async (req: Request) => {
       resetKey,
     } = await req.json();
 
-    const EMERGENCY_RESET_KEY = "kuechenready-reset-v1";
+    // Reset-Key kommt ausschließlich aus den Secrets – kein hartcodierter Fallback.
+    const ADMIN_RESET_KEY = Deno.env.get("ADMIN_RESET_KEY");
 
     switch (action) {
       case "reset-password": {
@@ -255,8 +256,7 @@ serve(async (req: Request) => {
             { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
           );
         }
-        const allowedKey = Deno.env.get("ADMIN_RESET_KEY") || EMERGENCY_RESET_KEY;
-        if (!resetKey || resetKey !== allowedKey) {
+        if (!ADMIN_RESET_KEY || !resetKey || resetKey !== ADMIN_RESET_KEY) {
           return new Response(
             JSON.stringify({ success: false, error: "invalid_reset_key" }),
             { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 403 }
@@ -386,8 +386,7 @@ serve(async (req: Request) => {
       }
 
       case "repair-schema": {
-        const allowedKey = Deno.env.get("ADMIN_RESET_KEY") || EMERGENCY_RESET_KEY;
-        if (!resetKey || resetKey !== allowedKey) {
+        if (!ADMIN_RESET_KEY || !resetKey || resetKey !== ADMIN_RESET_KEY) {
           return new Response(
             JSON.stringify({ success: false, error: "invalid_reset_key" }),
             { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 403 }
