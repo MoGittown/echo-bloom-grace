@@ -1,0 +1,14 @@
+---
+description: Flutter-App (kuechencheck-app) automatisch auf iOS und Android synchronisieren
+alwaysApply: true
+---
+
+# Flutter iOS + Android automatisch aktualisieren
+
+Wenn du Code in der Flutter-App änderst (`/Users/mauricevollmer/Projects/kuechencheck-app/app/lib/` oder `pubspec.yaml`):
+
+1. **Automatisch** Sync ausführen: `kuechencheck-app/scripts/flutter-sync-devices.sh` (Hot Reload via Daemon).
+2. Daemon läuft dauerhaft: `flutter-devices-daemon.sh` — iOS + Android ohne Terminal-Freigaben.
+3. Ziele: iPhone 17 Pro Simulator + Android `RFCX11HABNT` (SM S921B).
+4. Ergebnis kurz bestätigen (iOS / Android / beide).
+5. Kein osascript/Terminal öffnen — nur Hintergrund-Prozesse.

@@ -281,6 +281,46 @@ serve(async (req: Request) => {
         );
       }
 
+      case "change-password": {
+        // Authentifiziert durch das AKTUELLE Passwort – kein Reset-Key nötig.
+        const existingBranding = await fetchBranding(
+          supabase,
+          targetStudioSlug ?? studioSlug,
+        );
+        if (!existingBranding) {
+          return new Response(
+            JSON.stringify({ success: false, error: "no_branding_setup" }),
+            { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
+          );
+        }
+        const currentValid = await verifyPassword(
+          password,
+          existingBranding.admin_password_hash as string,
+        );
+        if (!currentValid) {
+          return new Response(
+            JSON.stringify({ success: false, error: "invalid_password" }),
+            { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 403 }
+          );
+        }
+        if (!newPassword || newPassword.length < 8) {
+          return new Response(
+            JSON.stringify({ success: false, error: "password_too_short" }),
+            { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
+          );
+        }
+        const passwordHash = await hashPassword(newPassword);
+        await supabase
+          .from("studio_branding")
+          .update({ admin_password_hash: passwordHash })
+          .eq("id", existingBranding.id);
+
+        return new Response(
+          JSON.stringify({ success: true }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
       case "status":
       case "public-get": {
         const existingBranding = await fetchBranding(

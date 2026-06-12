@@ -456,6 +456,34 @@ export function useBrandingAdmin() {
     }
   }, [sessionPassword, branding.studioSlug]);
 
+  const changePassword = useCallback(async (
+    newPassword: string,
+  ): Promise<{ ok: boolean; error?: string }> => {
+    if (!sessionPassword) return { ok: false, error: 'not_authenticated' };
+    if (!newPassword || newPassword.length < 8) {
+      return { ok: false, error: 'password_too_short' };
+    }
+    try {
+      const { data, error } = await supabase.functions.invoke('branding-admin', {
+        body: {
+          action: 'change-password',
+          password: sessionPassword,
+          newPassword,
+          targetStudioSlug: branding.studioSlug ?? undefined,
+        },
+      });
+      if (error) throw error;
+      if (data?.success) {
+        setSessionPassword(newPassword);
+        return { ok: true };
+      }
+      return { ok: false, error: data?.error || 'change_failed' };
+    } catch (err) {
+      console.error('Password change failed:', err);
+      return { ok: false, error: 'network_error' };
+    }
+  }, [sessionPassword, branding.studioSlug]);
+
   const logout = useCallback(() => {
     setIsAuthenticated(false);
     setSessionPassword(null);
@@ -470,6 +498,7 @@ export function useBrandingAdmin() {
     setupBranding,
     updateBranding,
     uploadLogo,
+    changePassword,
     logout,
   };
 }

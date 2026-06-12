@@ -19,6 +19,7 @@ export default function AdminPage() {
     setupBranding,
     updateBranding,
     uploadLogo,
+    changePassword,
     logout,
   } = useBrandingAdmin();
 
@@ -80,6 +81,7 @@ export default function AdminPage() {
         branding={branding}
         updateBranding={updateBranding}
         uploadLogo={uploadLogo}
+        changePassword={changePassword}
         logout={logout}
       />
     );

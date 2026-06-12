@@ -32,13 +32,40 @@ type Props = {
   branding: BrandingData;
   updateBranding: (updates: BrandingUpdates) => Promise<boolean>;
   uploadLogo: (file: File) => Promise<string | null>;
+  changePassword: (newPassword: string) => Promise<{ ok: boolean; error?: string }>;
   logout: () => void;
 };
 
-export function AdminTabbedDashboard({ branding, updateBranding, uploadLogo, logout }: Props) {
+export function AdminTabbedDashboard({ branding, updateBranding, uploadLogo, changePassword, logout }: Props) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [changingPassword, setChangingPassword] = useState(false);
+
+  async function handleChangePassword() {
+    if (newPassword.length < 8) {
+      toast.error('Passwort muss mindestens 8 Zeichen haben');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error('Passwörter stimmen nicht überein');
+      return;
+    }
+    setChangingPassword(true);
+    const result = await changePassword(newPassword);
+    setChangingPassword(false);
+    if (result.ok) {
+      toast.success('Passwort geändert');
+      setNewPassword('');
+      setConfirmPassword('');
+    } else if (result.error === 'password_too_short') {
+      toast.error('Passwort muss mindestens 8 Zeichen haben');
+    } else {
+      toast.error('Passwort konnte nicht geändert werden');
+    }
+  }
 
   const [form, setForm] = useState(() => initForm(branding));
 
@@ -118,6 +145,7 @@ export function AdminTabbedDashboard({ branding, updateBranding, uploadLogo, log
             <TabsTrigger value="landing">Landing</TabsTrigger>
             <TabsTrigger value="link">Link & QR</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
+            <TabsTrigger value="security">Sicherheit</TabsTrigger>
           </TabsList>
 
           <TabsContent value="general" className="space-y-4">
@@ -403,6 +431,47 @@ export function AdminTabbedDashboard({ branding, updateBranding, uploadLogo, log
                   ...form, studioSettings: { ...form.studioSettings, analytics: { ...form.studioSettings.analytics, internalNotes: v } },
                 })} />
                 <SaveButton saving={saving} onClick={() => save({ studioSettings: form.studioSettings })} />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="security" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Admin-Passwort ändern</CardTitle>
+                <CardDescription>
+                  Mit dem aktuellen Login authentifiziert – kein zusätzlicher Schlüssel nötig.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4 max-w-md">
+                <div className="space-y-1">
+                  <Label>Neues Passwort</Label>
+                  <Input
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    minLength={8}
+                    autoComplete="new-password"
+                    placeholder="mindestens 8 Zeichen"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label>Neues Passwort bestätigen</Label>
+                  <Input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    autoComplete="new-password"
+                  />
+                </div>
+                <Button
+                  className="w-full"
+                  disabled={changingPassword || !newPassword}
+                  onClick={handleChangePassword}
+                >
+                  {changingPassword ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
+                  Passwort ändern
+                </Button>
               </CardContent>
             </Card>
           </TabsContent>
