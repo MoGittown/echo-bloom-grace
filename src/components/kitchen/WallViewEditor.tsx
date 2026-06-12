@@ -26,7 +26,7 @@ const WALLS = [
 ] as const;
 
 const ELEMENT_TYPES = [
-  { value: 'window', label: 'Fenster', color: 'hsl(200, 80%, 55%)' },
+  { value: 'window', label: 'Fenster', color: 'hsl(140, 55%, 42%)' },
   { value: 'door', label: 'Tür', color: 'hsl(30, 60%, 45%)' },
   { value: 'socket', label: 'Steckdose', color: 'hsl(45, 90%, 50%)' },
   { value: 'water', label: 'Wasseranschluss', color: 'hsl(200, 90%, 50%)' },

@@ -91,28 +91,24 @@ export async function exportKitchenPdf({ filename, root }: ExportOptions) {
   const pages = Array.from(root.querySelectorAll<HTMLElement>("[data-pdf-page]"));
   const targets = pages.length ? pages : [root];
 
-  const marginTopMm = 4; // minimaler oberer Rand
-  const marginSideMm = 10; // seitlicher Rand
-  const marginBottomMm = 4; // minimaler unterer Rand
-  const contentW = A4_MM_W - marginSideMm * 2;
-  const contentH = A4_MM_H - marginTopMm - marginBottomMm;
-
   for (let i = 0; i < targets.length; i++) {
     const source = targets[i];
 
     const stage = createStage();
     const clone = source.cloneNode(true) as HTMLElement;
+    clone.classList.add("pdf-export");
 
-    // A4 Rahmen, aber Layout-Spacing NICHT zerstören
+    // Exakt A4 — Footer bleibt durch flex + overflow:hidden am Seitenende
     clone.style.width = `${A4_PX_W}px`;
+    clone.style.height = `${A4_PX_H}px`;
     clone.style.minHeight = `${A4_PX_H}px`;
+    clone.style.maxHeight = `${A4_PX_H}px`;
     clone.style.background = "#ffffff";
+    clone.style.overflow = "hidden";
+    clone.style.boxSizing = "border-box";
+    clone.style.position = "relative";
 
-    // wichtig: nicht hidden, sonst kappen Cards/Canvas gerne
-    clone.style.overflow = "visible";
-
-    // NICHT padding:0 setzen
-    // NICHT height:1123 festnageln (führt zu Clipping)
+    stage.style.height = `${A4_PX_H}px`;
     stage.appendChild(clone);
 
     // Fonts laden lassen
@@ -132,6 +128,10 @@ export async function exportKitchenPdf({ filename, root }: ExportOptions) {
     // Screenshot vom Clone, nicht vom Stage
     const canvas = await html2canvas(clone, {
       scale: 2,
+      width: A4_PX_W,
+      height: A4_PX_H,
+      windowWidth: A4_PX_W,
+      windowHeight: A4_PX_H,
       backgroundColor: "#ffffff",
       useCORS: true,
       allowTaint: true,
@@ -145,19 +145,8 @@ export async function exportKitchenPdf({ filename, root }: ExportOptions) {
     const imgData = canvas.toDataURL("image/png");
     if (i > 0) pdf.addPage();
 
-    // immer auf A4 Content-Bereich skalieren
-    let renderW = contentW;
-    let renderH = (canvas.height * renderW) / canvas.width;
-
-    if (renderH > contentH) {
-      renderH = contentH;
-      renderW = (canvas.width * renderH) / canvas.height;
-    }
-
-    const x = marginSideMm + (contentW - renderW) / 2;
-    const y = marginTopMm; // Inhalt direkt am oberen Rand beginnen
-
-    pdf.addImage(imgData, "PNG", x, y, renderW, renderH, undefined, "FAST");
+    // Volle A4-Seite nutzen (Clone ist bereits exakt A4)
+    pdf.addImage(imgData, "PNG", 0, 0, A4_MM_W, A4_MM_H, undefined, "FAST");
   }
 
   pdf.save(filename);

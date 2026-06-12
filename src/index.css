@@ -50,7 +50,7 @@
 
     /* Grundriss-Farben */
     --floor-wall: 20 14% 25%;
-    --floor-window: 200 80% 55%;
+    --floor-window: 140 55% 42%;
     --floor-door: 30 60% 45%;
     --floor-connection: 150 60% 45%;
     --floor-grid: 30 10% 85%;
@@ -100,7 +100,7 @@
     --kitchen-navy: 220 40% 45%;
 
     --floor-wall: 40 20% 85%;
-    --floor-window: 200 80% 65%;
+    --floor-window: 140 55% 50%;
     --floor-door: 30 60% 55%;
     --floor-connection: 150 60% 55%;
     --floor-grid: 20 10% 25%;
@@ -139,20 +139,35 @@
   /* ===== PROFESSIONAL PDF DESIGN SYSTEM ===== */
   /* Optimized for print quality: 11pt base, stronger contrasts, wider margins */
   
-  /* PDF Page Container - Professionelle Seitenränder (12mm ~ 45px) */
+  /* PDF Page Container — feste A4-Höhe, Footer absolut am unteren Rand */
   .pdf-page {
-    @apply bg-white flex flex-col;
-    padding: 45px 45px 40px 45px;
-    min-height: 1100px;
+    @apply bg-white;
+    position: relative;
+    box-sizing: border-box;
+    padding: 36px 40px 52px 40px;
+    height: 1123px;
+    min-height: 1123px;
+    max-height: 1123px;
+    overflow: hidden;
     font-family: 'Inter', system-ui, sans-serif;
     font-size: 11pt;
     line-height: 1.5;
-    color: hsl(20 14% 12%); /* Darker for better contrast */
+    color: hsl(20 14% 12%);
   }
 
-  /* PDF-Export: Seite clippen, Footer sichtbar lassen */
-  .pdf-export .pdf-page { overflow: hidden; }
-  .pdf-export .pdf-footer { overflow: visible !important; }
+  .pdf-page > .flex-1 {
+    overflow: hidden;
+    max-height: calc(1123px - 36px - 52px - 72px);
+  }
+
+  .pdf-export .pdf-page {
+    position: relative !important;
+  }
+
+  .pdf-export .pdf-page > .flex-1 {
+    overflow: hidden !important;
+    max-height: calc(1123px - 36px - 52px - 72px) !important;
+  }
 
   /* Canvas Bereiche im PDF nicht kappen */
   .pdf-export .pdf-canvas-container {
@@ -216,12 +231,16 @@
     color: hsl(20 14% 12%);
   }
 
-  /* Footer nie abschneiden */
+  /* Footer fix am Seitenende (zuverlässig für html2canvas) */
   .pdf-footer {
-    margin-top: auto;
-    padding-top: 12px;
-    border-top: 1px solid rgba(0,0,0,0.12);
-    overflow: visible !important;
+    position: absolute;
+    left: 40px;
+    right: 40px;
+    bottom: 16px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(0, 0, 0, 0.15);
+    background: #fff;
+    z-index: 2;
   }
 
   .pdf-footer-inner {
@@ -551,8 +570,31 @@
     height: 1123px !important;
     min-height: 1123px !important;
     max-height: 1123px !important;
+    padding: 36px 40px 24px 40px !important;
     overflow: hidden !important;
     background: #fff !important;
+    box-sizing: border-box !important;
+  }
+
+  .pdf-export .pdf-section {
+    margin-bottom: 6px !important;
+  }
+
+  .pdf-export .pdf-section-header {
+    padding: 4px 10px !important;
+  }
+
+  .pdf-export .pdf-section-body {
+    padding: 6px 10px !important;
+  }
+
+  .pdf-export .pdf-footer {
+    position: absolute !important;
+    left: 40px !important;
+    right: 40px !important;
+    bottom: 16px !important;
+    background: #fff !important;
+    z-index: 5 !important;
   }
 
   /* Muted text readable in PDF */
@@ -670,10 +712,6 @@
     background-image: none !important;
   }
 
-  /* Header ausblenden */
-  .pdf-header {
-    display: none !important;
-  }
 }
 
 @layer utilities {

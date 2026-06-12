@@ -96,7 +96,7 @@ export function RoomForm({ data, onChange }: RoomFormProps) {
             Breite (cm) *
             <InfoTooltip 
               description="Die Breite des Raumes (senkrecht zur Länge). Wichtig für die Bewegungsfreiheit."
-              recommendation="Mindestens 120 cm zwischen Küchenzeilen für bequemes Arbeiten."
+              recommendation="Mindestens 105 cm zwischen Küchenzeilen für bequemes Arbeiten."
             />
           </Label>
           <Input

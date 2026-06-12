@@ -1,0 +1,17 @@
+---
+description: Web-App (echo-bloom-grace) nach Änderungen automatisch committen und deployen
+globs: src/**/*
+alwaysApply: false
+---
+
+# Web-App automatisch deployen
+
+Nach Änderungen an der Web-App (`src/`, `public/`, `index.html`, Workflows):
+
+1. **Build prüfen:** `npm run build` muss erfolgreich sein.
+2. **Automatisch committen und pushen** nach `main` — Deploy läuft via GitHub Actions (`deploy-hostinger.yml`).
+3. **Nicht** manuell auf Hostinger deployen (Git Auto-Deploy dort deaktiviert lassen).
+4. Nach Push kurz CI prüfen: `gh run list --workflow=deploy-hostinger.yml --limit 1`
+5. Ergebnis melden: Commit-Hash + ob Deploy grün.
+
+Deploy-Ziel: https://kuechenready.de

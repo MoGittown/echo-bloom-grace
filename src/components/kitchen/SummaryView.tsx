@@ -81,7 +81,7 @@ const WALL_LABELS: Record<string, string> = {
 };
 
 const ELEMENT_COLORS: Record<string, string> = {
-  window: 'hsl(200, 80%, 55%)',
+  window: 'hsl(140, 55%, 42%)',
   door: 'hsl(30, 60%, 45%)',
   socket: 'hsl(45, 90%, 50%)',
   water: 'hsl(200, 90%, 50%)',
@@ -448,6 +448,16 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
     branding.contact.website,
     branding.studioSettings.pdf.footerText,
   ].filter(Boolean).join(' · ');
+
+  const totalPdfPages = 6 + photoPages.length;
+  const pdfFooter = (pageNumber: number) => (
+    <PdfPageFooter
+      pageNumber={pageNumber}
+      totalPages={totalPdfPages}
+      contactLine={pdfContactLine}
+      studioName={studioDisplayName}
+    />
+  );
 
   const handlePrint = useCallback(async () => {
     try {
@@ -1307,12 +1317,7 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
               </div>
             </div>
           </div>
-          <PdfPageFooter
-            pageNumber={1}
-            totalPages={photoPages.length + 3}
-            contactLine={pdfContactLine}
-            studioName={studioDisplayName}
-          />
+          {pdfFooter(1)}
         </div>
 
         {/* ===== PAGE 2: Sink, Waste, Lighting, Room, Floor Plan ===== */}
@@ -1321,7 +1326,7 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
             protocolId={protocolId}
             createdDate={formatDate(project.createdAt)}
             customerName={customerFullName}
-            studioName={branding.studioName}
+            studioName={studioDisplayName}
             logoUrl={branding.logoUrl}
           />
           
@@ -1531,6 +1536,7 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
             </div>
           </div>
           </div>
+          {pdfFooter(2)}
         </div>
 
         {/* ===== PAGE 3: Raummaße & Grundriss (dedizierte Seite) ===== */}
@@ -1539,7 +1545,7 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
             protocolId={protocolId}
             createdDate={formatDate(project.createdAt)}
             customerName={customerFullName}
-            studioName={branding.studioName}
+            studioName={studioDisplayName}
             logoUrl={branding.logoUrl}
           />
           
@@ -1603,6 +1609,7 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
             </div>
           </div>
         </div>
+          {pdfFooter(3)}
         </div>
 
         {/* ===== PAGE 4: Wall Views Nord & Ost ===== */}
@@ -1611,7 +1618,7 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
             protocolId={protocolId}
             createdDate={formatDate(project.createdAt)}
             customerName={customerFullName}
-            studioName={branding.studioName}
+            studioName={studioDisplayName}
             logoUrl={branding.logoUrl}
           />
           
@@ -1639,6 +1646,7 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
             );
           })}
           </div>
+          {pdfFooter(4)}
         </div>
 
         {/* ===== PAGE 5: Wall Views Süd & West + Element Table ===== */}
@@ -1647,7 +1655,7 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
             protocolId={protocolId}
             createdDate={formatDate(project.createdAt)}
             customerName={customerFullName}
-            studioName={branding.studioName}
+            studioName={studioDisplayName}
             logoUrl={branding.logoUrl}
           />
           
@@ -1707,6 +1715,7 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
             </div>
           )}
           </div>
+          {pdfFooter(5)}
         </div>
 
         {/* ===== PAGE 6: Must-haves, Nice-to-haves, Notes ===== */}
@@ -1715,7 +1724,7 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
             protocolId={protocolId}
             createdDate={formatDate(project.createdAt)}
             customerName={customerFullName}
-            studioName={branding.studioName}
+            studioName={studioDisplayName}
             logoUrl={branding.logoUrl}
           />
           
@@ -1764,6 +1773,7 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
           )}
 
           </div>
+          {pdfFooter(6)}
         </div>
 
         {/* ===== PHOTO PAGES: Separate PDF pages for photos ===== */}
@@ -1775,7 +1785,7 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
                 protocolId={protocolId}
                 createdDate={formatDate(project.createdAt)}
                 customerName={customerFullName}
-                studioName={branding.studioName}
+                studioName={studioDisplayName}
                 logoUrl={branding.logoUrl}
               />
               <div className="flex-1">
@@ -1805,6 +1815,7 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
                   </div>
                 </div>
               </div>
+              {pdfFooter(pageNumber)}
             </div>
           );
         })}

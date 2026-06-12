@@ -38,7 +38,7 @@ interface FloorPlanEditorProps {
 }
 
 const ELEMENT_TYPES = [
-  { value: 'window', label: 'Fenster', icon: SquareStack, color: 'hsl(200, 80%, 55%)' },
+  { value: 'window', label: 'Fenster', icon: SquareStack, color: 'hsl(140, 55%, 42%)' },
   { value: 'door', label: 'Tür', icon: DoorOpen, color: 'hsl(30, 60%, 45%)' },
   { value: 'socket', label: 'Steckdose', icon: Zap, color: 'hsl(45, 90%, 50%)' },
   { value: 'water', label: 'Wasseranschluss', icon: Droplets, color: 'hsl(200, 90%, 50%)' },
