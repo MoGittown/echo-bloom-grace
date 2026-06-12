@@ -1,6 +1,14 @@
 import { useRef, useCallback, useState, useEffect } from 'react';
 import { KitchenProject, TIMELINE_OPTIONS, CustomerData } from '@/types/kitchen';
-import { escapeHtml } from '@/lib/htmlSanitizer';
+import {
+  ELEMENT_TYPE_LABELS,
+  WALL_LABELS,
+  ELEMENT_COLORS,
+  getTaggedItems,
+  getUntaggedItems,
+} from '@/lib/kitchen/summaryFormat';
+import { buildSummaryHtml } from '@/lib/kitchen/summaryHtml';
+import { buildSummaryCsv } from '@/lib/kitchen/summaryCsv';
 import { useBranding } from '@/hooks/useBranding';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -61,46 +69,6 @@ interface SummaryViewProps {
   onUpdateNotes: (notes: string) => void;
   onUpdateCustomer?: (data: Partial<import('@/types/kitchen').CustomerData>) => void;
 }
-
-const ELEMENT_TYPE_LABELS: Record<string, string> = {
-  window: 'Fenster',
-  door: 'Tür',
-  socket: 'Steckdose',
-  water: 'Wasseranschluss',
-  gas: 'Gasanschluss',
-  drain: 'Abfluss',
-  vent: 'Lüftung',
-};
-
-const WALL_LABELS: Record<string, string> = {
-  north: 'Norden',
-  east: 'Osten',
-  south: 'Süden',
-  west: 'Westen',
-};
-
-const ELEMENT_COLORS: Record<string, string> = {
-  window: 'hsl(140, 55%, 42%)',
-  door: 'hsl(30, 60%, 45%)',
-  socket: 'hsl(45, 90%, 50%)',
-  water: 'hsl(200, 90%, 50%)',
-  gas: 'hsl(15, 90%, 50%)',
-  drain: 'hsl(210, 50%, 40%)',
-  vent: 'hsl(180, 40%, 50%)',
-};
-
-// Helper to filter and clean tagged items
-const getTaggedItems = (items: string[] | undefined, prefix: string): string[] => {
-  if (!items) return [];
-  return items
-    .filter(i => i.startsWith(prefix))
-    .map(i => i.replace(prefix, ''));
-};
-
-const getUntaggedItems = (items: string[] | undefined): string[] => {
-  if (!items) return [];
-  return items.filter(i => !i.includes(':'));
-};
 
 // Floor Plan Canvas Component for Summary - larger for print
 function FloorPlanCanvas({
@@ -492,79 +460,7 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
     }
   }, [project.customer.lastName, addPdfDebugEvent, clearPdfDebug, formatUnknownError]);
 
-  const generateSummaryHtml = useCallback(() => {
-    const customerName = escapeHtml(`${project.customer.firstName} ${project.customer.lastName}`.trim()) || 'Unbekannt';
-    const timeline = escapeHtml(TIMELINE_OPTIONS.find(t => t.value === project.customer.timeline)?.label || project.customer.timeline || 'Nicht angegeben');
-    
-    let html = `
-      <div class="section">
-        <div class="section-title">👤 Kundendaten</div>
-        <div class="info-row"><span class="info-label">Name:</span><span class="info-value">${customerName}</span></div>
-        <div class="info-row"><span class="info-label">E-Mail:</span><span class="info-value">${escapeHtml(project.customer.email) || '-'}</span></div>
-        <div class="info-row"><span class="info-label">Telefon:</span><span class="info-value">${escapeHtml(project.customer.phone) || '-'}</span></div>
-        <div class="info-row"><span class="info-label">Adresse:</span><span class="info-value">${escapeHtml(project.customer.address) || '-'}, ${escapeHtml(project.customer.postalCode)} ${escapeHtml(project.customer.city)}</span></div>
-        <div class="info-row"><span class="info-label">Zeitrahmen:</span><span class="info-value">${timeline}</span></div>
-      </div>
-      
-      <div class="section">
-        <div class="section-title">📐 Raummaße</div>
-        <div class="info-row"><span class="info-label">Länge:</span><span class="info-value">${escapeHtml(String(project.room.length))} cm</span></div>
-        <div class="info-row"><span class="info-label">Breite:</span><span class="info-value">${escapeHtml(String(project.room.width))} cm</span></div>
-        <div class="info-row"><span class="info-label">Höhe:</span><span class="info-value">${escapeHtml(String(project.room.height))} cm</span></div>
-      </div>
-    `;
-
-    if (project.preferences.style.length > 0) {
-      html += `
-        <div class="section">
-          <div class="section-title">🎨 Stil & Design</div>
-          <div>${project.preferences.style.map(s => `<span class="tag">${escapeHtml(s)}</span>`).join(' ')}</div>
-        </div>
-      `;
-    }
-
-    if (project.preferences.colors.length > 0 || project.preferences.materials.length > 0) {
-      html += `
-        <div class="section">
-          <div class="section-title">🎨 Farben & Materialien</div>
-          ${project.preferences.colors.length > 0 ? `<div><strong>Farben:</strong> ${project.preferences.colors.map(c => `<span class="tag">${escapeHtml(c)}</span>`).join(' ')}</div>` : ''}
-          ${project.preferences.materials.length > 0 ? `<div style="margin-top: 8px;"><strong>Materialien:</strong> ${project.preferences.materials.map(m => `<span class="tag">${escapeHtml(m)}</span>`).join(' ')}</div>` : ''}
-        </div>
-      `;
-    }
-
-    if (project.preferences.appliances.cooktop || project.preferences.appliances.oven || project.preferences.appliances.hood) {
-      html += `
-        <div class="section">
-          <div class="section-title">🍳 Geräte</div>
-          ${project.preferences.appliances.cooktop ? `<div class="info-row"><span class="info-label">Kochfeld:</span><span class="info-value">${escapeHtml(project.preferences.appliances.cooktop)}</span></div>` : ''}
-          ${project.preferences.appliances.oven ? `<div class="info-row"><span class="info-label">Backofen:</span><span class="info-value">${escapeHtml(project.preferences.appliances.oven)}</span></div>` : ''}
-          ${project.preferences.appliances.hood ? `<div class="info-row"><span class="info-label">Dunstabzug:</span><span class="info-value">${escapeHtml(project.preferences.appliances.hood)}</span></div>` : ''}
-          ${project.preferences.appliances.fridge ? `<div class="info-row"><span class="info-label">Kühlschrank:</span><span class="info-value">${escapeHtml(project.preferences.appliances.fridge)}</span></div>` : ''}
-        </div>
-      `;
-    }
-
-    if (project.preferences.budget.min > 0 || project.preferences.budget.max > 0) {
-      html += `
-        <div class="section">
-          <div class="section-title">💰 Budget</div>
-          <div class="info-row"><span class="info-label">Budget:</span><span class="info-value">${project.preferences.budget.min.toLocaleString('de-DE')} € - ${project.preferences.budget.max.toLocaleString('de-DE')} €</span></div>
-        </div>
-      `;
-    }
-
-    if (project.additionalNotes) {
-      html += `
-        <div class="section">
-          <div class="section-title">📝 Notizen</div>
-          <p>${escapeHtml(project.additionalNotes)}</p>
-        </div>
-      `;
-    }
-
-    return html;
-  }, [project]);
+  const generateSummaryHtml = useCallback(() => buildSummaryHtml(project), [project]);
 
   const handleSendEmail = useCallback(async () => {
     if (!recipientEmail || !recipientEmail.includes('@')) {
@@ -711,84 +607,9 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
 
   // CSV Export function
   const handleDownloadCSV = useCallback(() => {
-    const timeline = TIMELINE_OPTIONS.find(t => t.value === project.customer.timeline)?.label || project.customer.timeline || '';
-    
-    // Build CSV rows
-    const csvRows: string[][] = [
-      ['Kategorie', 'Feld', 'Wert'],
-      [''],
-      ['=== KUNDENDATEN ===', '', ''],
-      ['Kunde', 'Vorname', project.customer.firstName || ''],
-      ['Kunde', 'Nachname', project.customer.lastName || ''],
-      ['Kunde', 'E-Mail', project.customer.email || ''],
-      ['Kunde', 'Telefon', project.customer.phone || ''],
-      ['Kunde', 'Straße', project.customer.address || ''],
-      ['Kunde', 'PLZ', project.customer.postalCode || ''],
-      ['Kunde', 'Ort', project.customer.city || ''],
-      ['Timeline', 'Gewünschter Montagezeitraum', timeline],
-      ['Budget', 'Minimum (€)', project.preferences.budget.min.toString()],
-      ['Budget', 'Maximum (€)', project.preferences.budget.max.toString()],
-      [''],
-      ['=== RAUMABMESSUNGEN ===', '', ''],
-      ['Raum', 'Länge (cm)', project.room.length.toString()],
-      ['Raum', 'Breite (cm)', project.room.width.toString()],
-      ['Raum', 'Höhe (cm)', project.room.height.toString()],
-      ['Raum', 'Form', project.room.shape || ''],
-      ['Raum', 'Fläche (m²)', ((project.room.length * project.room.width) / 10000).toFixed(2)],
-      [''],
-      ['=== ERGONOMIE ===', '', ''],
-      ['Ergonomie', 'Körpergröße(n) (cm)', (project.preferences.userHeights || []).join(', ')],
-      ['Ergonomie', 'Aktuelle Arbeitsplattenhöhe (cm)', project.preferences.currentCountertopHeight?.toString() || ''],
-      ['Ergonomie', 'Zufriedenheit mit aktueller Höhe', project.preferences.currentCountertopSatisfaction || ''],
-      ['Ergonomie', 'Kochverhalten', project.preferences.cookingFrequency || ''],
-      ['Ergonomie', 'Haushaltsgröße', project.preferences.householdSize || ''],
-      ['Ergonomie', 'Griff-Präferenz', project.preferences.gripType || ''],
-      [''],
-      ['=== STIL & DESIGN ===', '', ''],
-      ['Stil', 'Küchenstil', project.preferences.style.join(', ')],
-      ['Stil', 'Frontenfarben', project.preferences.colors.join(', ')],
-      ['Stil', 'Frontmaterial', project.preferences.materials.join(', ')],
-      ['Stil', 'Arbeitsplatte', Array.isArray(project.preferences.countertop) ? project.preferences.countertop.join(', ') : (project.preferences.countertop || '')],
-    ];
-    
-    // Add manufacturer only if enabled in branding
-    if (branding.showManufacturerField) {
-      csvRows.push(['Stil', 'Hersteller', project.preferences.manufacturers.join(', ')]);
-    }
-    
-    csvRows.push(
-      [''],
-      ['=== ELEKTROGERÄTE ===', '', ''],
-      ['Geräte', 'Kochfeld', project.preferences.appliances.cooktop || ''],
-      ['Geräte', 'Dunstabzug', project.preferences.appliances.hood || ''],
-      ['Geräte', 'Backofen', project.preferences.appliances.oven || ''],
-      ['Geräte', 'Kühlschrank', project.preferences.appliances.fridge || ''],
-      ['Geräte', 'Geschirrspüler', project.preferences.appliances.dishwasher ? 'Ja' : 'Nein'],
-      ['Geräte', 'Mikrowelle', project.preferences.appliances.microwave ? 'Ja' : 'Nein'],
-      [''],
-      ['=== SPÜLE & ARMATUR ===', '', ''],
-      ['Spüle', 'Material', project.preferences.sink || ''],
-      [''],
-      ['=== ANSCHLÜSSE ===', '', ''],
-    );
-
-    // Add floor plan elements
-    project.floorPlan.elements.forEach((element, idx) => {
-      csvRows.push([
-        'Anschluss',
-        `${ELEMENT_TYPE_LABELS[element.type] || element.type} (${WALL_LABELS[element.wall]})`,
-        `${element.width}×${element.height}cm, ${element.distanceFromLeft}cm v. links, ${element.distanceFromFloor}cm v. Boden`
-      ]);
+    const csvContent = buildSummaryCsv(project, {
+      showManufacturerField: branding.showManufacturerField,
     });
-
-    csvRows.push(['']);
-    csvRows.push(['=== NOTIZEN ===', '', '']);
-    csvRows.push(['Notizen', 'Zusätzliche Notizen', (project.additionalNotes || '').replace(/\n/g, ' ')]);
-
-    // Convert to CSV string
-    const csvContent = csvRows.map(row => 
-      row.map(cell => `"${(cell || '').replace(/"/g, '""')}"`).join(';')
-    ).join('\n');
 
     // Download
     const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
