@@ -370,8 +370,33 @@ export default function ForStudios() {
             </div>
           </motion.div>
           <motion.div {...fadeUp} className="rounded-3xl overflow-hidden shadow-xl ring-1 ring-slate-200 bg-white">
-            <img src="/marketing/floorplan.png" alt="Grundriss-Editor" className="w-full" />
+            <img src="/marketing/screens/grundriss.png" alt="Grundriss-Editor" className="w-full" />
           </motion.div>
+        </div>
+      </Section>
+
+      {/* Einblicke / Screenshots */}
+      <Section className="py-20">
+        <motion.div {...fadeUp} className="text-center max-w-2xl mx-auto mb-12">
+          <h2 className="font-display text-3xl sm:text-4xl font-bold text-slate-900">So erleben es Ihre Kunden</h2>
+          <p className="mt-4 text-slate-600">Echte Einblicke in den Küchencheck – im Browser und als App, in Ihrem Branding.</p>
+        </motion.div>
+        <div className="grid md:grid-cols-3 gap-6">
+          {[
+            { src: '/marketing/screens/stil.png', t: 'Stil & Design' },
+            { src: '/marketing/screens/grundriss.png', t: 'Grundriss-Editor' },
+            { src: '/marketing/screens/uebersicht.png', t: 'Protokoll-Übersicht' },
+          ].map((s) => (
+            <motion.div key={s.t} {...fadeUp} className="rounded-2xl overflow-hidden border border-slate-200 shadow-lg bg-white">
+              <div className="flex items-center gap-1.5 px-4 h-9 bg-slate-100 border-b border-slate-200">
+                <span className="h-2.5 w-2.5 rounded-full bg-slate-300" />
+                <span className="h-2.5 w-2.5 rounded-full bg-slate-300" />
+                <span className="h-2.5 w-2.5 rounded-full bg-slate-300" />
+              </div>
+              <img src={s.src} alt={s.t} className="w-full" />
+              <div className="px-4 py-3 text-sm font-medium text-slate-700">{s.t}</div>
+            </motion.div>
+          ))}
         </div>
       </Section>
 

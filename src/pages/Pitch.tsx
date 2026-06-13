@@ -155,7 +155,7 @@ function buildSlides(): React.ReactNode[] {
       <Kicker>Das Produkt</Kicker>
       <h2 className="font-display text-3xl sm:text-5xl font-bold text-slate-900 mb-10">App & Web – in Ihrem Branding</h2>
       <div className="grid md:grid-cols-2 gap-8 items-center">
-        <img src="/marketing/hero-kitchen.png" alt="Küchenplanung" className="rounded-2xl shadow-xl ring-1 ring-slate-200 w-full" />
+        <img src="/marketing/screens/grundriss.png" alt="Grundriss-Editor" className="rounded-2xl shadow-xl ring-1 ring-slate-200 w-full" />
         <div className="space-y-4 text-lg text-slate-600">
           {[
             'Interaktiver Grundriss-Editor (Wände, Fenster, Anschlüsse)',
