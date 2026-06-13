@@ -9,6 +9,8 @@ import Index from "./pages/Index";
 // Admin, Studio-Portal & Legal-Seiten lazy laden – halten das Initial-Bundle klein.
 const Admin = lazy(() => import("./pages/Admin"));
 const ForStudios = lazy(() => import("./pages/ForStudios"));
+const Pitch = lazy(() => import("./pages/Pitch"));
+const OnePager = lazy(() => import("./pages/OnePager"));
 const StudioPortal = lazy(() => import("./pages/StudioPortal"));
 const StudioImpressum = lazy(() => import("./pages/StudioImpressum"));
 const StudioDatenschutz = lazy(() => import("./pages/StudioDatenschutz"));
@@ -28,6 +30,8 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/fuer-studios" element={<ForStudios />} />
+            <Route path="/pitch" element={<Pitch />} />
+            <Route path="/onepager" element={<OnePager />} />
             <Route path="/s/:slug" element={<StudioPortal />} />
             <Route path="/s/:slug/check" element={<Index />} />
             <Route path="/s/:slug/impressum" element={<StudioImpressum />} />
