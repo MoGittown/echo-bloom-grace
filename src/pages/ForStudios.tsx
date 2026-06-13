@@ -25,6 +25,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
+import { STUDIO_FAQ, studioFaqJsonLd } from '@/lib/marketingFaq';
 
 // Plattform-Marke "Küchenready" – bewusst im grünen Markenlook (#2E7D32),
 // passend zum App-Icon und Store-Auftritt. Eigenständig, unabhängig von Studio-Themes.
@@ -166,32 +167,32 @@ const PRICING = [
   },
 ];
 
-const FAQ = [
-  {
-    q: 'Müssen meine Kunden etwas installieren?',
-    a: 'Nein. Der Küchencheck läuft direkt im Browser. Optional gibt es zusätzlich Ihre eigene App für iOS und Android.',
-  },
-  {
-    q: 'Ist das datenschutzkonform?',
-    a: 'Ja. Die Daten werden auf Servern in der EU verarbeitet, die Einwilligung ist im Ablauf integriert und jedes Studio hat eine eigene Impressums- und Datenschutzseite.',
-  },
-  {
-    q: 'Wie schnell bin ich startklar?',
-    a: 'Nach einem kurzen Onboarding (Logo, Farben, Kontaktdaten) ist Ihr Studio in der Regel innerhalb weniger Tage live.',
-  },
-  {
-    q: 'Sieht man, dass es von Küchenready ist?',
-    a: 'Nein. Der Auftritt läuft komplett unter Ihrem Namen und Branding (White-Label).',
-  },
-  {
-    q: 'Was kostet der Einstieg wirklich?',
-    a: 'Die genannten Preise sind ein Vorschlag und werden individuell mit Ihnen abgestimmt. Im Pilotzeitraum entfällt die Einrichtungsgebühr.',
-  },
-];
+const FAQ = STUDIO_FAQ;
 
 export default function ForStudios() {
   useEffect(() => {
     document.title = 'Küchenready – Digitale Küchenberatung für Studios';
+
+    const script = document.createElement('script');
+    script.type = 'application/ld+json';
+    script.id = 'studio-faq-jsonld';
+    script.textContent = JSON.stringify(studioFaqJsonLd());
+    document.head.appendChild(script);
+
+    let meta = document.querySelector('meta[name="description"]');
+    if (!meta) {
+      meta = document.createElement('meta');
+      meta.setAttribute('name', 'description');
+      document.head.appendChild(meta);
+    }
+    meta.setAttribute(
+      'content',
+      'Küchenready für Küchenstudios: Kunden kommen vorbereitet ins Gespräch – Aufmaß, Grundriss, Protokoll. White-Label, DSGVO-konform.',
+    );
+
+    return () => {
+      script.remove();
+    };
   }, []);
 
   return (

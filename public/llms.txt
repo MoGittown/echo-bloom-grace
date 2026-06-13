@@ -1,0 +1,19 @@
+# Küchenready (kuechenready.de)
+
+> Küchenready bereitet Endkunden auf den Termin im Küchenstudio vor – Aufmaß, Grundriss, Stil, Geräte → strukturiertes PDF-Protokoll ans Studio. Kein 3D-Küchenplaner.
+
+## Produkt
+- B2B2C: Küchenstudios geben Kunden einen Link/QR-Code
+- Kunden nutzen Web-App oder iOS/Android-App (White-Label mit Studio-Branding)
+- Studio erhält PDF-Protokoll per E-Mail vor dem Beratungstermin
+
+## Wichtige Seiten
+- B2B Marketing: https://kuechenready.de/fuer-studios
+- Kunden-Check (Beispiel-Studio): https://kuechenready.de/s/vollmer-objektmoebel/check
+
+## Positionierung
+- NICHT: weiterer 3D-Küchenplaner (IKEA, Nolte, Planner5D)
+- SONDERN: Vorbereitungs- und Qualifizierungsplattform für Küchenberatung
+
+## Kontakt
+- kontakt@kuechenready.de

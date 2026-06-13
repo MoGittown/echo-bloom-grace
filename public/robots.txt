@@ -1,14 +1,22 @@
-User-agent: Googlebot
-Allow: /
-
-User-agent: Bingbot
-Allow: /
-
-User-agent: Twitterbot
-Allow: /
-
-User-agent: facebookexternalhit
-Allow: /
-
+# Küchenready – öffentliche Seiten für Suchmaschinen & AI-Crawler
 User-agent: *
 Allow: /
+Disallow: /admin
+Disallow: /pitch
+Disallow: /onepager
+
+# AI-Crawler (Inhalte lesbar halten)
+User-agent: GPTBot
+Allow: /fuer-studios
+Allow: /s/
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /fuer-studios
+Allow: /s/
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+Sitemap: https://kuechenready.de/sitemap.xml
