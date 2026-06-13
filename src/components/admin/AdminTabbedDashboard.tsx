@@ -22,6 +22,8 @@ import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DsgvoChecklist } from '@/components/admin/DsgvoChecklist';
+import { AnalyticsPanel } from '@/components/admin/AnalyticsPanel';
+import type { AnalyticsData } from '@/hooks/useBranding';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const COLOR_PRESETS = ['#8B7355', '#C2410C', '#2E7D32', '#1D4ED8', '#7C3AED', '#BE123C', '#0F766E', '#374151'];
@@ -33,10 +35,11 @@ type Props = {
   updateBranding: (updates: BrandingUpdates) => Promise<boolean>;
   uploadLogo: (file: File) => Promise<string | null>;
   changePassword: (newPassword: string) => Promise<{ ok: boolean; error?: string }>;
+  getAnalytics: () => Promise<AnalyticsData | null>;
   logout: () => void;
 };
 
-export function AdminTabbedDashboard({ branding, updateBranding, uploadLogo, changePassword, logout }: Props) {
+export function AdminTabbedDashboard({ branding, updateBranding, uploadLogo, changePassword, getAnalytics, logout }: Props) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -421,6 +424,7 @@ export function AdminTabbedDashboard({ branding, updateBranding, uploadLogo, cha
           </TabsContent>
 
           <TabsContent value="analytics" className="space-y-4">
+            <AnalyticsPanel getAnalytics={getAnalytics} />
             <Card>
               <CardHeader><CardTitle>Analytics & Intern</CardTitle></CardHeader>
               <CardContent className="space-y-3">

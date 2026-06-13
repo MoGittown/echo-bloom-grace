@@ -9,6 +9,7 @@ import {
 } from '@/lib/kitchen/summaryFormat';
 import { buildSummaryHtml } from '@/lib/kitchen/summaryHtml';
 import { buildSummaryCsv } from '@/lib/kitchen/summaryCsv';
+import { trackConversion, trackError } from '@/lib/analytics';
 import { useBranding } from '@/hooks/useBranding';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -450,15 +451,17 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
       const { exportKitchenPdf } = await import('@/lib/pdf/exportKitchenPdf');
       await exportKitchenPdf({ filename, root });
       addPdfDebugEvent('success', `PDF gespeichert: ${filename}`);
+      trackConversion('pdf_downloaded', studioSlug);
     } catch (error) {
       console.error('PDF generation failed:', error);
       addPdfDebugEvent('error', 'PDF-Generierung fehlgeschlagen', formatUnknownError(error));
+      trackError('pdf_export', formatUnknownError(error), studioSlug);
       setPdfDebugOpen(true);
       toast.error('PDF-Generierung fehlgeschlagen. Bitte versuchen Sie es erneut.');
     } finally {
       setIsGenerating(false);
     }
-  }, [project.customer.lastName, addPdfDebugEvent, clearPdfDebug, formatUnknownError]);
+  }, [project.customer.lastName, addPdfDebugEvent, clearPdfDebug, formatUnknownError, studioSlug]);
 
   const generateSummaryHtml = useCallback(() => buildSummaryHtml(project), [project]);
 
@@ -495,16 +498,18 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
 
       if (error) throw error;
 
+      trackConversion('protocol_sent', studioSlug, { via: 'dialog' });
       setEmailDialogOpen(false);
       setRecipientEmail('');
       setConfirmationDialogOpen(true);
     } catch (error: any) {
       console.error('Email sending failed:', error);
+      trackError('protocol_email', error?.message, studioSlug);
       toast.error(`E-Mail konnte nicht gesendet werden: ${error.message || 'Unbekannter Fehler'}`);
     } finally {
       setIsSendingEmail(false);
     }
-  }, [recipientEmail, project, generateSummaryHtml]);
+  }, [recipientEmail, project, generateSummaryHtml, studioSlug]);
 
   const formatDate = (date: Date) => {
     return new Date(date).toLocaleDateString('de-DE', {
@@ -593,17 +598,19 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
 
       if (error) throw error;
 
+      trackConversion('protocol_sent', studioSlug, { via: 'inline_form' });
       setShowSendForm(false);
       setConsentGiven(false);
       setSendFormErrors({});
       setConfirmationDialogOpen(true);
     } catch (error: any) {
       console.error('Email sending failed:', error);
+      trackError('protocol_email', error?.message, studioSlug);
       toast.error(`E-Mail konnte nicht gesendet werden: ${error.message || 'Unbekannter Fehler'}`);
     } finally {
       setIsSendingEmail(false);
     }
-  }, [validateSendForm, branding.contact.email, project, generateSummaryHtml]);
+  }, [validateSendForm, branding.contact.email, project, generateSummaryHtml, studioSlug]);
 
   // CSV Export function
   const handleDownloadCSV = useCallback(() => {
@@ -621,9 +628,10 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
-    
+
+    trackConversion('csv_downloaded', studioSlug);
     toast.success('CSV-Export erfolgreich heruntergeladen');
-  }, [project, branding.showManufacturerField]);
+  }, [project, branding.showManufacturerField, studioSlug]);
 
   // Extract style details from mustHaves
   const frontSurfaces = getTaggedItems(project.preferences.mustHaves, 'Oberfläche:');

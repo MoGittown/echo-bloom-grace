@@ -1,5 +1,7 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useRef } from 'react';
+import { useParams } from 'react-router-dom';
 import { toast } from 'sonner';
+import { trackFunnel, trackError } from '@/lib/analytics';
 
 export type ChatMessage = {
   role: 'user' | 'assistant';
@@ -29,9 +31,11 @@ const parseResponse = (content: string): { text: string; questions: string[] } =
 const MIN_REQUEST_INTERVAL = 2000; // 2 seconds between requests
 
 export const useKitchenChat = () => {
+  const { slug: studioSlug } = useParams<{ slug?: string }>();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [lastRequestTime, setLastRequestTime] = useState(0);
+  const hasTrackedChatUse = useRef(false);
 
   // Extract suggested questions from the last assistant message
   const suggestedQuestions = useMemo(() => {
@@ -65,6 +69,11 @@ export const useKitchenChat = () => {
     const userMsg: ChatMessage = { role: 'user', content: input.trim() };
     setMessages(prev => [...prev, userMsg]);
     setIsLoading(true);
+
+    if (!hasTrackedChatUse.current) {
+      hasTrackedChatUse.current = true;
+      trackFunnel('chat_used', studioSlug);
+    }
 
     let assistantContent = '';
 
@@ -165,13 +174,14 @@ export const useKitchenChat = () => {
       }
     } catch (error) {
       console.error('Chat error:', error);
+      trackError('kitchen_chat', error instanceof Error ? error.message : String(error), studioSlug);
       toast.error(error instanceof Error ? error.message : 'Ein Fehler ist aufgetreten');
       // Remove the user message if we failed
       setMessages(prev => prev.slice(0, -1));
     } finally {
       setIsLoading(false);
     }
-  }, [messages, isLoading, lastRequestTime]);
+  }, [messages, isLoading, lastRequestTime, studioSlug]);
 
   const clearChat = useCallback(() => {
     setMessages([]);

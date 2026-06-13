@@ -30,6 +30,16 @@ export interface ContactData {
   website: string | null;
 }
 
+export interface AnalyticsData {
+  rangeDays: number;
+  totalEvents: number;
+  sessions: number;
+  funnel: Record<string, number>;
+  conversions: Record<string, number>;
+  errors: Array<{ context: string; message: string; at: string }>;
+  byDay: Array<{ day: string; sessions: number }>;
+}
+
 export interface BrandingData {
   id?: string;
   studioSlug?: string | null;
@@ -484,6 +494,27 @@ export function useBrandingAdmin() {
     }
   }, [sessionPassword, branding.studioSlug]);
 
+  const getAnalytics = useCallback(async (): Promise<AnalyticsData | null> => {
+    if (!sessionPassword) return null;
+    try {
+      const { data, error } = await supabase.functions.invoke('branding-admin', {
+        body: {
+          action: 'get-analytics',
+          password: sessionPassword,
+          targetStudioSlug: branding.studioSlug ?? undefined,
+        },
+      });
+      if (error) throw error;
+      if (data?.success && data.analytics) {
+        return data.analytics as AnalyticsData;
+      }
+      return null;
+    } catch (err) {
+      console.error('Analytics fetch failed:', err);
+      return null;
+    }
+  }, [sessionPassword, branding.studioSlug]);
+
   const logout = useCallback(() => {
     setIsAuthenticated(false);
     setSessionPassword(null);
@@ -499,6 +530,7 @@ export function useBrandingAdmin() {
     updateBranding,
     uploadLogo,
     changePassword,
+    getAnalytics,
     logout,
   };
 }

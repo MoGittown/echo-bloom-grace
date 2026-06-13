@@ -587,6 +587,100 @@ serve(async (req: Request) => {
         );
       }
 
+      case "get-analytics": {
+        const existingBranding = await fetchBranding(
+          supabase,
+          targetStudioSlug ?? studioSlug,
+        );
+        if (!existingBranding) {
+          return new Response(
+            JSON.stringify({ success: false, error: "no_branding_setup" }),
+            { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
+          );
+        }
+        const isValid = await verifyPassword(
+          password,
+          existingBranding.admin_password_hash as string,
+        );
+        if (!isValid) {
+          return new Response(
+            JSON.stringify({ success: false, error: "invalid_password" }),
+            { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 401 }
+          );
+        }
+
+        const slug = existingBranding.studio_slug as string;
+        const rangeDays = 30;
+        const sinceIso = new Date(Date.now() - rangeDays * 86400000).toISOString();
+
+        const { data: events, error: evErr } = await supabase
+          .from("analytics_events")
+          .select("session_id,event_type,step,metadata,created_at")
+          .eq("studio_slug", slug)
+          .gte("created_at", sinceIso)
+          .order("created_at", { ascending: false })
+          .limit(20000);
+
+        if (evErr) throw evErr;
+
+        const rows = (events ?? []) as Array<{
+          session_id: string;
+          event_type: string;
+          step: string | null;
+          metadata: Record<string, unknown> | null;
+          created_at: string;
+        }>;
+
+        const sessionsByStep: Record<string, Set<string>> = {};
+        const conversions: Record<string, Set<string>> = {};
+        const sessionsByDay: Record<string, Set<string>> = {};
+        const allSessions = new Set<string>();
+        const errors: Array<{ context: string; message: string; at: string }> = [];
+
+        for (const r of rows) {
+          allSessions.add(r.session_id);
+          const day = r.created_at.slice(0, 10);
+          (sessionsByDay[day] ??= new Set()).add(r.session_id);
+
+          if (r.event_type === "funnel" && r.step) {
+            (sessionsByStep[r.step] ??= new Set()).add(r.session_id);
+          } else if (r.event_type === "conversion" && r.step) {
+            (conversions[r.step] ??= new Set()).add(r.session_id);
+          } else if (r.event_type === "error") {
+            if (errors.length < 25) {
+              errors.push({
+                context: r.step ?? "unknown",
+                message: String((r.metadata as { message?: unknown })?.message ?? "").slice(0, 200),
+                at: r.created_at,
+              });
+            }
+          }
+        }
+
+        const countMap = (m: Record<string, Set<string>>) =>
+          Object.fromEntries(Object.entries(m).map(([k, v]) => [k, v.size]));
+
+        const byDay = Object.entries(sessionsByDay)
+          .map(([day, set]) => ({ day, sessions: set.size }))
+          .sort((a, b) => a.day.localeCompare(b.day));
+
+        return new Response(
+          JSON.stringify({
+            success: true,
+            analytics: {
+              rangeDays,
+              totalEvents: rows.length,
+              sessions: allSessions.size,
+              funnel: countMap(sessionsByStep),
+              conversions: countMap(conversions),
+              errors,
+              byDay,
+            },
+          }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
       default:
         return new Response(
           JSON.stringify({ error: "Invalid action" }),

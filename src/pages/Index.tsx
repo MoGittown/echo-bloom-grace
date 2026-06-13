@@ -29,6 +29,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { ChevronLeft, ChevronRight, RotateCcw, ChefHat } from 'lucide-react';
 import { getActiveWizardSteps } from '@/lib/wizardSteps';
+import { trackFunnel } from '@/lib/analytics';
 import bgStyle from '@/assets/bg-style.jpg';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
@@ -101,6 +102,17 @@ const Index = () => {
       goToStep(Math.max(0, activeSteps.length - 1));
     }
   }, [activeSteps.length, currentStep, goToStep]);
+
+  // Analytics: Seitenaufruf einmal pro Sitzung erfassen
+  useEffect(() => {
+    trackFunnel('app_open', studioSlug);
+  }, [studioSlug]);
+
+  // Analytics: jeden tatsächlich angezeigten Check-Schritt erfassen (nicht die Landing Page)
+  useEffect(() => {
+    if (showLanding || !currentStepId) return;
+    trackFunnel(`step:${currentStepId}`, studioSlug);
+  }, [currentStepId, showLanding, studioSlug]);
 
   // Validate customer form - now only used for inline validation display
   const validateCustomerForm = useCallback(() => {
@@ -188,6 +200,7 @@ const Index = () => {
           } catch {
             // ignore
           }
+          trackFunnel('check_started', studioSlug);
           setShowLanding(false);
         }}
       />
