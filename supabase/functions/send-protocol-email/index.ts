@@ -92,6 +92,9 @@ interface ProtocolEmailRequest {
   summaryHtml: string;
   summaryPlainText?: string;
   projectJson?: string;
+  /** Base64-kodiertes PDF (ohne data:-Prefix) */
+  pdfBase64?: string;
+  pdfFilename?: string;
   customerData?: CustomerData;
 }
 
@@ -151,7 +154,7 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { studioSlug, customerName, projectDate, summaryHtml, summaryPlainText, projectJson, customerData }: ProtocolEmailRequest = await req.json();
+    const { studioSlug, customerName, projectDate, summaryHtml, summaryPlainText, projectJson, pdfBase64, pdfFilename, customerData }: ProtocolEmailRequest = await req.json();
 
     // Rate-Limit pro Absender-IP, um Massen-Versand zu verhindern
     const clientIp =
@@ -352,7 +355,7 @@ const handler = async (req: Request): Promise<Response> => {
             </div>
             
             <div class="csv-note">
-              📎 <strong>Dateien im Anhang:</strong> Kontaktdaten (CSV), vollständige Checkliste (TXT) und Projekt-Daten (JSON) für die Terminvorbereitung.
+              📎 <strong>Dateien im Anhang:</strong> Beratungsprotokoll als PDF${customerData ? ', Kontaktdaten (CSV) und vollständige Checkliste (TXT)' : ''}.
             </div>
             ` : ''}
             
@@ -371,9 +374,25 @@ const handler = async (req: Request): Promise<Response> => {
     const attachments: Array<{ filename: string; content: string }> = [];
 
     if (customerData) {
-      const csvContent = generateContactCSV(customerData, projectDate);
       const lastName = customerData.lastName || 'Kunde';
       const dateStr = new Date().toISOString().split('T')[0];
+
+      if (pdfBase64 && pdfBase64.trim().length > 0) {
+        const rawLen = pdfBase64.trim().length;
+        // ~12 MB base64 ≈ 9 MB PDF — Resend-Limit schützen
+        if (rawLen > 16_000_000) {
+          return new Response(
+            JSON.stringify({ error: "PDF attachment too large." }),
+            { status: 413, headers: { "Content-Type": "application/json", ...corsHeaders } },
+          );
+        }
+        attachments.push({
+          filename: pdfFilename?.trim() || `Beratungsprotokoll_${lastName}_${dateStr}.pdf`,
+          content: pdfBase64.trim(),
+        });
+      }
+
+      const csvContent = generateContactCSV(customerData, projectDate);
 
       attachments.push({
         filename: `Kontaktdaten_${lastName}_${dateStr}.csv`,

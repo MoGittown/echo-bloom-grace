@@ -1,5 +1,6 @@
 import { KitchenProject, TIMELINE_OPTIONS } from '@/types/kitchen';
 import { escapeHtml } from '@/lib/htmlSanitizer';
+import { ELEMENT_TYPE_LABELS, WALL_LABELS } from './summaryFormat';
 
 /**
  * Baut den HTML-Body der Protokoll-Zusammenfassung (für die E-Mail an das Studio).
@@ -31,6 +32,21 @@ export function buildSummaryHtml(project: KitchenProject): string {
         <div class="info-row"><span class="info-label">Höhe:</span><span class="info-value">${escapeHtml(String(project.room.height))} cm</span></div>
       </div>
     `;
+
+  if (project.floorPlan.elements.length > 0) {
+    html += `
+        <div class="section">
+          <div class="section-title">📐 Grundriss & Anschlüsse</div>
+          ${project.floorPlan.elements
+            .map(
+              (e) =>
+                `<div class="info-row"><span class="info-label">${escapeHtml(ELEMENT_TYPE_LABELS[e.type] || e.type)} (${escapeHtml(WALL_LABELS[e.wall] || e.wall)}):</span>` +
+                `<span class="info-value">${e.width} × ${e.height} cm · ${e.distanceFromLeft ?? 0} cm links · ${e.distanceFromFloor ?? 0} cm Boden</span></div>`,
+            )
+            .join('')}
+        </div>
+      `;
+  }
 
   if (project.preferences.style.length > 0) {
     html += `

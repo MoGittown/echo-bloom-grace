@@ -8,6 +8,7 @@ import {
   getUntaggedItems,
 } from '@/lib/kitchen/summaryFormat';
 import { buildSummaryHtml } from '@/lib/kitchen/summaryHtml';
+import { buildSummaryPlainText, buildProjectJsonForEmail } from '@/lib/kitchen/summaryPlainText';
 import { buildSummaryCsv } from '@/lib/kitchen/summaryCsv';
 import { trackConversion, trackError } from '@/lib/analytics';
 import { useBranding } from '@/hooks/useBranding';
@@ -465,6 +466,29 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
 
   const generateSummaryHtml = useCallback(() => buildSummaryHtml(project), [project]);
 
+  const protocolPdfFilename = useCallback(
+    () =>
+      `Kuechen-Beratung_${project.customer.lastName || 'Kunde'}_${new Date().toISOString().split('T')[0]}.pdf`,
+    [project.customer.lastName],
+  );
+
+  const buildPdfEmailAttachment = useCallback(async () => {
+    const root = document.getElementById('pdf-root');
+    if (!root) {
+      throw new Error('PDF-Bereich nicht gefunden');
+    }
+    try {
+      await document.fonts?.ready;
+    } catch {
+      // ignore
+    }
+    await new Promise<void>((r) => requestAnimationFrame(() => r()));
+    await new Promise<void>((r) => requestAnimationFrame(() => r()));
+    const { kitchenPdfToBase64 } = await import('@/lib/pdf/exportKitchenPdf');
+    const pdfBase64 = await kitchenPdfToBase64(root);
+    return { pdfBase64, pdfFilename: protocolPdfFilename() };
+  }, [protocolPdfFilename]);
+
   const handleSendEmail = useCallback(async () => {
     if (!recipientEmail || !recipientEmail.includes('@')) {
       toast.error('Bitte geben Sie eine gültige E-Mail-Adresse ein');
@@ -476,19 +500,22 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
       const customerName = `${project.customer.firstName} ${project.customer.lastName}`.trim() || 'Unbekannt';
       const projectDate = formatDate(project.createdAt);
       const summaryHtml = generateSummaryHtml();
+      const { pdfBase64, pdfFilename } = await buildPdfEmailAttachment();
 
       // Get timeline label for the CSV
       const timelineLabel = TIMELINE_OPTIONS.find(t => t.value === project.customer.timeline)?.label || project.customer.timeline || '';
 
       const { data, error } = await supabase.functions.invoke('send-protocol-email', {
         body: {
-          // recipientEmail = Rückwärtskompatibilität mit der alten Function;
-          // die neue Version ignoriert das Feld und löst per studioSlug auf.
           recipientEmail,
           studioSlug,
           customerName,
           projectDate,
           summaryHtml,
+          summaryPlainText: buildSummaryPlainText(project),
+          projectJson: buildProjectJsonForEmail(project),
+          pdfBase64,
+          pdfFilename,
           customerData: {
             ...project.customer,
             timeline: timelineLabel, // Use the human-readable label
@@ -509,7 +536,7 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
     } finally {
       setIsSendingEmail(false);
     }
-  }, [recipientEmail, project, generateSummaryHtml, studioSlug]);
+  }, [recipientEmail, project, generateSummaryHtml, buildPdfEmailAttachment, studioSlug]);
 
   const formatDate = (date: Date) => {
     return new Date(date).toLocaleDateString('de-DE', {
@@ -579,6 +606,7 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
       const customerName = `${project.customer.firstName} ${project.customer.lastName}`.trim();
       const projectDate = formatDate(project.createdAt);
       const summaryHtml = generateSummaryHtml();
+      const { pdfBase64, pdfFilename } = await buildPdfEmailAttachment();
 
       const timelineLabel = TIMELINE_OPTIONS.find(t => t.value === project.customer.timeline)?.label || project.customer.timeline || '';
 
@@ -589,6 +617,10 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
           customerName,
           projectDate,
           summaryHtml,
+          summaryPlainText: buildSummaryPlainText(project),
+          projectJson: buildProjectJsonForEmail(project),
+          pdfBase64,
+          pdfFilename,
           customerData: {
             ...project.customer,
             timeline: timelineLabel,
@@ -610,7 +642,7 @@ export function SummaryView({ project, onUpdateNotes, onUpdateCustomer }: Summar
     } finally {
       setIsSendingEmail(false);
     }
-  }, [validateSendForm, branding.contact.email, project, generateSummaryHtml, studioSlug]);
+  }, [validateSendForm, branding.contact.email, project, generateSummaryHtml, buildPdfEmailAttachment, studioSlug]);
 
   // CSV Export function
   const handleDownloadCSV = useCallback(() => {

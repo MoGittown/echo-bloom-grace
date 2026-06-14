@@ -12,10 +12,73 @@ type ExportOptions = {
   root: HTMLElement;
 };
 
-export const A4_MM_W = PDF_LAYOUT.A4_MM_W;
-export const A4_MM_H = PDF_LAYOUT.A4_MM_H;
-export const A4_PX_W = PDF_LAYOUT.A4_PX_W;
-export const A4_PX_H = PDF_LAYOUT.A4_PX_H;
+/**
+ * Baut das PDF-Dokument (ohne Download).
+ */
+export async function buildKitchenPdf(root: HTMLElement): Promise<jsPDF> {
+  const pdf = new jsPDF({ orientation: "p", unit: "mm", format: "a4" });
+  const pages = Array.from(root.querySelectorAll<HTMLElement>("[data-pdf-page]"));
+  const targets = pages.length ? pages : [root];
+  const contentMm = contentHeightMm();
+
+  for (let i = 0; i < targets.length; i++) {
+    const source = targets[i];
+    const footerMeta = extractFooterMeta(source);
+    const clone = preparePageClone(source);
+
+    const stage = createStage(PDF_LAYOUT.A4_PX_H);
+    stage.appendChild(clone);
+
+    try {
+      await document.fonts?.ready;
+    } catch {
+      // ignore
+    }
+
+    copyCanvasContent(source, clone);
+    await new Promise<void>((r) => requestAnimationFrame(() => r()));
+    await new Promise<void>((r) => requestAnimationFrame(() => r()));
+
+    const canvas = await html2canvas(clone, {
+      scale: 2,
+      width: PDF_LAYOUT.A4_PX_W,
+      height: PDF_LAYOUT.A4_PX_H,
+      windowWidth: PDF_LAYOUT.A4_PX_W,
+      windowHeight: PDF_LAYOUT.A4_PX_H,
+      backgroundColor: "#ffffff",
+      useCORS: true,
+      allowTaint: true,
+      logging: false,
+      foreignObjectRendering: false,
+      imageTimeout: 15000,
+    });
+
+    cleanupStage(stage);
+
+    const imgData = canvas.toDataURL("image/png");
+    if (i > 0) pdf.addPage();
+
+    pdf.addImage(imgData, "PNG", 0, 0, PDF_LAYOUT.A4_MM_W, contentMm, undefined, "FAST");
+    drawPdfFooter(pdf, footerMeta);
+  }
+
+  return pdf;
+}
+
+/** Base64-Inhalt für E-Mail-Anhang (ohne data:-Prefix). */
+export async function kitchenPdfToBase64(root: HTMLElement): Promise<string> {
+  const pdf = await buildKitchenPdf(root);
+  return pdf.output("base64");
+}
+
+/**
+ * PDF-Export v2: Seiteninhalt als Bild, Footer als jsPDF-Vektor-Text.
+ * Vermeidet abgeschnittene Footer durch html2canvas.
+ */
+export async function exportKitchenPdf({ filename, root }: ExportOptions) {
+  const pdf = await buildKitchenPdf(root);
+  pdf.save(filename);
+}
 
 function createStage(heightPx: number) {
   const stage = document.createElement("div");
@@ -90,58 +153,4 @@ function preparePageClone(source: HTMLElement): HTMLElement {
   });
 
   return clone;
-}
-
-/**
- * PDF-Export v2: Seiteninhalt als Bild, Footer als jsPDF-Vektor-Text.
- * Vermeidet abgeschnittene Footer durch html2canvas.
- */
-export async function exportKitchenPdf({ filename, root }: ExportOptions) {
-  const pdf = new jsPDF({ orientation: "p", unit: "mm", format: "a4" });
-  const pages = Array.from(root.querySelectorAll<HTMLElement>("[data-pdf-page]"));
-  const targets = pages.length ? pages : [root];
-  const contentMm = contentHeightMm();
-
-  for (let i = 0; i < targets.length; i++) {
-    const source = targets[i];
-    const footerMeta = extractFooterMeta(source);
-    const clone = preparePageClone(source);
-
-    const stage = createStage(PDF_LAYOUT.A4_PX_H);
-    stage.appendChild(clone);
-
-    try {
-      await document.fonts?.ready;
-    } catch {
-      // ignore
-    }
-
-    copyCanvasContent(source, clone);
-    await new Promise<void>((r) => requestAnimationFrame(() => r()));
-    await new Promise<void>((r) => requestAnimationFrame(() => r()));
-
-    const canvas = await html2canvas(clone, {
-      scale: 2,
-      width: PDF_LAYOUT.A4_PX_W,
-      height: PDF_LAYOUT.A4_PX_H,
-      windowWidth: PDF_LAYOUT.A4_PX_W,
-      windowHeight: PDF_LAYOUT.A4_PX_H,
-      backgroundColor: "#ffffff",
-      useCORS: true,
-      allowTaint: true,
-      logging: false,
-      foreignObjectRendering: false,
-      imageTimeout: 15000,
-    });
-
-    cleanupStage(stage);
-
-    const imgData = canvas.toDataURL("image/png");
-    if (i > 0) pdf.addPage();
-
-    pdf.addImage(imgData, "PNG", 0, 0, PDF_LAYOUT.A4_MM_W, contentMm, undefined, "FAST");
-    drawPdfFooter(pdf, footerMeta);
-  }
-
-  pdf.save(filename);
 }

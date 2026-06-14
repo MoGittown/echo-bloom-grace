@@ -178,6 +178,20 @@ export function FloorPlanEditor({ floorPlan, room, onChange }: FloorPlanEditorPr
           x + elementWidth / 2,
           element.wall === 'north' ? y - 5 : y + elementHeight + 12
         );
+        ctx.font = '8px monospace';
+        ctx.fillText(
+          `${element.width}×${element.height} cm`,
+          x + elementWidth / 2,
+          element.wall === 'north' ? y - 18 : y + elementHeight + 24
+        );
+        if ((element.distanceFromLeft ?? 0) > 0) {
+          ctx.fillText(
+            `← ${element.distanceFromLeft} cm`,
+            x + elementWidth / 2,
+            element.wall === 'north' ? y + elementHeight + 10 : y - 8
+          );
+        }
+        ctx.font = '9px Inter';
       } else {
         ctx.fillRect(x, y, elementHeight, elementWidth);
         ctx.strokeRect(x, y, elementHeight, elementWidth);
@@ -193,6 +207,8 @@ export function FloorPlanEditor({ floorPlan, room, onChange }: FloorPlanEditorPr
         );
         ctx.rotate(-Math.PI / 2);
         ctx.fillText(elementType.label, 0, 0);
+        ctx.font = '8px monospace';
+        ctx.fillText(`${element.width}×${element.height}`, 0, -12);
         ctx.restore();
       }
     });
