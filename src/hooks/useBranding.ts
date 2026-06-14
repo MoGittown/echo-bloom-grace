@@ -138,38 +138,72 @@ function hexToHSL(hex: string): { h: number; s: number; l: number } | null {
   return { h: Math.round(h * 360), s: Math.round(s * 100), l: Math.round(l * 100) };
 }
 
-// Apply primary color to CSS variables
-function applyPrimaryColor(hexColor: string) {
-  const hsl = hexToHSL(hexColor);
-  if (!hsl) return;
+// Pick a readable foreground (text) color for a given background lightness.
+function foregroundFor(hsl: { h: number; s: number; l: number }): string {
+  return hsl.l > 60 ? '20 14% 12%' : '0 0% 100%';
+}
 
+// Apply the studio brand colors (primary, secondary, accent) to CSS variables.
+function applyBrandColors(opts: { primary?: string; secondary?: string; accent?: string }) {
   const root = document.documentElement;
-  const hslValue = `${hsl.h} ${hsl.s}% ${hsl.l}%`;
-  
-  // Light mode primary
-  root.style.setProperty('--primary', hslValue);
-  root.style.setProperty('--ring', hslValue);
-  root.style.setProperty('--sidebar-primary', hslValue);
-  root.style.setProperty('--sidebar-ring', hslValue);
-  
-  // Create a slightly lighter version for dark mode
-  const darkHsl = `${hsl.h} ${hsl.s}% ${Math.min(hsl.l + 10, 65)}%`;
-  
-  // Apply to dark mode using a style element
+
+  // Collect the dark-mode overrides we generate alongside the light-mode ones.
+  const darkRules: string[] = [];
+
+  const primaryHsl = opts.primary ? hexToHSL(opts.primary) : null;
+  if (primaryHsl) {
+    const hslValue = `${primaryHsl.h} ${primaryHsl.s}% ${primaryHsl.l}%`;
+    root.style.setProperty('--primary', hslValue);
+    root.style.setProperty('--primary-foreground', foregroundFor(primaryHsl));
+    root.style.setProperty('--ring', hslValue);
+    root.style.setProperty('--sidebar-primary', hslValue);
+    root.style.setProperty('--sidebar-ring', hslValue);
+
+    const darkL = Math.min(primaryHsl.l + 10, 65);
+    const darkHsl = `${primaryHsl.h} ${primaryHsl.s}% ${darkL}%`;
+    darkRules.push(
+      `--primary: ${darkHsl};`,
+      `--ring: ${darkHsl};`,
+      `--sidebar-primary: ${darkHsl};`,
+      `--sidebar-ring: ${darkHsl};`,
+    );
+  }
+
+  const secondaryHsl = opts.secondary ? hexToHSL(opts.secondary) : null;
+  if (secondaryHsl) {
+    const hslValue = `${secondaryHsl.h} ${secondaryHsl.s}% ${secondaryHsl.l}%`;
+    root.style.setProperty('--secondary', hslValue);
+    root.style.setProperty('--secondary-foreground', foregroundFor(secondaryHsl));
+
+    const darkL = Math.min(secondaryHsl.l + 10, 70);
+    const darkHsl = `${secondaryHsl.h} ${secondaryHsl.s}% ${darkL}%`;
+    darkRules.push(
+      `--secondary: ${darkHsl};`,
+      `--secondary-foreground: ${foregroundFor({ ...secondaryHsl, l: darkL })};`,
+    );
+  }
+
+  const accentHsl = opts.accent ? hexToHSL(opts.accent) : null;
+  if (accentHsl) {
+    const hslValue = `${accentHsl.h} ${accentHsl.s}% ${accentHsl.l}%`;
+    root.style.setProperty('--accent', hslValue);
+    root.style.setProperty('--accent-foreground', foregroundFor(accentHsl));
+
+    const darkL = Math.min(accentHsl.l + 10, 65);
+    const darkHsl = `${accentHsl.h} ${accentHsl.s}% ${darkL}%`;
+    darkRules.push(
+      `--accent: ${darkHsl};`,
+      `--accent-foreground: ${foregroundFor({ ...accentHsl, l: darkL })};`,
+    );
+  }
+
   let darkStyleEl = document.getElementById('branding-dark-styles');
   if (!darkStyleEl) {
     darkStyleEl = document.createElement('style');
     darkStyleEl.id = 'branding-dark-styles';
     document.head.appendChild(darkStyleEl);
   }
-  darkStyleEl.textContent = `
-    .dark {
-      --primary: ${darkHsl};
-      --ring: ${darkHsl};
-      --sidebar-primary: ${darkHsl};
-      --sidebar-ring: ${darkHsl};
-    }
-  `;
+  darkStyleEl.textContent = `.dark {\n      ${darkRules.join('\n      ')}\n    }`;
 }
 
 // Helper to parse branding data from database response
@@ -224,9 +258,11 @@ export function useBranding(studioSlug?: string) {
       const applyLoaded = (row: any) => {
         const brandingData = parseBrandingData(row);
         setBranding(brandingData);
-        if (row.primary_color) {
-          applyPrimaryColor(row.primary_color);
-        }
+        applyBrandColors({
+          primary: row.primary_color,
+          secondary: row.secondary_color,
+          accent: row.accent_color,
+        });
       };
 
       try {
@@ -439,11 +475,13 @@ export function useBrandingAdmin() {
       if (data.success && data.branding) {
         const newBranding = parseBrandingData(data.branding);
         setBranding(newBranding);
-        
-        // Apply the primary color immediately
-        if (data.branding.primary_color) {
-          applyPrimaryColor(data.branding.primary_color);
-        }
+
+        // Apply all brand colors immediately
+        applyBrandColors({
+          primary: data.branding.primary_color,
+          secondary: data.branding.secondary_color,
+          accent: data.branding.accent_color,
+        });
         return true;
       }
       return false;
