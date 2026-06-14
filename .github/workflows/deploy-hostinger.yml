@@ -104,7 +104,7 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Live-URLs prüfen:**" >> $GITHUB_STEP_SUMMARY
           echo "- Admin: https://kuechenready.de/admin" >> $GITHUB_STEP_SUMMARY
-          echo "- Landing: https://kuechenready.de/s/{studio-slug}" >> $GITHUB_STEP_SUMMARY
-          echo "- Check: https://kuechenready.de/s/{studio-slug}/check" >> $GITHUB_STEP_SUMMARY
+          echo "- Landing: https://kuechenready.de/{studio-slug}" >> $GITHUB_STEP_SUMMARY
+          echo "- Check: https://kuechenready.de/{studio-slug}/check" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "Workflow: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_STEP_SUMMARY

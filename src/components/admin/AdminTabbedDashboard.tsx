@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import {
@@ -21,10 +21,14 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { DsgvoChecklist } from '@/components/admin/DsgvoChecklist';
+import { BillingPanel } from '@/components/admin/BillingPanel';
+import { PlanUpgradeGate } from '@/components/admin/PlanUpgradeGate';
+import { resolveStudioAccess } from '@/lib/planFeatures';
 import { AnalyticsPanel } from '@/components/admin/AnalyticsPanel';
 import type { AnalyticsData } from '@/hooks/useBranding';
+import type { BillingSnapshot } from '@/types/billing';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { studioLandingUrl, studioCheckPath } from '@/lib/studioPaths';
 
 const COLOR_PRESETS = ['#8B7355', '#C2410C', '#2E7D32', '#1D4ED8', '#7C3AED', '#BE123C', '#0F766E', '#374151'];
 const WEB_ORIGIN = import.meta.env.VITE_PUBLIC_WEB_URL || (typeof window !== 'undefined' ? window.location.origin : '');
@@ -32,14 +36,27 @@ const APP_SCHEME = import.meta.env.VITE_APP_DEEP_LINK_SCHEME || 'kuechencheck';
 
 type Props = {
   branding: BrandingData;
+  billing: BillingSnapshot | null;
+  sessionPassword: string;
   updateBranding: (updates: BrandingUpdates) => Promise<boolean>;
   uploadLogo: (file: File) => Promise<string | null>;
   changePassword: (newPassword: string) => Promise<{ ok: boolean; error?: string }>;
   getAnalytics: () => Promise<AnalyticsData | null>;
+  refreshBilling: () => Promise<BillingSnapshot | null>;
   logout: () => void;
 };
 
-export function AdminTabbedDashboard({ branding, updateBranding, uploadLogo, changePassword, getAnalytics, logout }: Props) {
+export function AdminTabbedDashboard({
+  branding,
+  billing,
+  sessionPassword,
+  updateBranding,
+  uploadLogo,
+  changePassword,
+  getAnalytics,
+  refreshBilling,
+  logout,
+}: Props) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -76,9 +93,18 @@ export function AdminTabbedDashboard({ branding, updateBranding, uploadLogo, cha
     setForm(initForm(branding));
   }, [branding]);
 
-  const customerUrl = branding.studioSlug ? `${WEB_ORIGIN}/s/${branding.studioSlug}` : '';
-  const checkUrl = customerUrl ? `${customerUrl}/check` : '';
+  const customerUrl = branding.studioSlug ? studioLandingUrl(WEB_ORIGIN, branding.studioSlug) : '';
+  const checkUrl = branding.studioSlug ? `${WEB_ORIGIN.replace(/\/$/, '')}${studioCheckPath(branding.studioSlug)}` : '';
   const deepLink = branding.studioSlug ? `${APP_SCHEME}://studio/${branding.studioSlug}` : '';
+
+  const studioAccess = useMemo(
+    () => resolveStudioAccess({
+      plan: billing?.plan ?? branding.studioAccess.plan,
+      subscriptionStatus: billing?.subscriptionStatus ?? branding.studioAccess.subscriptionStatus,
+      billingGraceEndsAt: billing?.billingGraceEndsAt ?? branding.studioAccess.billingGraceEndsAt,
+    }),
+    [billing, branding.studioAccess],
+  );
 
   async function save(updates: BrandingUpdates, successMsg = 'Gespeichert') {
     setSaving(true);
@@ -147,6 +173,7 @@ export function AdminTabbedDashboard({ branding, updateBranding, uploadLogo, cha
             <TabsTrigger value="legal">Recht</TabsTrigger>
             <TabsTrigger value="landing">Landing</TabsTrigger>
             <TabsTrigger value="link">Link & QR</TabsTrigger>
+            <TabsTrigger value="billing">Abo</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="security">Sicherheit</TabsTrigger>
           </TabsList>
@@ -243,11 +270,24 @@ export function AdminTabbedDashboard({ branding, updateBranding, uploadLogo, cha
             <Card>
               <CardHeader><CardTitle>Zusatzfunktionen</CardTitle></CardHeader>
               <CardContent className="space-y-3">
-                <ToggleRow label="KI-Berater" checked={form.featureConfig.kitchenChat} onChange={(c) => setForm({ ...form, featureConfig: { ...form.featureConfig, kitchenChat: c } })} />
+                <ToggleRow
+                  label="KI-Berater"
+                  checked={form.featureConfig.kitchenChat}
+                  disabled={!studioAccess.features.kitchenChat}
+                  onChange={(c) => setForm({ ...form, featureConfig: { ...form.featureConfig, kitchenChat: c } })}
+                />
+                {!studioAccess.features.kitchenChat && (
+                  <p className="text-xs text-muted-foreground">KI-Berater ab Pro-Tarif.</p>
+                )}
                 <ToggleRow label="PDF-Export" checked={form.featureConfig.pdfExport} onChange={(c) => setForm({ ...form, featureConfig: { ...form.featureConfig, pdfExport: c } })} />
                 <ToggleRow label="Protokoll per E-Mail" checked={form.featureConfig.protocolEmail} onChange={(c) => setForm({ ...form, featureConfig: { ...form.featureConfig, protocolEmail: c } })} />
                 <ToggleRow label="Terminbuchung" checked={form.showAppointmentBooking} onChange={(c) => setForm({ ...form, showAppointmentBooking: c })} />
-                <ToggleRow label="Hersteller-Auswahl" checked={form.showManufacturerField} onChange={(c) => setForm({ ...form, showManufacturerField: c })} />
+                <ToggleRow
+                  label="Hersteller-Auswahl"
+                  checked={form.showManufacturerField}
+                  disabled={!studioAccess.features.manufacturerCatalog}
+                  onChange={(c) => setForm({ ...form, showManufacturerField: c })}
+                />
                 <ToggleRow label="Landing Page" checked={form.landingPage.showLandingPage} onChange={(c) => setForm({ ...form, landingPage: { ...form.landingPage, showLandingPage: c } })} />
                 <ToggleRow label="Standard-Branding" checked={form.showDefaultBranding} onChange={(c) => setForm({ ...form, showDefaultBranding: c })} />
                 <SaveButton saving={saving} onClick={() => save({
@@ -262,6 +302,7 @@ export function AdminTabbedDashboard({ branding, updateBranding, uploadLogo, cha
           </TabsContent>
 
           <TabsContent value="catalog" className="space-y-4">
+            <PlanUpgradeGate feature="manufacturerCatalog" hasFeature={studioAccess.features.manufacturerCatalog}>
             <Card>
               <CardHeader><CardTitle>Hersteller-Programm</CardTitle></CardHeader>
               <CardContent className="space-y-4">
@@ -313,6 +354,7 @@ export function AdminTabbedDashboard({ branding, updateBranding, uploadLogo, cha
                 })} />
               </CardContent>
             </Card>
+            </PlanUpgradeGate>
           </TabsContent>
 
           <TabsContent value="pdf" className="space-y-4">
@@ -423,7 +465,17 @@ export function AdminTabbedDashboard({ branding, updateBranding, uploadLogo, cha
             </Card>
           </TabsContent>
 
+          <TabsContent value="billing" className="space-y-4">
+            <BillingPanel
+              billing={billing}
+              studioSlug={branding.studioSlug}
+              sessionPassword={sessionPassword}
+              onRefresh={refreshBilling}
+            />
+          </TabsContent>
+
           <TabsContent value="analytics" className="space-y-4">
+            <PlanUpgradeGate feature="analytics" hasFeature={studioAccess.features.analytics}>
             <AnalyticsPanel getAnalytics={getAnalytics} />
             <Card>
               <CardHeader><CardTitle>Analytics & Intern</CardTitle></CardHeader>
@@ -437,6 +489,7 @@ export function AdminTabbedDashboard({ branding, updateBranding, uploadLogo, cha
                 <SaveButton saving={saving} onClick={() => save({ studioSettings: form.studioSettings })} />
               </CardContent>
             </Card>
+            </PlanUpgradeGate>
           </TabsContent>
 
           <TabsContent value="security" className="space-y-4">
@@ -542,11 +595,21 @@ function ColorField({ label, value, onChange }: { label: string; value: string; 
   );
 }
 
-function ToggleRow({ label, checked, onChange }: { label: string; checked: boolean; onChange: (c: boolean) => void }) {
+function ToggleRow({
+  label,
+  checked,
+  onChange,
+  disabled,
+}: {
+  label: string;
+  checked: boolean;
+  onChange: (c: boolean) => void;
+  disabled?: boolean;
+}) {
   return (
     <div className="flex items-center justify-between">
-      <Label>{label}</Label>
-      <Switch checked={checked} onCheckedChange={onChange} />
+      <Label className={disabled ? 'text-muted-foreground' : undefined}>{label}</Label>
+      <Switch checked={checked} disabled={disabled} onCheckedChange={onChange} />
     </div>
   );
 }

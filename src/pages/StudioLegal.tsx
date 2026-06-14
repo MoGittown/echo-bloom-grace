@@ -2,6 +2,7 @@ import { Link, useParams } from 'react-router-dom';
 import { useBranding } from '@/hooks/useBranding';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, ChefHat } from 'lucide-react';
+import { studioLandingUrl, studioCheckUrl, studioLandingPath } from '@/lib/studioPaths';
 
 type LegalKind = 'impressum' | 'datenschutz';
 
@@ -15,7 +16,7 @@ export default function StudioLegal({ kind }: { kind: LegalKind }) {
   const { branding, isLoading } = useBranding(slug);
 
   const displayName = branding.displayAppName || branding.studioName || 'Küchenstudio';
-  const backUrl = slug ? `/s/${slug}` : '/';
+  const backUrl = slug ? studioLandingPath(slug) : '/';
 
   if (isLoading) {
     return (
@@ -135,7 +136,7 @@ function DatenschutzContent({
   slug?: string;
 }) {
   const webOrigin = import.meta.env.VITE_PUBLIC_WEB_URL || 'https://kuechenready.de';
-  const checkUrl = slug ? `${webOrigin}/s/${slug}/check` : webOrigin;
+  const checkUrl = slug ? studioCheckUrl(webOrigin, slug) : webOrigin;
 
   return (
     <>

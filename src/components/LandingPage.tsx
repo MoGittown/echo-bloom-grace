@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { BrandingData } from '@/hooks/useBranding';
-import { ThemeToggle } from '@/components/ThemeToggle';
+import { studioCheckPath, studioDatenschutzPath, studioImpressumPath } from '@/lib/studioPaths';
 import { ChefHat, Clock, CheckCircle2, ArrowRight, Sparkles } from 'lucide-react';
 
 interface LandingPageProps {
@@ -148,11 +148,11 @@ export function LandingPage({ branding, onStart }: LandingPageProps) {
             <p className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
               {branding.studioSlug && (
                 <>
-                  <Link className="underline hover:text-foreground" to={`/s/${branding.studioSlug}/impressum`}>
+                  <Link className="underline hover:text-foreground" to={studioImpressumPath(branding.studioSlug)}>
                     Impressum
                   </Link>
                   <span aria-hidden>·</span>
-                  <Link className="underline hover:text-foreground" to={`/s/${branding.studioSlug}/datenschutz`}>
+                  <Link className="underline hover:text-foreground" to={studioDatenschutzPath(branding.studioSlug)}>
                     Datenschutz
                   </Link>
                 </>

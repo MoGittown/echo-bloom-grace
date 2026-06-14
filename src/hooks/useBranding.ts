@@ -11,6 +11,14 @@ import {
   type FeatureConfig,
 } from '@/types/featureConfig';
 import { buildBrandingUpdateBody, type BrandingUpdates } from '@/lib/brandingApi';
+import { fetchBillingSnapshot } from '@/lib/billingApi';
+import type { BillingSnapshot } from '@/types/billing';
+import { parseBillingSnapshot } from '@/types/billing';
+import {
+  parseStudioAccessFromBranding,
+  type StudioAccess,
+  resolveStudioAccess,
+} from '@/lib/planFeatures';
 
 export interface LandingPageData {
   headline: string;
@@ -63,6 +71,7 @@ export interface BrandingData {
   contact: ContactData;
   studioSettings: StudioSettings;
   featureConfig: FeatureConfig;
+  studioAccess: StudioAccess;
 }
 
 const DEFAULT_LANDING: LandingPageData = {
@@ -72,7 +81,7 @@ const DEFAULT_LANDING: LandingPageData = {
   benefit2: 'Vermeiden Sie kostspielige Planungsfehler',
   benefit3: 'Erhalten Sie ein maßgeschneidertes Angebot',
   ctaText: 'Jetzt starten',
-  whyText: 'Studios mit vorbereiteten Kunden können sofort mit der Planung beginnen – das spart Zeit und führt zu besseren Ergebnissen.',
+  whyText: 'Mit ausgefüllter Checkliste startet Ihr Beratungstermin direkt mit der Planung – das spart Ihnen Zeit und Nerven und führt zu besseren Ergebnissen.',
   showLandingPage: true,
 };
 
@@ -98,6 +107,7 @@ const DEFAULT_BRANDING: BrandingData = {
   contact: DEFAULT_CONTACT,
   studioSettings: DEFAULT_STUDIO_SETTINGS,
   featureConfig: DEFAULT_FEATURE_CONFIG,
+  studioAccess: resolveStudioAccess({ subscriptionStatus: 'legacy' }),
 };
 
 // Helper to convert hex to HSL
@@ -201,6 +211,7 @@ function parseBrandingData(data: any): BrandingData {
       email: data.contact_email || null,
       website: data.contact_website || null,
     },
+    studioAccess: parseStudioAccessFromBranding(data),
   };
 }
 
@@ -267,6 +278,7 @@ export function useBrandingAdmin() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [needsSetup, setNeedsSetup] = useState(false);
   const [sessionPassword, setSessionPassword] = useState<string | null>(null);
+  const [billing, setBilling] = useState<BillingSnapshot | null>(null);
 
   const loadPublicBranding = useCallback(async () => {
     const tryInvoke = async (action: string) => {
@@ -333,10 +345,16 @@ export function useBrandingAdmin() {
     checkStatus();
   }, [loadPublicBranding]);
 
-  const verifyPassword = useCallback(async (password: string): Promise<boolean> => {
+  const verifyPassword = useCallback(async (password: string, studioSlug?: string): Promise<boolean> => {
     try {
+      const slug = studioSlug?.trim() || undefined;
       const { data, error } = await supabase.functions.invoke('branding-admin', {
-        body: { action: 'verify', password },
+        body: {
+          action: 'verify',
+          password,
+          targetStudioSlug: slug,
+          studioSlug: slug,
+        },
       });
 
       if (error) throw error;
@@ -352,6 +370,7 @@ export function useBrandingAdmin() {
         if (data.branding) {
           setBranding(parseBrandingData(data.branding));
         }
+        setBilling(parseBillingSnapshot(data.billing));
         return true;
       }
       return false;
@@ -518,10 +537,23 @@ export function useBrandingAdmin() {
   const logout = useCallback(() => {
     setIsAuthenticated(false);
     setSessionPassword(null);
+    setBilling(null);
   }, []);
+
+  const refreshBilling = useCallback(async (): Promise<BillingSnapshot | null> => {
+    if (!sessionPassword) return null;
+    const snap = await fetchBillingSnapshot({
+      password: sessionPassword,
+      studioSlug: branding.studioSlug ?? undefined,
+    });
+    setBilling(snap);
+    return snap;
+  }, [sessionPassword, branding.studioSlug]);
 
   return {
     branding,
+    billing,
+    sessionPassword,
     isLoading,
     isAuthenticated,
     needsSetup,
@@ -531,6 +563,7 @@ export function useBrandingAdmin() {
     uploadLogo,
     changePassword,
     getAnalytics,
+    refreshBilling,
     logout,
   };
 }

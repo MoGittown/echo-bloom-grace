@@ -93,7 +93,7 @@ const data = await invoke({
   landingBenefit3: 'Erhalten Sie eine maßgeschneiderte Erstberatung',
   landingCtaText: 'Jetzt Küchen-Check starten',
   landingWhyText:
-    'Studios mit vorbereiteten Kunden können sofort mit der Planung beginnen – das spielt Ihnen Zeit und Nerven und führt zu besseren Ergebnissen.',
+    'Mit ausgefüllter Checkliste startet Ihr Beratungstermin direkt mit der Planung – das spart Ihnen Zeit und Nerven und führt zu besseren Ergebnissen.',
   showLandingPage: true,
   studioSettings,
 });
@@ -105,5 +105,5 @@ if (!data?.success) {
 
 console.log('✅ Alle Felder eingetragen.');
 console.log('Studio-Slug:', data.branding?.studio_slug || 'vollmer-objektmoebel');
-console.log('Landing:', 'https://kuechenready.de/s/vollmer-objektmoebel');
-console.log('Check:', 'https://kuechenready.de/s/vollmer-objektmoebel/check');
+console.log('Landing:', 'https://kuechenready.de/vollmer-objektmoebel');
+console.log('Check:', 'https://kuechenready.de/vollmer-objektmoebel/check');

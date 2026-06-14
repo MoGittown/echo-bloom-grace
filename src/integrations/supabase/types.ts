@@ -53,6 +53,7 @@ export type Database = {
       studio_branding: {
         Row: {
           admin_password_hash: string
+          billing_email: string | null
           contact_address: string | null
           contact_email: string | null
           contact_phone: string | null
@@ -72,6 +73,7 @@ export type Database = {
           landing_subheadline: string | null
           landing_why_text: string | null
           logo_url: string | null
+          plan: string | null
           primary_color: string | null
           privacy_url: string | null
           show_appointment_booking: boolean | null
@@ -83,10 +85,16 @@ export type Database = {
           studio_name: string
           studio_settings: Json
           studio_slug: string | null
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          subscription_status: string
+          billing_grace_ends_at: string | null
+          trial_ends_at: string | null
           updated_at: string
         }
         Insert: {
           admin_password_hash: string
+          billing_email?: string | null
           contact_address?: string | null
           contact_email?: string | null
           contact_phone?: string | null
@@ -106,6 +114,7 @@ export type Database = {
           landing_subheadline?: string | null
           landing_why_text?: string | null
           logo_url?: string | null
+          plan?: string | null
           primary_color?: string | null
           privacy_url?: string | null
           show_appointment_booking?: boolean | null
@@ -117,10 +126,15 @@ export type Database = {
           studio_name?: string
           studio_settings?: Json
           studio_slug?: string | null
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          subscription_status?: string
+          trial_ends_at?: string | null
           updated_at?: string
         }
         Update: {
           admin_password_hash?: string
+          billing_email?: string | null
           contact_address?: string | null
           contact_email?: string | null
           contact_phone?: string | null
@@ -140,6 +154,7 @@ export type Database = {
           landing_subheadline?: string | null
           landing_why_text?: string | null
           logo_url?: string | null
+          plan?: string | null
           primary_color?: string | null
           privacy_url?: string | null
           show_appointment_booking?: boolean | null
@@ -151,6 +166,10 @@ export type Database = {
           studio_name?: string
           studio_settings?: Json
           studio_slug?: string | null
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          subscription_status?: string
+          trial_ends_at?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -175,12 +194,20 @@ export type Database = {
           landing_subheadline: string | null
           landing_why_text: string | null
           logo_url: string | null
+          plan: string | null
           primary_color: string | null
+          privacy_url: string | null
           show_appointment_booking: boolean | null
           show_default_branding: boolean | null
           show_landing_page: boolean | null
           show_manufacturer_field: boolean | null
+          slogan: string | null
+          studio_code: string | null
           studio_name: string | null
+          studio_settings: Json | null
+          studio_slug: string | null
+          subscription_status: string | null
+          billing_grace_ends_at: string | null
           updated_at: string | null
         }
         Insert: {
@@ -200,6 +227,7 @@ export type Database = {
           landing_subheadline?: string | null
           landing_why_text?: string | null
           logo_url?: string | null
+          plan?: string | null
           primary_color?: string | null
           show_appointment_booking?: boolean | null
           show_default_branding?: boolean | null
@@ -225,6 +253,7 @@ export type Database = {
           landing_subheadline?: string | null
           landing_why_text?: string | null
           logo_url?: string | null
+          plan?: string | null
           primary_color?: string | null
           show_appointment_booking?: boolean | null
           show_default_branding?: boolean | null

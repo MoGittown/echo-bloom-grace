@@ -1,6 +1,8 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
 import * as bcrypt from "https://deno.land/x/bcrypt@v0.4.1/mod.ts";
+import { toPublicBilling } from "../_shared/stripeBilling.ts";
+import { assertPlanFeature } from "../_shared/planAccess.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -48,6 +50,35 @@ function slugifyStudioName(name: string): string {
   return slug || "studio";
 }
 
+const RESERVED_STUDIO_SLUGS = new Set([
+  "admin",
+  "fuer-studios",
+  "fuer-kuechenstudios",
+  "pitch",
+  "onepager",
+  "marketing",
+  "start",
+  "sales",
+  "s",
+  "api",
+  "assets",
+  "dist",
+]);
+
+function isReservedStudioSlug(slug: string): boolean {
+  return RESERVED_STUDIO_SLUGS.has(slug.toLowerCase());
+}
+
+function stripInternalFields<T extends Record<string, unknown>>(row: T) {
+  const {
+    admin_password_hash: _password,
+    stripe_customer_id: _customer,
+    stripe_subscription_id: _subscription,
+    ...safe
+  } = row;
+  return safe;
+}
+
 async function ensureUniqueSlug(
   supabase: ReturnType<typeof createClient>,
   base: string,
@@ -60,7 +91,9 @@ async function ensureUniqueSlug(
       .select("id")
       .eq("studio_slug", candidate)
       .maybeSingle();
-    if (!data) return candidate;
+    if (!data) {
+      if (!isReservedStudioSlug(candidate)) return candidate;
+    }
     suffix += 1;
     candidate = `${base}-${suffix}`;
   }
@@ -336,7 +369,8 @@ serve(async (req: Request) => {
             { headers: { ...corsHeaders, "Content-Type": "application/json" } }
           );
         }
-        const { admin_password_hash: _, ...safeBranding } = existingBranding;
+        const { admin_password_hash: _, ...rawBranding } = existingBranding;
+        const safeBranding = stripInternalFields(rawBranding);
         const payload = action === "status"
           ? { needsSetup: false, branding: safeBranding }
           : { branding: safeBranding };
@@ -369,9 +403,14 @@ serve(async (req: Request) => {
         }
 
         if (isValid && existingBranding) {
-          const { admin_password_hash: _, ...safeBranding } = existingBranding;
+          const { admin_password_hash: _, ...rawBranding } = existingBranding;
+          const safeBranding = stripInternalFields(rawBranding);
           return new Response(
-            JSON.stringify({ success: true, branding: safeBranding }),
+            JSON.stringify({
+              success: true,
+              branding: safeBranding,
+              billing: toPublicBilling(existingBranding as Record<string, unknown>),
+            }),
             { headers: { ...corsHeaders, "Content-Type": "application/json" } }
           );
         }
@@ -385,7 +424,8 @@ serve(async (req: Request) => {
       case "setup": {
         const existingBranding = await fetchBranding(supabase);
         if (existingBranding) {
-          const { admin_password_hash: _, ...safeBranding } = existingBranding;
+          const { admin_password_hash: _, ...rawBranding } = existingBranding;
+          const safeBranding = stripInternalFields(rawBranding);
           return new Response(
             JSON.stringify({ success: false, error: "already_setup", branding: safeBranding }),
             { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
@@ -418,9 +458,14 @@ serve(async (req: Request) => {
 
         if (error) throw error;
 
-        const { admin_password_hash: _, ...safeBranding } = data;
+        const { admin_password_hash: _, ...rawBranding } = data;
+        const safeBranding = stripInternalFields(rawBranding);
         return new Response(
-          JSON.stringify({ success: true, branding: safeBranding }),
+          JSON.stringify({
+            success: true,
+            branding: safeBranding,
+            billing: toPublicBilling(data as Record<string, unknown>),
+          }),
           { headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
@@ -512,6 +557,47 @@ serve(async (req: Request) => {
             .eq("id", existingBranding.id);
         }
 
+        const studioRow = existingBranding as Record<string, unknown>;
+        if (enabledManufacturers !== undefined) {
+          const check = assertPlanFeature(studioRow, "manufacturerCatalog");
+          if (!check.ok) {
+            return new Response(
+              JSON.stringify({ success: false, error: check.error }),
+              { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 403 }
+            );
+          }
+        }
+        if (customManufacturers !== undefined) {
+          const check = assertPlanFeature(studioRow, "manufacturerCatalog");
+          if (!check.ok) {
+            return new Response(
+              JSON.stringify({ success: false, error: check.error }),
+              { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 403 }
+            );
+          }
+        }
+        if (showManufacturerField === true) {
+          const check = assertPlanFeature(studioRow, "manufacturerCatalog");
+          if (!check.ok) {
+            return new Response(
+              JSON.stringify({ success: false, error: check.error }),
+              { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 403 }
+            );
+          }
+        }
+        if (featureConfig !== undefined) {
+          const fc = featureConfig as Record<string, unknown>;
+          if (fc.kitchenChat === true) {
+            const check = assertPlanFeature(studioRow, "kitchenChat");
+            if (!check.ok) {
+              return new Response(
+                JSON.stringify({ success: false, error: check.error }),
+                { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 403 }
+              );
+            }
+          }
+        }
+
         const updateData: Record<string, unknown> = {};
         if (studioName !== undefined) updateData.studio_name = studioName;
         if (removeLogo === true) updateData.logo_url = null;
@@ -521,6 +607,12 @@ serve(async (req: Request) => {
           if (!normalized) {
             return new Response(
               JSON.stringify({ success: false, error: "invalid_slug" }),
+              { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
+            );
+          }
+          if (isReservedStudioSlug(normalized)) {
+            return new Response(
+              JSON.stringify({ success: false, error: "reserved_slug" }),
               { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
             );
           }
@@ -580,9 +672,41 @@ serve(async (req: Request) => {
 
         if (error) throw error;
 
-        const { admin_password_hash: _, ...safeBranding } = data;
+        const { admin_password_hash: _, ...rawBranding } = data;
+        const safeBranding = stripInternalFields(rawBranding);
         return new Response(
-          JSON.stringify({ success: true, branding: safeBranding }),
+          JSON.stringify({
+            success: true,
+            branding: safeBranding,
+            billing: toPublicBilling(data as Record<string, unknown>),
+          }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      case "get-billing": {
+        const existingBranding = await fetchBranding(
+          supabase,
+          targetStudioSlug ?? studioSlug,
+        );
+        if (!existingBranding) {
+          return new Response(
+            JSON.stringify({ success: false, error: "no_branding_setup" }),
+            { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
+          );
+        }
+        const isValid = await verifyPassword(password, existingBranding.admin_password_hash);
+        if (!isValid) {
+          return new Response(
+            JSON.stringify({ success: false, error: "invalid_password" }),
+            { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 401 }
+          );
+        }
+        return new Response(
+          JSON.stringify({
+            success: true,
+            billing: toPublicBilling(existingBranding as Record<string, unknown>),
+          }),
           { headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
@@ -606,6 +730,17 @@ serve(async (req: Request) => {
           return new Response(
             JSON.stringify({ success: false, error: "invalid_password" }),
             { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 401 }
+          );
+        }
+
+        const featureCheck = assertPlanFeature(
+          existingBranding as Record<string, unknown>,
+          "analytics",
+        );
+        if (!featureCheck.ok) {
+          return new Response(
+            JSON.stringify({ success: false, error: featureCheck.error }),
+            { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 403 }
           );
         }
 

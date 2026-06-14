@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useKitchenProject } from '@/hooks/useKitchenProject';
 import { useBranding } from '@/hooks/useBranding';
 import { LandingPage } from '@/components/LandingPage';
+import { StudioSuspended, StudioGraceBanner } from '@/components/StudioSuspended';
 import { StepIndicator } from '@/components/kitchen/StepIndicator';
 import { CustomerForm } from '@/components/kitchen/CustomerForm';
 import { RoomForm } from '@/components/kitchen/RoomForm';
@@ -86,10 +87,20 @@ const Index = () => {
     goToStep,
   } = useKitchenProject();
 
-  const { branding } = useBranding(studioSlug);
+  const { branding, isLoading: brandingLoading } = useBranding(studioSlug);
+
+  const effectiveFeatureConfig = useMemo(
+    () => ({
+      ...branding.featureConfig,
+      kitchenChat:
+        branding.featureConfig.kitchenChat && branding.studioAccess.features.kitchenChat,
+    }),
+    [branding.featureConfig, branding.studioAccess.features.kitchenChat],
+  );
+
   const activeSteps = useMemo(
-    () => getActiveWizardSteps(branding.featureConfig),
-    [branding.featureConfig],
+    () => getActiveWizardSteps(effectiveFeatureConfig),
+    [effectiveFeatureConfig],
   );
   const stepIndicators = useMemo(
     () => activeSteps.map((s) => ({ title: s.title, icon: s.icon })),
@@ -178,7 +189,7 @@ const Index = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [navigate]);
 
-  if (isLoading || !project) {
+  if (isLoading || brandingLoading || !project) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="text-center">
@@ -187,6 +198,12 @@ const Index = () => {
         </div>
       </div>
     );
+  }
+
+  const displayName = branding.displayAppName || branding.studioName || 'Küchenstudio';
+
+  if (studioSlug && !branding.studioAccess.canAccessCheck) {
+    return <StudioSuspended displayName={displayName} access={branding.studioAccess} />;
   }
 
   // Show landing page if enabled and user hasn't started yet
@@ -213,6 +230,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background relative">
+      <StudioGraceBanner access={branding.studioAccess} />
       {/* Background Image with Overlay */}
       <div 
         className="fixed inset-0 bg-cover bg-center transition-[background-image] duration-700 ease-in-out"
@@ -357,7 +375,7 @@ const Index = () => {
           </div>
         </main>
 
-        {branding.featureConfig.kitchenChat && (
+        {effectiveFeatureConfig.kitchenChat && (
           <div data-chat-widget className="no-print">
             <ChatWidget />
           </div>

@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useBrandingAdmin } from '@/hooks/useBranding';
 import { AdminTabbedDashboard } from '@/components/admin/AdminTabbedDashboard';
 import { Button } from '@/components/ui/button';
@@ -9,9 +9,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Building2, Lock, Loader2, Check, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 
+const STUDIO_SLUG_KEY = 'kuechenready_admin_studio_slug';
+
 export default function AdminPage() {
+  const [searchParams] = useSearchParams();
   const {
     branding,
+    billing,
     isLoading,
     isAuthenticated,
     needsSetup,
@@ -21,22 +25,54 @@ export default function AdminPage() {
     uploadLogo,
     changePassword,
     getAnalytics,
+    refreshBilling,
+    sessionPassword,
     logout,
   } = useBrandingAdmin();
 
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [studioName, setStudioName] = useState('');
+  const [studioSlug, setStudioSlug] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    const fromUrl = searchParams.get('studio');
+    const stored = sessionStorage.getItem(STUDIO_SLUG_KEY);
+    if (fromUrl) {
+      setStudioSlug(fromUrl);
+      sessionStorage.setItem(STUDIO_SLUG_KEY, fromUrl);
+    } else if (stored) {
+      setStudioSlug(stored);
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    const billingParam = searchParams.get('billing');
+    if (billingParam === 'success') {
+      refreshBilling().then(() => {
+        toast.success('Zahlung erfolgreich — Ihr Abo ist aktiv.');
+      });
+    } else if (billingParam === 'cancel') {
+      toast.info('Checkout abgebrochen.');
+    }
+  }, [isAuthenticated, searchParams, refreshBilling]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!password) return;
     setIsSubmitting(true);
-    const ok = await verifyPassword(password);
+    const ok = await verifyPassword(password, studioSlug.trim() || undefined);
     setIsSubmitting(false);
-    if (ok) toast.success('Angemeldet');
-    else toast.error('Falsches Passwort');
+    if (ok) {
+      if (studioSlug.trim()) {
+        sessionStorage.setItem(STUDIO_SLUG_KEY, studioSlug.trim());
+      }
+      toast.success('Angemeldet');
+    } else {
+      toast.error('Falsches Passwort oder Studio nicht gefunden');
+    }
     setPassword('');
   };
 
@@ -76,14 +112,17 @@ export default function AdminPage() {
     );
   }
 
-  if (isAuthenticated) {
+  if (isAuthenticated && sessionPassword) {
     return (
       <AdminTabbedDashboard
         branding={branding}
+        billing={billing}
+        sessionPassword={sessionPassword}
         updateBranding={updateBranding}
         uploadLogo={uploadLogo}
         changePassword={changePassword}
         getAnalytics={getAnalytics}
+        refreshBilling={refreshBilling}
         logout={logout}
       />
     );
@@ -119,6 +158,12 @@ export default function AdminPage() {
                 Einrichten
               </Button>
             </form>
+            <p className="mt-4 text-center text-sm text-muted-foreground">
+              Neues Studio mit Abo?{' '}
+              <Link to="/start?plan=pro" className="underline hover:text-foreground">
+                Hier registrieren
+              </Link>
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -142,6 +187,17 @@ export default function AdminPage() {
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
+              <Label>Studio-Link (Slug)</Label>
+              <Input
+                value={studioSlug}
+                onChange={(e) => setStudioSlug(e.target.value)}
+                placeholder="z. B. vollmer-objektmoebel"
+              />
+              <p className="text-xs text-muted-foreground">
+                Nur nötig, wenn Sie mehrere Studios haben.
+              </p>
+            </div>
+            <div className="space-y-2">
               <Label>Passwort</Label>
               <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
             </div>
@@ -150,8 +206,11 @@ export default function AdminPage() {
               Anmelden
             </Button>
           </form>
-          <div className="mt-6 text-center">
-            <Link to="/" className="text-sm text-muted-foreground hover:text-foreground inline-flex items-center gap-1">
+          <div className="mt-6 flex flex-col gap-2 text-center text-sm text-muted-foreground">
+            <Link to="/start?plan=pro" className="hover:text-foreground underline">
+              Neues Studio registrieren
+            </Link>
+            <Link to="/" className="hover:text-foreground inline-flex items-center justify-center gap-1">
               <ArrowLeft className="w-4 h-4" />
               Zurück
             </Link>

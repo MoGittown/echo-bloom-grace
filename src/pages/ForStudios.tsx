@@ -124,6 +124,8 @@ const FEATURES = [
 const PRICING = [
   {
     name: 'Starter',
+    plan: 'starter' as const,
+    selfServe: true,
     price: '49 €',
     period: '/ Monat',
     desc: 'Der digitale Einstieg für Ihr Studio.',
@@ -134,10 +136,12 @@ const PRICING = [
       'DSGVO-konform (EU)',
     ],
     highlighted: false,
-    cta: 'Demo anfragen',
+    cta: 'Jetzt starten',
   },
   {
     name: 'Pro',
+    plan: 'pro' as const,
+    selfServe: true,
     price: '99 €',
     period: '/ Monat',
     desc: 'Für Studios, die voll digital auftreten.',
@@ -149,10 +153,12 @@ const PRICING = [
       'Priorisierter Support',
     ],
     highlighted: true,
-    cta: 'Demo anfragen',
+    cta: 'Jetzt starten',
   },
   {
     name: 'Premium',
+    plan: null,
+    selfServe: false,
     price: 'individuell',
     period: '',
     desc: 'Für Ketten & mehrere Standorte.',
@@ -435,7 +441,11 @@ export default function ForStudios() {
                 ))}
               </ul>
               <Button asChild className={`w-full ${p.highlighted ? 'text-white' : ''}`} variant={p.highlighted ? 'default' : 'outline'} style={p.highlighted ? { backgroundColor: BRAND } : {}}>
-                <a href={MAILTO}>{p.cta}</a>
+                {p.selfServe && p.plan ? (
+                  <Link to={`/start?plan=${p.plan}`}>{p.cta}</Link>
+                ) : (
+                  <a href={MAILTO}>{p.cta}</a>
+                )}
               </Button>
             </motion.div>
           ))}

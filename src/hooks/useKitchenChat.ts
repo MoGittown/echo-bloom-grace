@@ -106,7 +106,7 @@ export const useKitchenChat = () => {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
-        body: JSON.stringify({ messages: allMessages }),
+        body: JSON.stringify({ messages: allMessages, studioSlug: studioSlug ?? undefined }),
       });
 
       if (!resp.ok) {

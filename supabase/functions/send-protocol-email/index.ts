@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
 import { Resend } from "https://esm.sh/resend@2.0.0";
+import { assertStudioAccess } from "../_shared/planAccess.ts";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
@@ -23,20 +24,27 @@ function slugifyStudioName(name: string): string {
   );
 }
 
-async function resolveStudioEmail(studioSlug?: string): Promise<string | null> {
+async function resolveStudioRow(studioSlug?: string) {
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   if (!supabaseUrl || !serviceKey) return null;
   const supabase = createClient(supabaseUrl, serviceKey);
 
-  let query = supabase.from("studio_branding").select("contact_email");
+  let query = supabase
+    .from("studio_branding")
+    .select("contact_email, subscription_status, billing_grace_ends_at, plan");
   if (studioSlug && studioSlug.trim()) {
     query = query.eq("studio_slug", slugifyStudioName(studioSlug));
   } else {
     query = query.limit(1);
   }
   const { data } = await query.maybeSingle();
-  const email = (data as { contact_email?: string } | null)?.contact_email?.trim();
+  return data as Record<string, unknown> | null;
+}
+
+async function resolveStudioEmail(studioSlug?: string): Promise<string | null> {
+  const row = await resolveStudioRow(studioSlug);
+  const email = (row?.contact_email as string | undefined)?.trim();
   return email && email.length > 0 ? email : null;
 }
 
@@ -157,6 +165,22 @@ const handler = async (req: Request): Promise<Response> => {
 
     // SICHERHEIT: Empfänger wird serverseitig aus dem Branding bestimmt –
     // niemals aus dem Client-Payload. Verhindert Missbrauch als Spam-Relay.
+    const studioRow = await resolveStudioRow(studioSlug);
+    if (!studioRow) {
+      return new Response(
+        JSON.stringify({ error: "Studio not found." }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    const access = assertStudioAccess(studioRow);
+    if (!access.ok) {
+      return new Response(
+        JSON.stringify({ error: "Studio subscription is inactive." }),
+        { status: 403, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
     const recipientEmail = await resolveStudioEmail(studioSlug);
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!recipientEmail || recipientEmail.length > 254 || !emailRegex.test(recipientEmail)) {

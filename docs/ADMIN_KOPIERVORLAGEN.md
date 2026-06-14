@@ -127,7 +127,7 @@ Jetzt Küchen-Check starten
 
 ### Warum-Text
 ```
-Studios mit vorbereiteten Kunden können sofort mit der Planung beginnen – das spielt Ihnen Zeit und Nerven und führt zu besseren Ergebnissen.
+Mit ausgefüllter Checkliste startet Ihr Beratungstermin direkt mit der Planung – das spart Ihnen Zeit und Nerven und führt zu besseren Ergebnissen.
 ```
 
 ---
