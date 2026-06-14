@@ -77,7 +77,10 @@ jobs:
           grep -q '/assets/' dist/index.html
           ! grep -q '/src/main' dist/index.html
 
-      - name: Deploy to Hostinger via FTP
+      # Hostinger-FTP von GitHub-Runnern aus zeitweise ETIMEDOUT → bis zu 3 Versuche
+      - name: FTP Deploy (Versuch 1/3)
+        id: ftp1
+        continue-on-error: true
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.FTP_SERVER }}
@@ -87,9 +90,58 @@ jobs:
           port: 21
           timeout: 300000
           local-dir: ./dist/
-          # FTP-Root ist oft public_html → Addon-Domain ein Verzeichnis höher
           server-dir: ../domains/kuechenready.de/public_html/
           dangerous-clean-slate: true
+
+      - name: Warte vor FTP-Retry
+        if: steps.ftp1.outcome == 'failure'
+        run: sleep 90
+
+      - name: FTP Deploy (Versuch 2/3)
+        id: ftp2
+        if: steps.ftp1.outcome == 'failure'
+        continue-on-error: true
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftps
+          port: 21
+          timeout: 300000
+          local-dir: ./dist/
+          server-dir: ../domains/kuechenready.de/public_html/
+          dangerous-clean-slate: true
+
+      - name: Warte vor FTP-Retry
+        if: steps.ftp1.outcome == 'failure' && steps.ftp2.outcome == 'failure'
+        run: sleep 90
+
+      - name: FTP Deploy (Versuch 3/3)
+        id: ftp3
+        if: steps.ftp1.outcome == 'failure' && steps.ftp2.outcome == 'failure'
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftps
+          port: 21
+          timeout: 300000
+          local-dir: ./dist/
+          server-dir: ../domains/kuechenready.de/public_html/
+          dangerous-clean-slate: true
+
+      - name: FTP fehlgeschlagen (alle Versuche)
+        if: >-
+          always() &&
+          steps.ftp1.outcome != 'success' &&
+          steps.ftp2.outcome != 'success' &&
+          steps.ftp3.outcome != 'success'
+        run: |
+          echo "::error::Alle 3 FTP-Versuche fehlgeschlagen (ETIMEDOUT auf Port 21)."
+          echo "Hostinger-FTP ist oft nur von GitHub-Runnern aus instabil — in 5–10 Min. erneut „Re-run“."
+          exit 1
 
       - name: Live-Seite prüfen
         run: |
