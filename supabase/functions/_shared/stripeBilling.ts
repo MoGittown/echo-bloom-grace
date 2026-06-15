@@ -16,7 +16,7 @@ export type SubscriptionStatus =
   | "paused";
 
 export function getStripe(): Stripe {
-  const key = Deno.env.get("STRIPE_SECRET_KEY");
+  const key = Deno.env.get("STRIPE_SECRET_KEY")?.trim();
   if (!key) throw new Error("missing_stripe_secret_key");
   // Deno/Edge runtime needs the fetch-based HTTP client; the default Node
   // client fails with "An error occurred with our connection to Stripe".
