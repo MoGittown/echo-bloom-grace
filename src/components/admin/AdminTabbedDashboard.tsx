@@ -22,6 +22,7 @@ import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BillingPanel } from '@/components/admin/BillingPanel';
+import { DsgvoChecklist } from '@/components/admin/DsgvoChecklist';
 import { PlanUpgradeGate } from '@/components/admin/PlanUpgradeGate';
 import { resolveStudioAccess } from '@/lib/planFeatures';
 import { AnalyticsPanel } from '@/components/admin/AnalyticsPanel';
