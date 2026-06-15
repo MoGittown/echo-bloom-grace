@@ -1,4 +1,4 @@
-import Stripe from "https://esm.sh/stripe@17.5.0?target=deno";
+import Stripe from "npm:stripe@17.5.0";
 import type { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
 import { canAccessStudio, graceEndsAtFromNow, type SubscriptionStatus } from "./planAccess.ts";
 
