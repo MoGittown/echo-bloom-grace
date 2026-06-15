@@ -26,17 +26,21 @@ export function getStripe(): Stripe {
   });
 }
 
+function envTrim(name: string): string | null {
+  return Deno.env.get(name)?.trim() || null;
+}
+
 export function priceIdForPlan(plan: SubscriptionPlan): string | null {
-  if (plan === "starter") return Deno.env.get("STRIPE_PRICE_STARTER") ?? null;
-  if (plan === "pro") return Deno.env.get("STRIPE_PRICE_PRO") ?? null;
-  if (plan === "premium") return Deno.env.get("STRIPE_PRICE_PREMIUM") ?? null;
+  if (plan === "starter") return envTrim("STRIPE_PRICE_STARTER");
+  if (plan === "pro") return envTrim("STRIPE_PRICE_PRO");
+  if (plan === "premium") return envTrim("STRIPE_PRICE_PREMIUM");
   return null;
 }
 
 export function planFromPriceId(priceId: string): SubscriptionPlan | null {
-  const starter = Deno.env.get("STRIPE_PRICE_STARTER");
-  const pro = Deno.env.get("STRIPE_PRICE_PRO");
-  const premium = Deno.env.get("STRIPE_PRICE_PREMIUM");
+  const starter = envTrim("STRIPE_PRICE_STARTER");
+  const pro = envTrim("STRIPE_PRICE_PRO");
+  const premium = envTrim("STRIPE_PRICE_PREMIUM");
   if (priceId === starter) return "starter";
   if (priceId === pro) return "pro";
   if (priceId === premium) return "premium";

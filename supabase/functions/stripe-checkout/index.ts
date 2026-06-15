@@ -118,29 +118,6 @@ serve(async (req) => {
     const action = body.action as string | undefined;
     const supabase = createServiceClient();
 
-    if (action === "diag-stripe") {
-      const raw = Deno.env.get("STRIPE_SECRET_KEY") ?? "";
-      const diag: Record<string, unknown> = {
-        present: Boolean(raw),
-        len: raw.length,
-        trimmedLen: raw.trim().length,
-        prefix: raw.slice(0, 8),
-        hasWhitespace: /\s/.test(raw),
-        priceStarter: Boolean(Deno.env.get("STRIPE_PRICE_STARTER")),
-        pricePro: Boolean(Deno.env.get("STRIPE_PRICE_PRO")),
-      };
-      try {
-        const stripe = getStripe();
-        const prices = await stripe.prices.list({ limit: 1 });
-        diag.stripeOk = true;
-        diag.priceCount = prices.data.length;
-      } catch (e) {
-        diag.stripeOk = false;
-        diag.stripeErr = e instanceof Error ? `${e.name}: ${e.message}` : String(e);
-      }
-      return jsonResponse({ success: true, diag });
-    }
-
     if (action === "create-sales-checkout") {
       if (!verifySalesKey(body.salesKey as string | undefined)) {
         return jsonResponse({ success: false, error: "invalid_sales_key" }, 403);
@@ -364,5 +341,3 @@ serve(async (req) => {
     return jsonResponse({ success: false, error: message }, 500);
   }
 });
-
-// redeploy trigger

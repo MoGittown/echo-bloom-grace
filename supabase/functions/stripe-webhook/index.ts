@@ -37,7 +37,7 @@ serve(async (req) => {
     return jsonResponse({ success: false, error: "method_not_allowed" }, 405);
   }
 
-  const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET");
+  const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET")?.trim();
   if (!webhookSecret) {
     console.error("STRIPE_WEBHOOK_SECRET missing");
     return jsonResponse({ error: "webhook_not_configured" }, 500);
