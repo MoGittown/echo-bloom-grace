@@ -18,7 +18,12 @@ export type SubscriptionStatus =
 export function getStripe(): Stripe {
   const key = Deno.env.get("STRIPE_SECRET_KEY");
   if (!key) throw new Error("missing_stripe_secret_key");
-  return new Stripe(key, { apiVersion: "2024-11-20.acacia" });
+  // Deno/Edge runtime needs the fetch-based HTTP client; the default Node
+  // client fails with "An error occurred with our connection to Stripe".
+  return new Stripe(key, {
+    apiVersion: "2024-11-20.acacia",
+    httpClient: Stripe.createFetchHttpClient(),
+  });
 }
 
 export function priceIdForPlan(plan: SubscriptionPlan): string | null {
