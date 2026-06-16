@@ -98,7 +98,7 @@ export async function syncSubscriptionToStudio(
 ) {
   const { data: existing } = await supabase
     .from("studio_branding")
-    .select("billing_grace_ends_at")
+    .select("billing_grace_ends_at, subscribed_at")
     .eq("studio_slug", studioSlug)
     .maybeSingle();
 
@@ -107,13 +107,29 @@ export async function syncSubscriptionToStudio(
   const trialEnd = subscription.trial_end
     ? new Date(subscription.trial_end * 1000).toISOString()
     : null;
+  // current_period_end liegt je nach API-Shape am Top-Level oder am Item.
+  const periodEndUnix =
+    (subscription as { current_period_end?: number }).current_period_end ??
+    subscription.items?.data?.[0]?.current_period_end ??
+    null;
+  const currentPeriodEnd = periodEndUnix
+    ? new Date(periodEndUnix * 1000).toISOString()
+    : null;
 
   const patch: Record<string, unknown> = {
     stripe_subscription_id: subscription.id,
     subscription_status: status,
     trial_ends_at: trialEnd,
+    current_period_end: currentPeriodEnd,
     updated_at: new Date().toISOString(),
   };
+  // "abonniert seit" einmalig setzen, sobald das Abo erstmals greift.
+  if (
+    (status === "active" || status === "trialing") &&
+    !existing?.subscribed_at
+  ) {
+    patch.subscribed_at = new Date().toISOString();
+  }
   if (status === "active" || status === "trialing") {
     patch.billing_grace_ends_at = null;
   } else if (status === "past_due") {

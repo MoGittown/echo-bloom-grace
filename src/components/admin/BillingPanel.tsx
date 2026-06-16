@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { CreditCard, ExternalLink, Loader2, RefreshCw } from 'lucide-react';
+import { CreditCard, ExternalLink, Loader2, RefreshCw, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { createCheckoutSession, createPortalSession } from '@/lib/billingApi';
@@ -208,6 +208,30 @@ export function BillingPanel({ billing, studioSlug, sessionPassword, onRefresh }
               Die letzte Zahlung ist fehlgeschlagen. Bitte aktualisieren Sie Ihre Zahlungsmethode im
               Kundenportal.
             </p>
+          )}
+
+          {canManagePortal && !isLegacy && status !== 'canceled' && (
+            <div className="space-y-2 pt-2 border-t">
+              <p className="text-sm font-medium">Abo kündigen</p>
+              <p className="text-sm text-muted-foreground">
+                Ihr Abo ist <strong>monatlich kündbar</strong>. Die Kündigung erledigen Sie selbst und
+                jederzeit im Stripe-Kundenportal. Ihr Zugang bleibt bis zum Ende der bereits bezahlten
+                Periode aktiv.
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={loading !== null}
+                onClick={openPortal}
+              >
+                {loading === 'portal' ? (
+                  <Loader2 className="w-4 h-4 animate-spin mr-1" />
+                ) : (
+                  <XCircle className="w-4 h-4 mr-1" />
+                )}
+                Abo im Kundenportal kündigen
+              </Button>
+            </div>
           )}
         </CardContent>
       </Card>

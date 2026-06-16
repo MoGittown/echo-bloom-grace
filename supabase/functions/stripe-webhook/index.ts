@@ -9,6 +9,42 @@ import {
   syncSubscriptionToStudio,
 } from "../_shared/stripeBilling.ts";
 import { graceEndsAtFromNow } from "../_shared/planAccess.ts";
+import {
+  sendCancellationEmail,
+  sendOperatorNewSubscriptionEmail,
+  sendPaymentFailedEmail,
+  sendRenewalReminderEmail,
+  sendStudioWelcomeEmail,
+  type StudioContact,
+} from "../_shared/billingEmails.ts";
+
+type StudioContactRow = StudioContact & { studioSlug: string | null };
+
+/** Lädt die Kontaktdaten eines Studios (für Mails) per Slug oder Customer-ID. */
+async function fetchStudioContact(
+  supabase: ReturnType<typeof createServiceClient>,
+  by: { slug?: string | null; customerId?: string | null },
+): Promise<StudioContactRow | null> {
+  let query = supabase
+    .from("studio_branding")
+    .select("studio_name, display_app_name, billing_email, contact_email, plan, studio_slug");
+  if (by.slug) {
+    query = query.eq("studio_slug", by.slug);
+  } else if (by.customerId) {
+    query = query.eq("stripe_customer_id", by.customerId);
+  } else {
+    return null;
+  }
+  const { data } = await query.maybeSingle();
+  if (!data) return null;
+  const r = data as Record<string, unknown>;
+  return {
+    studioName: (r.display_app_name as string | null) || (r.studio_name as string | null) || null,
+    email: (r.billing_email as string | null) || (r.contact_email as string | null) || null,
+    plan: (r.plan as string | null) ?? null,
+    studioSlug: (r.studio_slug as string | null) ?? null,
+  };
+}
 
 async function resolveStudioSlug(
   supabase: ReturnType<typeof createServiceClient>,
@@ -85,6 +121,15 @@ serve(async (req) => {
           const subscription = await stripe.subscriptions.retrieve(subscriptionId);
           await syncSubscriptionToStudio(supabase, studioSlug, subscription, customerId ?? undefined);
         }
+
+        // E-Mails: Willkommen ans Studio + Benachrichtigung an den Betreiber.
+        if (studioSlug) {
+          const contact = await fetchStudioContact(supabase, { slug: studioSlug });
+          if (contact) {
+            await sendStudioWelcomeEmail(contact);
+            await sendOperatorNewSubscriptionEmail(contact);
+          }
+        }
         break;
       }
 
@@ -117,9 +162,13 @@ serve(async (req) => {
               stripe_subscription_id: null,
               trial_ends_at: null,
               billing_grace_ends_at: null,
+              current_period_end: null,
               updated_at: new Date().toISOString(),
             })
             .eq("studio_slug", studioSlug);
+
+          const contact = await fetchStudioContact(supabase, { slug: studioSlug });
+          if (contact) await sendCancellationEmail(contact);
         }
         break;
       }
@@ -138,6 +187,34 @@ serve(async (req) => {
               updated_at: new Date().toISOString(),
             })
             .eq("stripe_customer_id", customerId);
+
+          const contact = await fetchStudioContact(supabase, { customerId });
+          if (contact) await sendPaymentFailedEmail(contact);
+        }
+        break;
+      }
+
+      case "invoice.upcoming": {
+        // Erinnerung ~1 Woche vor Verlängerung (Vorlauf wird in Stripe konfiguriert).
+        const invoice = event.data.object as Stripe.Invoice;
+        const customerId = typeof invoice.customer === "string"
+          ? invoice.customer
+          : invoice.customer?.id ?? null;
+        if (customerId) {
+          const contact = await fetchStudioContact(supabase, { customerId });
+          if (contact) {
+            const renewalUnix = invoice.next_payment_attempt ?? invoice.period_end ?? null;
+            const renewalDate = renewalUnix
+              ? new Date(renewalUnix * 1000).toISOString()
+              : null;
+            const amountText = typeof invoice.amount_due === "number"
+              ? `${(invoice.amount_due / 100).toLocaleString("de-DE", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })} ${(invoice.currency ?? "eur").toUpperCase()}`
+              : null;
+            await sendRenewalReminderEmail(contact, { renewalDate, amountText });
+          }
         }
         break;
       }

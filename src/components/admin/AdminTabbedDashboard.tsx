@@ -22,6 +22,8 @@ import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BillingPanel } from '@/components/admin/BillingPanel';
+import { PlatformOverviewPanel } from '@/components/admin/PlatformOverviewPanel';
+import { BrandColorPreview } from '@/components/admin/BrandColorPreview';
 import { DsgvoChecklist } from '@/components/admin/DsgvoChecklist';
 import { PlanUpgradeGate } from '@/components/admin/PlanUpgradeGate';
 import { resolveStudioAccess } from '@/lib/planFeatures';
@@ -177,6 +179,9 @@ export function AdminTabbedDashboard({
             <TabsTrigger value="billing">Abo</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="security">Sicherheit</TabsTrigger>
+            {branding.isPlatformAdmin && (
+              <TabsTrigger value="platform">Plattform</TabsTrigger>
+            )}
           </TabsList>
 
           <TabsContent value="general" className="space-y-4">
@@ -235,6 +240,11 @@ export function AdminTabbedDashboard({
                     <button key={c} type="button" className="w-8 h-8 rounded-full border" style={{ background: c }} onClick={() => setForm({ ...form, primaryColor: c })} />
                   ))}
                 </div>
+                <BrandColorPreview
+                  primary={form.primaryColor}
+                  secondary={form.secondaryColor}
+                  accent={form.accentColor}
+                />
                 <TextField label="Onboarding-Text" value={form.studioSettings.content.onboardingText} onChange={(v) => setForm({
                   ...form,
                   studioSettings: { ...form.studioSettings, content: { ...form.studioSettings.content, onboardingText: v } },
@@ -492,6 +502,15 @@ export function AdminTabbedDashboard({
             </Card>
             </PlanUpgradeGate>
           </TabsContent>
+
+          {branding.isPlatformAdmin && (
+            <TabsContent value="platform" className="space-y-4">
+              <PlatformOverviewPanel
+                studioSlug={branding.studioSlug}
+                sessionPassword={sessionPassword}
+              />
+            </TabsContent>
+          )}
 
           <TabsContent value="security" className="space-y-4">
             <Card>

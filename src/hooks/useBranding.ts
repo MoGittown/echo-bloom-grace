@@ -72,6 +72,7 @@ export interface BrandingData {
   studioSettings: StudioSettings;
   featureConfig: FeatureConfig;
   studioAccess: StudioAccess;
+  isPlatformAdmin: boolean;
 }
 
 const DEFAULT_LANDING: LandingPageData = {
@@ -108,6 +109,7 @@ const DEFAULT_BRANDING: BrandingData = {
   studioSettings: DEFAULT_STUDIO_SETTINGS,
   featureConfig: DEFAULT_FEATURE_CONFIG,
   studioAccess: resolveStudioAccess({ subscriptionStatus: 'legacy' }),
+  isPlatformAdmin: false,
 };
 
 // Helper to convert hex to HSL
@@ -246,6 +248,7 @@ function parseBrandingData(data: any): BrandingData {
       website: data.contact_website || null,
     },
     studioAccess: parseStudioAccessFromBranding(data),
+    isPlatformAdmin: data.is_platform_admin === true,
   };
 }
 

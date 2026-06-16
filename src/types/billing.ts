@@ -33,6 +33,17 @@ export const PLAN_PRICES: Record<SubscriptionPlan, string> = {
   premium: 'individuell',
 };
 
+/**
+ * Monatlicher Netto-Listenpreis je Tarif in Euro – Basis für die MRR-Berechnung
+ * in der Betreiber-Übersicht. `premium` ist individuell verhandelt und fließt
+ * daher nicht automatisch in die MRR ein (null).
+ */
+export const PLAN_MONTHLY_EUR: Record<SubscriptionPlan, number | null> = {
+  starter: 49,
+  pro: 99,
+  premium: null,
+};
+
 export const STATUS_LABELS: Record<SubscriptionStatus, string> = {
   legacy: 'Bestandskunde',
   trialing: 'Testphase',

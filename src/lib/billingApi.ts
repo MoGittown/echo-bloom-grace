@@ -116,6 +116,41 @@ export async function createSalesCheckout(params: {
   };
 }
 
+export interface PlatformStudio {
+  studioName: string;
+  studioSlug: string | null;
+  plan: SubscriptionPlan | null;
+  subscriptionStatus: string;
+  subscribedAt: string | null;
+  trialEndsAt: string | null;
+  currentPeriodEnd: string | null;
+  billingGraceEndsAt: string | null;
+  billingEmail: string | null;
+  isPlatformAdmin: boolean;
+  createdAt: string | null;
+}
+
+export type PlatformOverviewResult =
+  | { ok: true; studios: PlatformStudio[] }
+  | { ok: false; error: string };
+
+export async function fetchPlatformOverview(params: {
+  password: string;
+  studioSlug: string;
+}): Promise<PlatformOverviewResult> {
+  const { data, error } = await supabase.functions.invoke('platform-overview', {
+    body: {
+      password: params.password,
+      studioSlug: params.studioSlug,
+    },
+  });
+
+  if (error || !data?.success) {
+    return { ok: false, error: data?.error ?? error?.message ?? 'platform_overview_failed' };
+  }
+  return { ok: true, studios: (data.studios as PlatformStudio[]) ?? [] };
+}
+
 export type RegisterResult =
   | { ok: true; url: string; studioSlug: string }
   | { ok: false; error: string };
